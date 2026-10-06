@@ -69,3 +69,24 @@ describe("mockSwapLogs (simulated swap)", () => {
     expect(Number(s.amount1) / 1e18).toBeCloseTo(1 - 0.00105, 9);
   });
 });
+
+describe("writeReadiness", () => {
+  it("disables on-chain writes with a clear reason while the contracts are not deployed (the fixture)", async () => {
+    const { writeReadiness } = await import("./tx");
+    const { parseDeployments } = await import("./deployments");
+    const fixture = (await import("../fixtures/deployments.sepolia.json")).default;
+    const r = writeReadiness(parseDeployments(fixture), "swap");
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/not deployed/);
+  });
+});
+
+describe("mockStep", () => {
+  it("signs, reports a deterministic hash, then returns the simulated logs", async () => {
+    const { mockStep, mockTxHash } = await import("./tx");
+    const seen: string[] = [];
+    const out = await mockStep("Swap on pool V", 3, [], { signMs: 0, mineMs: 0 }).run((h) => seen.push(h), () => {});
+    expect(seen).toEqual([mockTxHash("Swap on pool V", 3)]);
+    expect(out).toEqual([]);
+  });
+});

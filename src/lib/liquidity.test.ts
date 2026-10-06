@@ -76,3 +76,28 @@ describe("shareOf and proRata", () => {
     expect(proRata(row, 0.1)).toEqual({ feeRetailUsd: 50, feeArbUsd: 30, arbUsd: 20, lvrUsd: 48, netUsd: 30 });
   });
 });
+
+describe("positionView", () => {
+  it("values the position, its fees and its P&L against the same position in the twin pool", async () => {
+    const { positionView } = await import("./liquidity");
+    const row = (net: number, fees: number): PnlRow => ({
+      swaps: 1, arbSwaps: 1, unpricedSwaps: 0, volumeUsd: 1, feeArbUsd: fees / 2, feeRetailUsd: fees / 2, arbUsd: 1, lvrUsd: 1, netUsd: net,
+    });
+    const { tickLower, tickUpper } = fullRangeTicks(60);
+    const L = liquidityForEth(1e18, 50, tickLower, tickUpper, true);
+    const v = positionView({
+      pool: "V", liquidity: L, poolLiquidity: 100 * L, sqrtP: 50, tickLower, tickUpper, token0IsEth: true, ethUsd: 2_500,
+      rowSame: row(400, 1_000), rowOther: row(250, 900), sinceSec: 123,
+    });
+    expect(v.share).toBeCloseTo(0.01, 12);
+    expect(v.valueUsd).toBeCloseTo(5_000, 1);
+    expect(v.feesUsd).toBeCloseTo(10, 9);
+    expect(v.feesSource).toBe("pro rata");
+    expect(v.pnlUsd).toBeCloseTo(4, 9);
+    expect(v.pnlOtherUsd).toBeCloseTo(2.5, 9);
+    expect(v.otherPool).toBe("S");
+    const withOnChainFees = positionView({ ...v, liquidity: L, poolLiquidity: 100 * L, sqrtP: 50, tickLower, tickUpper, token0IsEth: true, ethUsd: 2_500, rowSame: row(400, 1_000), rowOther: row(250, 900), sinceSec: 123, feesUsdOnChain: 7 });
+    expect(withOnChainFees.feesUsd).toBe(7);
+    expect(withOnChainFees.feesSource).toBe("on-chain");
+  });
+});

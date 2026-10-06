@@ -3,6 +3,7 @@
 // pool's P&L explain (src/lib/pnl.ts). Amounts are raw 18-decimal units (tETH and tUSD).
 import { type Address, type Hex, pad } from "viem";
 import type { PnlRow } from "./pnl";
+import type { PoolName } from "./swap";
 
 export const MIN_TICK = -887_272;
 export const MAX_TICK = 887_272;
@@ -77,3 +78,60 @@ export function proRata(row: PnlRow, share: number): PnlShare {
     netUsd: row.netUsd * share,
   };
 }
+
+export type PositionView = {
+  pool: PoolName;
+  /** The twin pool, for "your P&L if you had been there". */
+  otherPool: PoolName;
+  liquidity: number;
+  share: number;
+  amountEth: number;
+  amountUsd: number;
+  valueUsd: number;
+  feesUsd: number;
+  /** On-chain: uncollected fees from feeGrowthInside. Pro rata: share of the pool's fees since `sinceSec`. */
+  feesSource: "on-chain" | "pro rata";
+  /** Share of the pool's hedged LP P&L (FEE_retail - ARB, pnl.ts) since `sinceSec`. */
+  pnlUsd: number;
+  /** The same liquidity in the twin pool over the same period. */
+  pnlOtherUsd: number;
+  sinceSec: number;
+};
+
+/** The user's position: value at the pool price, fees, and P&L against the same position in the twin pool. */
+export function positionView(o: {
+  pool: PoolName;
+  liquidity: number;
+  poolLiquidity: number;
+  otherPoolLiquidity?: number;
+  sqrtP: number;
+  tickLower: number;
+  tickUpper: number;
+  token0IsEth: boolean;
+  ethUsd: number;
+  rowSame: PnlRow;
+  rowOther: PnlRow;
+  sinceSec: number;
+  feesUsdOnChain?: number;
+}): PositionView {
+  const share = shareOf(o.liquidity, o.poolLiquidity);
+  const { amount0, amount1 } = amountsForLiquidity(o.liquidity, o.sqrtP, o.tickLower, o.tickUpper);
+  const [ethRaw, usdRaw] = o.token0IsEth ? [amount0, amount1] : [amount1, amount0];
+  const same = proRata(o.rowSame, share);
+  const other = proRata(o.rowOther, shareOf(o.liquidity, o.otherPoolLiquidity ?? o.poolLiquidity));
+  return {
+    pool: o.pool,
+    otherPool: o.pool === "V" ? "S" : "V",
+    liquidity: o.liquidity,
+    share,
+    amountEth: ethRaw / 1e18,
+    amountUsd: usdRaw / 1e18,
+    valueUsd: valueUsd(ethRaw, usdRaw, o.ethUsd),
+    feesUsd: o.feesUsdOnChain ?? same.feeRetailUsd + same.feeArbUsd,
+    feesSource: o.feesUsdOnChain === undefined ? "pro rata" : "on-chain",
+    pnlUsd: same.netUsd,
+    pnlOtherUsd: other.netUsd,
+    sinceSec: o.sinceSec,
+  };
+}
+

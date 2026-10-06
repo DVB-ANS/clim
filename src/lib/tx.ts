@@ -1,12 +1,49 @@
 // The transaction flow of /swap and /lp: step states, receipt logs in plan 05's RawLog shape (so the
 // dashboard's decoders read them), and the simulated flow used while the contracts are not deployed.
 import { type Address, type Hex, keccak256, numberToHex, toHex, type TransactionReceipt } from "viem";
+import type { Deployments } from "./deployments";
 import { encodeSwapLog, type RawLog } from "./encode";
 import { estimateOut, type SwapPlan } from "./swap";
 import { ethUsdToTick } from "./units";
 
 export type StepStatus = "waiting" | "signing" | "pending" | "done" | "failed";
-export type StepState = { label: string; status: StepStatus; hash?: Hex; error?: string };
+export type StepState = { label: string; status: StepStatus; hash?: Hex; error?: string; note?: string };
+
+/** One transaction of a flow: run() asks for the signature, reports the hash, resolves once mined. */
+export type FlowStep = {
+  label: string;
+  run: (onHash: (hash: Hex) => void, onNote: (note: string) => void) => Promise<RawLog[] | void>;
+};
+
+/** On-chain writes need the live pair, the tokens and the routers; until then they stay off, with this reason. */
+export function writeReadiness(d: Deployments, needs: "swap" | "lp" | "faucet"): { ok: boolean; reason?: string } {
+  if (!d.pairs.live) {
+    return {
+      ok: false,
+      reason: "Contracts not deployed yet: shared/deployments/sepolia.json has no live pair. The simulated mode walks through the same steps.",
+    };
+  }
+  if (!d.tokens.tETH || !d.tokens.tUSD) return { ok: false, reason: "Test tokens not deployed yet (tokens.tETH and tokens.tUSD are null)." };
+  if (needs === "lp" && !d.uniswap.poolModifyLiquidityTest) {
+    return { ok: false, reason: "The PoolModifyLiquidityTest address is missing from the deployments." };
+  }
+  return { ok: true };
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** A simulated step: "signed" after signMs, "mined" mineMs later, with a deterministic hash. */
+export function mockStep(label: string, n: number, logs?: RawLog[], delays = { signMs: 700, mineMs: 1_400 }): FlowStep {
+  return {
+    label,
+    run: async (onHash) => {
+      await sleep(delays.signMs);
+      onHash(mockTxHash(label, n));
+      await sleep(delays.mineMs);
+      return logs;
+    },
+  };
+}
 
 /** A receipt's logs in the eth_getLogs shape (hex fields) that decode.ts reads. */
 export function receiptLogs(receipt: Pick<TransactionReceipt, "logs">, blockTimestamp?: number): RawLog[] {
