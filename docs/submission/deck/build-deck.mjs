@@ -65,7 +65,7 @@ export function fitVideo(src, budgetMb, outFile) {
 }
 
 export function posterFrame(video, outPng) {
-  const at = Math.min(1, probe(video).duration / 2).toFixed(2);
+  const at = Math.min(3, probe(video).duration / 2).toFixed(2); // past a fade-in, inside short clips
   execFileSync("ffmpeg", ["-nostdin", "-y", "-v", "error", "-ss", at, "-i", video, "-frames:v", "1", outPng]);
   return `image/png;base64,${fs.readFileSync(outPng).toString("base64")}`;
 }
