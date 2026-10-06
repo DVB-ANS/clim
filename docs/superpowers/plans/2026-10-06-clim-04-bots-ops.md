@@ -43,7 +43,7 @@
 2. **`shared/params.json`** (written by the lab decision, plan 03, spec 2.6): `pStar, etaE4, sqrtHalfDtE6, feeMinPips, feeMaxPips, feeSafePips, tauKillSec, decidedBy` are read here; the lab also writes `staticFeePips`, `replayStaticFeePips` (plan 01's S pools) and `decidedAt`, which `parseParams` ignores. `parseParams` enforces `|etaE4 - round((1/pStar - 0.824) * 1e4)| <= 1` and `0 < feeMinPips <= feeSafePips <= feeMaxPips <= 1,000,000` (the hook constructor's bounds). This plan commits a bootstrap file whose `decidedBy` starts with `PROVISIONAL`; plan 01's hook deploy script must refuse to deploy while it does (helper `isProvisional`, which also flags a `FIXTURE` prefix, as the master plan requires). Both hooks (live and replay) are deployed from the same `params.json`, since `status.ts` checks either pair against it.
 3. **Fee formula mirror** (`feePips`, `quoteFeeMirror` in `shared/src/units.ts`) = spec 3.6. Shared test vectors (sqrtHalfDtE6 2,449,490, kE4 10,000), to be reused by plan 01's Foundry tests: 48 %/yr = sigmaE9 85,475 with etaE4 91,761 gives **1,922 pips** (unrounded 1,921.2: the "1,921" quoted in the design brief is not the ceiling); 25 %/yr = 44,518 gives 1,001; 100 %/yr = 178,072 gives 1,822 (P\* 20 %, etaE4 41,760) and 1,095 (P\* 30 %, etaE4 25,093); 225 %/yr = 400,663 gives 4,099 and 2,463; 46 %/yr = 81,913 at P\* 30 % gives 504; SIGMA_MAX 1,780,730 at P\* 20 % gives raw 18,216, capped to 15,000; k = 2.0 at 100 %/yr, P\* 30 % gives 2,190; an exact product (10,000 x 10,000 x 1,000,000 x 10,000) gives 10 and one more unit of sigma gives 11. Annual sigma to sigmaE9 rounds to nearest (100 %/yr is 178,072, not 178,073). `status.ts` compares the deployed hook's `quoteFee()` with the mirror on every block.
 4. **TestToken** (plan 01): ERC-20, 18 decimals, `mint(address to, uint256 amount)` callable only by the deployer (`onlyOwner`), plus a public `faucet()` (10 tETH or 25,000 tUSD per address per hour) that plan 05's `/swap` and `/lp` pages use; `fund.ts` mints from the deployer key.
-5. **ABIs:** plan 01 Task 14 runs its own `contracts/script/export-abis.sh` (bare ABI arrays for RiskDesk, IRiskDesk, ClimHook, TestToken, IPoolManager, IStateView, PoolSwapTest, PoolModifyLiquidityTest); `bun run --cwd shared export-abis` (Task 5) writes the same three files this package needs and can be used instead; `shared/test/abis.test.ts` then fails if the hand-written fragments drift from the compiled contracts.
+5. **ABIs:** plan 01 Task 14's `contracts/script/export-abis.sh` is the only exporter: it writes bare ABI arrays to `shared/abis/` for RiskDesk, IRiskDesk, ClimHook, TestToken, IPoolManager, IStateView, PoolSwapTest and PoolModifyLiquidityTest, including the three this package checks (RiskDesk, ClimHook, TestToken); `shared/test/abis.test.ts` then fails if the hand-written fragments drift from the compiled contracts. (Task 5's `shared/scripts/export-abis.ts`, a three-contract subset, and its `export-abis` script were removed on 2026-10-07, commit `5ed36a8`.)
 6. **CRE loop and log lines (plan 02), transcripts (plan 06):** `cre/scripts/sim-loop.sh <staging-settings|replay-settings> --broadcast`, run from `cre/`, prints `=== <UTC time>` before each run and the workflow's `[USER LOG]` lines plus any line containing `rror` and the CLI's failure lines marked `✗` (for example `✗ Credential validation failed`). `bots/src/lib/simParse.ts` reads the workflow's final lines: `REPORT applied ... tx=0x..`, `REPORT sent, desk state unreadable after tx=0x..`, `NOT APPLIED: ... tx=0x..`, `REJECTED by RiskDesk (onReport reverted) tx=0x..`, `clim: no report (<reason>)`, `DRY RUN: ...`. The CRE template's `Write report transaction succeeded: 0x..` comes before the final line, so it is kept in the transcript but does not end the run; when the simulator loses the final line, the run keeps that line's tx. For a run with a tx the receipt decides `applied`: the forwarder's `ReportProcessed.result` true and a `RiskReported` from the desk in that tx (`statusFromReceipt: true` when this overrides the workflow's line, which stays in `detail`). If plan 02 changes these words, change `RULES` in `simParse.ts` and its test in the same commit. `bun run cre-loop` writes each run's transcript (from its `===` line to its last line, which carries `tx=0x...`) to `bots/out/cre-sim/<pair>-<run start>.log`: the "one file per `cre workflow simulate` run" that plan 06's evidence collector reads (they hold the loop's filtered stdout; the complete CLI output is in plan 02's `cre/logs/`).
 7. **Replay (plans 02 and 03):** plan 03 writes `lab/out/replay-window.json` = `{ symbol: "ETHUSDT", source, startTs, stepSec: 1, warmupSec, closes }`: `startTs` on a minute boundary, `warmupSec` a multiple of 60 and >= 1260 (use 1800: 2026-02-04 11:30 to 16:00 UTC, 16,200 closes, about 128 KB, no gap in `lab/data/b1s_feb.csv`), one close per second, forward-filled, length a multiple of 60. The server maps the main start (12:00 UTC) to the wall-clock minute it starts on and then runs at 1x. **Plan 02's replay mode reads `GET /venue/<venue>/api/v3/klines?symbol=ETHUSDT&interval=1m&limit=20`** (one call per configured venue): Binance 1m klines whose open and close times are shifted to the wall clock (`+offsetSec`, a multiple of 60), so the workflow's freshness rule works with DON time. Every venue path returns the same series, so the quorum is met by construction, dispersion is 0 and `dvolE2 = 0`; the replay desk's REPLAY flag discloses it. The plan 00 integration check ran this route through plan 02's parser and estimator: all 479 replay reports from 12:00:30 reproduce the lab's `points[].rv15E9` exactly. `GET /api/v3/ticker/price?symbol=ETHUSDT` gives the replay arbitrageur its market price; `GET /api/v3/klines` (historical times) and `GET /snapshot` (`{ nowSec, usdtUsd: 1, dvol: null, venues: [binance-replay-1..4] }` in historical time) are diagnostics.
 8. **Importing `shared/` from `cre/`:** `shared/src/units.ts` has no dependency and can be imported by relative path (`../../shared/src/units`); `shared/src/report.ts` imports viem, which Bun resolves from the root `node_modules` only after a root `bun install`. The desk's rounding rule is `sigmaE9 = Math.round(rv15PerSqrtSecond * 1e9)`.
@@ -55,8 +55,8 @@
 - Sepolia bytecode present (`cast code <addr> --rpc-url https://ethereum-sepolia-rpc.publicnode.com | wc -c`) at PoolManager `0xE03A1074c86CFeDd5C142C4F04F1a1536e203543`, StateView `0xE1Dd9c3fA50EDB962E442f60DfBc432e24537E4C`, PoolSwapTest `0x9B6b46e2c869aa39918Db7f52f5557FE577B6eEe`, PoolModifyLiquidityTest `0x0C478023803a644c94c4CE1C1e7b9A087e411B0A`, MockKeystoneForwarder `0x15fC6ae953E024d975e77382eEeC56A9101f9F88`, KeystoneForwarder `0xF8344CFd5c43616a4366C34E3EEE75af79a74482`, Multicall3 `0xcA11bde05977b3631167028862bE2a173976CA11`. `StateView.poolManager()`, `PoolSwapTest.manager()` and `PoolModifyLiquidityTest.manager()` all return the PoolManager above. Selectors `0x2229d0b4` (PoolSwapTest.swap) and `0xc815641c` (StateView.getSlot0) are in the deployed bytecode.
 - `PoolSwapTest.swap(PoolKey, SwapParams{zeroForOne, amountSpecified, sqrtPriceLimitX96}, TestSettings{takeClaims, settleUsingBurn}, bytes)` and its settlement (`transferFrom(msg.sender, manager, amount)`, so approve PoolSwapTest) read in `Uniswap/v4-core` `src/test/PoolSwapTest.sol` and `test/utils/CurrencySettler.sol`; a negative `amountSpecified` is exact input; `Pool.swap` reverts `PriceLimitAlreadyExceeded` unless the limit is strictly beyond the current price in the swap direction.
 - MockKeystoneForwarder source (Sourcify, verified): `report()` is permissionless, slices `rawReport[45:109]` as metadata and `rawReport[109:]` as the report, calls `onReport` through `route()`, emits `ReportProcessed(receiver, executionId, reportId, result)` and does not revert when the receiver reverts.
-- Spec Appendix B question 1 answered on-chain: `cre workflow simulate --broadcast` sends `report()` from the `CRE_ETH_PRIVATE_KEY` account straight to the mock forwarder (Sepolia tx `0xe57a006e7585984137cb5064d6be6fc7b9353194760178b85a78274c8785fa2c`: from an EOA, selector `0x11289565`, gas used 185,913), so `tx.origin` is the operator and the RiskDesk SIM guard works. Its metadata carries placeholders (workflowCid `0x11...11`, workflowName 10 bytes, owner `0xaa...aa`, header timestamp 100), which is why the spec keeps the workflow-identity checks off in simulation.
-- All the code below was typechecked (`tsc --noEmit`) and unit-tested (`bun test`: shared 55 pass and 3 skip, bots 57 pass) under Bun 1.4.2 and viem 2.57.3. After the plan 00 integration changes (simParse outcome rules, wall-clock venue klines) the suite is shared 55 pass and 3 skip, bots 60 pass, re-run under both Bun 1.3.9 and 1.4.2. After the 2026-10-07 receipt classification fix (Tasks 16 and 17): bots 66 pass, simParse 15, under Bun 1.3.9. End to end on an anvil fork of Sepolia (real PoolManager, StateView, PoolSwapTest and MockKeystoneForwarder; stub tokens, a stub desk with the `tx.origin` guard and a stub override-fee hook installed at an address carrying the afterInitialize and beforeSwap flags; both token orders tried): `fund` minted and approved (arbitrage key on a second PoolSwapTest installed as `routers.arb`, retail key on the shared one; replay keys skipped), `status` read both pools and the 4-venue median, exited 0 when the hook matched the mirror and 1 with a `PROBLEM` line when it did not; `arb` moved each pool exactly to the band edge `m(1 - f)` on its first block (fees of 5 bp and 30 bp tried), printed `none` inside the band, and its swaps carried `Swap.sender = routers.arb`; `noise` mirrored each order to V and S; a stub-desk report sent by the operator through the mock was applied while `forge-report` was rejected (`forwarder result=false`, desk unchanged); `cre-loop` (driving a stand-in for plan 02's script) recorded `applied` (with the decoded `RiskReported`, `forwarderResult true`), `no-report` and `error` runs with one transcript file each, and `--once` stopped after the first. The replay server served the real February window: `/snapshot` gave four venues of 25 closed candles with `nowSec` inside the window.
+- Spec Appendix B question 1 answered on-chain: `cre workflow simulate --broadcast` sends `report()` from the `CRE_ETH_PRIVATE_KEY` account straight to the mock forwarder, so `tx.origin` is the operator and the RiskDesk SIM guard works. While planning this was read on another project's tx, `0xe57a006e7585984137cb5064d6be6fc7b9353194760178b85a78274c8785fa2c` (from the EOA `0x7277EDa336023Fe93142153a5bba4C770C1E6689`, not ours; block 11,855,382, before clim's deploy block 11,856,974; selector `0x11289565`, gas used 185,913). Confirmed on our own desk (checked with `cast tx` and `cast receipt` on 2026-10-07): clim's first report, tx `0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6` (block 11,857,019, selector `0x11289565`, gas used 272,704), goes from our operator `0x53aB240f6cffC204FC22ac6722D9632d753a5A82`, the `CRE_ETH_PRIVATE_KEY` account and the live desk's `simOperator`, to the mock, which logs the desk's `RiskReported` (seq 1) and `ReportProcessed` with result true. Its metadata carries placeholders (workflowCid `0x11...11`, workflowName 10 bytes, owner `0xaa...aa`, header timestamp 100), which is why the spec keeps the workflow-identity checks off in simulation.
+- All the code below was typechecked (`tsc --noEmit`) and unit-tested (`bun test`: shared 55 pass and 3 skip, bots 57 pass) under Bun 1.4.2 and viem 2.57.3. After the plan 00 integration changes (simParse outcome rules, wall-clock venue klines) the suite is shared 55 pass and 3 skip, bots 60 pass, re-run under both Bun 1.3.9 and 1.4.2. After the 2026-10-07 receipt classification fix (Tasks 16 and 17): bots 66 pass, simParse 15, under Bun 1.3.9. On 2026-10-07, with the committed `shared/abis/*.json` (so the drift checks run) and without the removed export script: shared 58 pass, 0 skip; bots 66 pass (Bun 1.3.9). End to end on an anvil fork of Sepolia (real PoolManager, StateView, PoolSwapTest and MockKeystoneForwarder; stub tokens, a stub desk with the `tx.origin` guard and a stub override-fee hook installed at an address carrying the afterInitialize and beforeSwap flags; both token orders tried): `fund` minted and approved (arbitrage key on a second PoolSwapTest installed as `routers.arb`, retail key on the shared one; replay keys skipped), `status` read both pools and the 4-venue median, exited 0 when the hook matched the mirror and 1 with a `PROBLEM` line when it did not; `arb` moved each pool exactly to the band edge `m(1 - f)` on its first block (fees of 5 bp and 30 bp tried), printed `none` inside the band, and its swaps carried `Swap.sender = routers.arb`; `noise` mirrored each order to V and S; a stub-desk report sent by the operator through the mock was applied while `forge-report` was rejected (`forwarder result=false`, desk unchanged); `cre-loop` (driving a stand-in for plan 02's script) recorded `applied` (with the decoded `RiskReported`, `forwarderResult true`), `no-report` and `error` runs with one transcript file each, and `--once` stopped after the first. The replay server served the real February window: `/snapshot` gave four venues of 25 closed candles with `nowSec` inside the window.
 - Public venue endpoints answered from Singapore: Coinbase Advanced product `price`, Kraken `Ticker?pair=ETHUSD,USDTUSD` (`result.XETHZUSD.c[0]`, `result.USDTZUSD.c[0]`), Binance `data-api.binance.vision` ticker (USDT), Hyperliquid `allMids` (`ETH`).
 
 ## File structure
@@ -75,8 +75,7 @@
 | `shared/src/index.ts` | Barrel export |
 | `shared/deployments/sepolia.json` | Addresses (verified infrastructure now; plan 01 fills the rest) |
 | `shared/params.json` | Hook parameters (provisional until the lab decision) |
-| `shared/abis/*.json` | Compiled ABIs exported from `contracts/out` (created by `export-abis`) |
-| `shared/scripts/export-abis.ts` | Copies the ABIs from `contracts/out` |
+| `shared/abis/*.json` | Compiled ABIs exported from `contracts/out` (written by plan 01's `contracts/script/export-abis.sh`, the only exporter) |
 | `shared/test/*.test.ts` | Tests of the above |
 | `bots/package.json`, `bots/tsconfig.json`, `bots/.env.example` | `@clim/bots` package and its environment template |
 | `bots/src/lib/env.ts` | CLI flags, env numbers and strings, private keys per role and pair |
@@ -118,6 +117,7 @@ Only `shared` for now: Bun refuses to install when a listed workspace folder doe
 {
   "name": "clim",
   "private": true,
+  "license": "MIT",
   "workspaces": ["shared"],
   "scripts": {
     "test": "bun run --filter '*' test",
@@ -201,6 +201,7 @@ git commit -m "build: add root Bun workspace and track lab/out"
   "name": "@clim/shared",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -216,8 +217,7 @@ git commit -m "build: add root Bun workspace and track lab/out"
   },
   "scripts": {
     "test": "bun test",
-    "typecheck": "tsc --noEmit -p .",
-    "export-abis": "bun scripts/export-abis.ts"
+    "typecheck": "tsc --noEmit -p ."
   },
   "peerDependencies": {
     "viem": "^2.57.3"
@@ -827,14 +827,16 @@ git commit -m "feat(shared): CRE risk report encoding and mock forwarder raw rep
 
 ---
 
-### Task 5: Typed ABIs and the ABI export script
+### Task 5: Typed ABIs and their drift test
 
 **Delegable:** yes
 **Depends on:** Task 2
 
 **Files:**
-- Create: `shared/src/abis.ts`, `shared/scripts/export-abis.ts`
+- Create: `shared/src/abis.ts`
 - Test: `shared/test/abis.test.ts`
+
+Built with a `shared/scripts/export-abis.ts` (commit `8dfd1cf`) that copied three of the ABIs; it was removed on 2026-10-07 (commit `5ed36a8`) because plan 01 Task 14's `contracts/script/export-abis.sh` writes the same files and five more, and is the only exporter now.
 
 - [x] **Step 1: Write the failing test**
 
@@ -908,7 +910,7 @@ Expected: `error: Cannot find module '../src/abis'`, ` 1 fail`.
 // Typed ABI fragments (`as const`, so viem infers argument and return types).
 // External contracts: copied from Uniswap v4-core / v4-periphery and Chainlink MockKeystoneForwarder sources.
 // clim contracts: the canonical interfaces; test/abis.test.ts checks them against shared/abis/*.json
-// (exported from contracts/out by scripts/export-abis.ts) as soon as those files exist.
+// (exported from contracts/out by contracts/script/export-abis.sh) as soon as those files exist.
 import { erc20Abi } from "viem";
 
 export const POOL_KEY_COMPONENTS = [
@@ -1123,42 +1125,20 @@ export const mockForwarderAbi = [
 ] as const;
 ```
 
-`shared/scripts/export-abis.ts`:
-```ts
-// Copies the ABI arrays of the clim contracts from contracts/out (forge build) to shared/abis/<Name>.json.
-// Run from the repo root: `bun run --cwd shared export-abis` (after `forge build` in contracts/).
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-
-const CONTRACTS = ["RiskDesk", "ClimHook", "TestToken"] as const;
-const FORGE_OUT = join(import.meta.dir, "..", "..", "contracts", "out");
-const ABI_DIR = join(import.meta.dir, "..", "abis");
-
-mkdirSync(ABI_DIR, { recursive: true });
-for (const name of CONTRACTS) {
-  const artifact = join(FORGE_OUT, `${name}.sol`, `${name}.json`);
-  if (!existsSync(artifact)) {
-    throw new Error(`missing ${artifact}: run "forge build" in contracts/ first`);
-  }
-  const { abi } = JSON.parse(readFileSync(artifact, "utf8")) as { abi: unknown[] };
-  writeFileSync(join(ABI_DIR, `${name}.json`), `${JSON.stringify(abi, null, 2)}\n`);
-  console.log(`exported shared/abis/${name}.json (${abi.length} items)`);
-}
-```
-
 - [x] **Step 4: Run, expected PASS**
 
 Run: `cd shared && bun test test/abis.test.ts && bun run typecheck`
 Expected: ` 3 pass`, ` 3 skip`, ` 0 fail` (the three skips are the drift checks, waiting for `shared/abis/*.json`); typecheck clean.
 
-When plan 01 has compiled the contracts: `cd contracts && forge build && cd .. && bun run --cwd shared export-abis` prints `exported shared/abis/RiskDesk.json (N items)` for the three contracts, and the same test then shows ` 6 pass`, ` 0 skip`. A failing drift check means the contract and the canonical interface disagree: fix the side that deviates from the canonical interface in the master plan, never silence the test.
+When plan 01 has compiled the contracts: `contracts/script/export-abis.sh` (plan 01 Task 14; it runs `forge build` itself) prints the eight `../shared/abis/<Name>.json` paths it wrote, and the same test then shows ` 6 pass`, ` 0 skip` (checked on 2026-10-07 with the committed ABIs). A failing drift check means the contract and the canonical interface disagree: fix the side that deviates from the canonical interface in the master plan, never silence the test.
 
 - [x] **Step 5: Commit**
 
 ```bash
-git add shared/src/abis.ts shared/scripts/export-abis.ts shared/test/abis.test.ts
-git commit -m "feat(shared): typed ABI fragments and ABI export script"
+git add shared/src/abis.ts shared/test/abis.test.ts
+git commit -m "feat(shared): typed ABI fragments"
 ```
+(Committed as `8dfd1cf` "feat(shared): typed ABI fragments and ABI export script", with the export script removed since.)
 
 ---
 
@@ -1642,6 +1622,7 @@ In the root `package.json`, change `"workspaces": ["shared"]` to `"workspaces": 
   "name": "@clim/bots",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "test": "bun test",
@@ -3359,14 +3340,16 @@ Expected: typecheck clean; before plan 01 has deployed: `error: riskDesks.live i
 - [x] **Step 3: Record what the research verified**
 
 In `docs/feedback/cre-friction-log.md`, in the row that starts with `| 1 |`, set the last cell to the following text if it still reads `design phase, to confirm`; if plan 01 Task 6 already wrote a status there, append `; ` and this text to it instead:
-`confirmed on Sepolia: simulate --broadcast sends report() from the CRE_ETH_PRIVATE_KEY account straight to the mock (tx 0xe57a006e7585984137cb5064d6be6fc7b9353194760178b85a78274c8785fa2c), so a tx.origin guard works; bots/src/scripts/forge-report.ts demonstrates the guard on our desk`
+`confirmed on Sepolia: simulate --broadcast sends report() from the CRE_ETH_PRIVATE_KEY account straight to the mock (our first report, tx 0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6, from our operator key 0x53aB240f6cffC204FC22ac6722D9632d753a5A82 to the mock), so a tx.origin guard works; bots/src/scripts/forge-report.ts demonstrates the guard on our desk`
 
 Append under `## Build notes` in today's session log:
 
 ```markdown
-- (ops) Spec Appendix B, question 1: yes. `cre workflow simulate --broadcast` sends `report()` from the `CRE_ETH_PRIVATE_KEY` account directly to MockKeystoneForwarder (Sepolia tx 0xe57a006e7585984137cb5064d6be6fc7b9353194760178b85a78274c8785fa2c), so `tx.origin` is the operator. The same tx shows the simulation metadata placeholders (workflowCid 0x11...11, owner 0xaa...aa, header timestamp 100): keep RiskDesk's workflow-identity checks off in simulation.
+- (ops) Spec Appendix B, question 1: yes. `cre workflow simulate --broadcast` sends `report()` from the `CRE_ETH_PRIVATE_KEY` account directly to MockKeystoneForwarder (clim's first report, Sepolia tx 0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6, from our operator key 0x53aB240f6cffC204FC22ac6722D9632d753a5A82), so `tx.origin` is the operator. The same tx shows the simulation metadata placeholders (workflowCid 0x11...11, owner 0xaa...aa, header timestamp 100): keep RiskDesk's workflow-identity checks off in simulation.
 - (ops) `bun run cre-loop` (`bots/src/sim-loop.ts`) runs plan 02's `cre/scripts/sim-loop.sh`, records each run (receipt, `ReportProcessed.result`, decoded `RiskReported`) in `bots/out/cre-runs.jsonl` and writes one transcript per run to `bots/out/cre-sim/` for plan 06's evidence collector.
 ```
+
+Correction (2026-10-07): when this step ran, both texts cited tx `0xe57a006e7585984137cb5064d6be6fc7b9353194760178b85a78274c8785fa2c`, which is another project's transaction (sender `0x7277EDa336023Fe93142153a5bba4C770C1E6689`, mined at block 11,855,382, before clim's deploy block 11,856,974; checked with `cast tx`). Friction log row 1 and spec Appendix B now cite clim's first report as above; the 2026-10-06 session log keeps the old line, corrected in the 2026-10-07 log.
 
 - [x] **Step 4: Commit**
 
@@ -3761,7 +3744,7 @@ const clock = makeClock(w, anchor);
 
 Bun.serve({
   port,
-  hostname: "0.0.0.0",
+  hostname: "127.0.0.1",
   fetch(req) {
     const r = handleReplayRequest(w, clock, new URL(req.url), Date.now());
     return Response.json(r.body, { status: r.status, headers: { "access-control-allow-origin": "*" } });
