@@ -12,7 +12,9 @@
     "evidence": "node src/collect-evidence.mjs",
     "readme": "node src/update-readme.mjs",
     "deck": "node deck/build-deck.mjs",
-    "scan": "node src/scan-secrets.mjs"
+    "scan": "node src/scan-secrets.mjs",
+    "deck:draft": "node deck/build-deck.mjs --allow-missing-video",
+    "evidence:text": "node src/cre-evidence-text.mjs"
   },
   "dependencies": {
     "pptxgenjs": "4.0.1",
