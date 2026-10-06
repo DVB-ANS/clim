@@ -3667,7 +3667,7 @@ git commit -m "feat(bots): replay window, wall-clock venue klines, snapshot, tic
 **Files:**
 - Create: `bots/src/replay-server.ts`
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/replay-server.ts`:
 ```ts
@@ -3704,7 +3704,7 @@ console.log(`[replay] anchor ${new Date(anchor * 1000).toISOString()} (REPLAY_AN
 console.log(`[replay] listening on http://127.0.0.1:${port} (GET /venue/<name>/api/v3/klines, /api/v3/ticker/price, /api/v3/klines, /snapshot, /status)`);
 ```
 
-- [ ] **Step 2: Smoke test with a synthetic window**
+- [x] **Step 2: Smoke test with a synthetic window**
 
 Run (one shell; the server runs in the background and is stopped at the end):
 ```bash
@@ -3728,7 +3728,7 @@ Expected, with s = the seconds elapsed in the current wall-clock minute (validat
 ```
 (`histNow` and `nowSec` are 1770205860 + s; the kline's high and close are 2630 + 0.5 s. The last line is the same candle on the wall clock: `<anchor>` is the `REPLAY_ANCHOR_SEC` printed on the second line, which is what plan 02's replay mode reads.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/replay-server.ts
