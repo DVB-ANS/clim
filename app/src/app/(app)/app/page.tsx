@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ContractsPanel } from "@/components/ContractsPanel";
 import { Dashboard } from "@/components/Dashboard";
 import { params } from "@/lib/config";
 import { labBand } from "@/lib/labData";
@@ -17,6 +18,7 @@ export default function DashboardPage() {
         </p>
       </div>
       <Dashboard band={labBand} />
+      <ContractsPanel />
     </div>
   );
 }

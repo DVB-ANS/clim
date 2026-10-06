@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ContractsPanel } from "@/components/ContractsPanel";
 import { Panel } from "@/components/ui";
 import { FAQ_MD } from "@/generated/faq";
 import { params } from "@/lib/config";
@@ -66,6 +67,7 @@ export default function HowPage() {
           until a fresh report lands. A degraded report (venues disagree) also lifts the fee to at least {pipsToBp(params.feeSafePips)} bp.
         </p>
       </Panel>
+      <ContractsPanel />
       <Panel id="faq" title="FAQ">
         <div className="text-sm [&_code]:text-xs [&_code]:wrap-anywhere [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-semibold [&_hr]:my-4 [&_li]:ml-5 [&_li]:list-disc [&_p]:mt-2 [&_td]:pr-4 [&_th]:pr-4 [&_th]:text-left">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{FAQ_MD}</ReactMarkdown>

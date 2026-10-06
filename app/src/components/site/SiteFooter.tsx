@@ -3,7 +3,7 @@ import { Wordmark } from "../Wordmark";
 
 const FOOT = [
   { title: "app", links: [{ href: "/app", label: "Dashboard" }, { href: "/swap", label: "Swap" }, { href: "/lp", label: "Liquidity" }] },
-  { title: "desk", links: [{ href: "/replay", label: "Replay" }, { href: "/lab", label: "Lab" }, { href: "/how", label: "How it works" }] },
+  { title: "desk", links: [{ href: "/replay", label: "Replay" }, { href: "/lab", label: "Lab" }, { href: "/how", label: "How it works" }, { href: "/how#contracts", label: "Contracts" }] },
   {
     title: "built on",
     links: [
