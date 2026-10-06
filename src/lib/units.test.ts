@@ -4,9 +4,11 @@ import {
   dvolE2ToPct,
   ethUsdToTick,
   formatAge,
+  formatAmount,
   formatBp,
   formatPct,
   formatUsd,
+  formatUsdCents,
   pipsToBp,
   shortHash,
   sigmaE9ToAnnualPct,
@@ -53,5 +55,17 @@ describe("other units", () => {
     expect(formatAge(185)).toBe("3 min 05 s");
     expect(formatAge(7_800)).toBe("2 h 10 min");
     expect(shortHash("0x7cd1bd67280cc7c7e96c3fff4e956c708043d6091972c78c9536d7711587fe63")).toBe("0x7cd1…fe63");
+  });
+});
+
+describe("amounts for /swap and /lp", () => {
+  it("formats token amounts with grouping and at most the given decimals", () => {
+    expect(formatAmount(25_000, 2)).toBe("25,000");
+    expect(formatAmount(1.234567, 4)).toBe("1.2346");
+  });
+  it("formats small USD amounts with cents, the sign before the dollar", () => {
+    expect(formatUsdCents(0.4249)).toBe("$0.42");
+    expect(formatUsdCents(-1_234.5)).toBe("-$1,234.50");
+    expect(formatUsdCents(-0.001)).toBe("$0.00");
   });
 });

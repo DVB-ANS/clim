@@ -45,6 +45,17 @@ export function formatUsd(x: number): string {
   return `${x < 0 ? "-" : ""}$${s}`;
 }
 
+/** Token amount with grouping and at most `digits` decimals. */
+export function formatAmount(x: number, digits: number): string {
+  return x.toLocaleString("en-US", { maximumFractionDigits: digits });
+}
+
+/** USD with cents (fees and P&L of a small position); no "-$0.00". */
+export function formatUsdCents(x: number): string {
+  const s = Math.abs(x).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return `${x < 0 && s !== "0.00" ? "-" : ""}$${s}`;
+}
+
 export function formatAge(seconds: number): string {
   const s = Math.max(0, Math.round(seconds));
   if (s < 60) return `${s} s`;

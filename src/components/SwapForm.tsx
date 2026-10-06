@@ -11,29 +11,10 @@ import { MOCK_ADDR } from "@/lib/mock";
 import { postSwapEthUsd } from "@/lib/pnl";
 import { estimateOut, feeReason, planSwap, type PoolName, type SwapPlan, swapResult, type SwapSide } from "@/lib/swap";
 import { mockStep, mockSwapLogs, mockTxHash, writeReadiness } from "@/lib/tx";
-import { formatAge, formatBp, pipsToBp, sigmaE9ToAnnualPct, tickToEthUsd } from "@/lib/units";
+import { formatAge, formatAmount, formatBp, pipsToBp, sigmaE9ToAnnualPct, tickToEthUsd } from "@/lib/units";
 import { ActionButton, type TxMode, TxModeSwitch } from "./TxModeSwitch";
 import { TxSteps } from "./TxSteps";
-import { ModeBadge, Panel, Stat, TxLink } from "./ui";
-
-const fmt = (x: number, digits: number) => x.toLocaleString("en-US", { maximumFractionDigits: digits });
-
-function Toggle<T extends string>({ value, options, onChange }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void }) {
-  return (
-    <div className="inline-flex gap-1 rounded-md border border-line p-0.5 text-sm">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          onClick={() => onChange(o.value)}
-          className={`rounded-sm px-3 py-1 ${o.value === value ? "bg-fg text-surface" : "text-fg-muted hover:text-fg"}`}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  );
-}
+import { ModeBadge, Panel, Stat, Toggle, TxLink } from "./ui";
 
 /** /swap: the fee of V (clim) or S (static) before the swap, the weather that sets it, then the fee paid. */
 export function SwapForm() {
@@ -117,8 +98,8 @@ export function SwapForm() {
         const eth = Number(token0IsEth ? result.swap.amount0 : result.swap.amount1) / 1e18;
         const usd = Number(token0IsEth ? result.swap.amount1 : result.swap.amount0) / 1e18;
         return eth < 0
-          ? { paid: `${fmt(-eth, 6)} tETH`, got: `${fmt(usd, 2)} tUSD` }
-          : { paid: `${fmt(-usd, 2)} tUSD`, got: `${fmt(eth, 6)} tETH` };
+          ? { paid: `${formatAmount(-eth, 6)} tETH`, got: `${formatAmount(usd, 2)} tUSD` }
+          : { paid: `${formatAmount(-usd, 2)} tUSD`, got: `${formatAmount(eth, 6)} tETH` };
       })()
     : null;
 
@@ -163,8 +144,8 @@ export function SwapForm() {
             <p className="text-xs text-danger">{planError}</p>
           ) : estimate !== undefined && feePips !== undefined ? (
             <p className="text-sm text-fg-muted">
-              ≈ {fmt(estimate, side === "sell ETH" ? 2 : 6)} {outSymbol} before price impact · fee {formatBp(pipsToBp(feePips), 2)} ={" "}
-              {fmt(amountIn * (feePips / 1e6), side === "sell ETH" ? 6 : 2)} {inSymbol}
+              ≈ {formatAmount(estimate, side === "sell ETH" ? 2 : 6)} {outSymbol} before price impact · fee {formatBp(pipsToBp(feePips), 2)} ={" "}
+              {formatAmount(amountIn * (feePips / 1e6), side === "sell ETH" ? 6 : 2)} {inSymbol}
             </p>
           ) : null}
           <TxModeSwitch mode={mode} onChange={setMode} ready={ready} />

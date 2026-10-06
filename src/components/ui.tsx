@@ -48,3 +48,21 @@ export function TxLink({ hash, live, explorer = "https://sepolia.etherscan.io" }
     </a>
   );
 }
+
+/** A segmented choice (pool, direction). */
+export function Toggle<T extends string>({ value, options, onChange }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void }) {
+  return (
+    <div className="inline-flex gap-1 rounded-md border border-line p-0.5 text-sm">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          className={`rounded-sm px-3 py-1 ${o.value === value ? "bg-fg text-surface" : "text-fg-muted hover:text-fg"}`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
