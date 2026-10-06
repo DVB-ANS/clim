@@ -3889,7 +3889,7 @@ Push this commit only if the maintainer asks.
 
 **Files:**
 - Modify: `docs/feedback/cre-friction-log.md`, `docs/sessions/2026-10-07.md`
-- Create: `docs/feedback/message-to-chainlink-mentor.md` (a draft; nothing is sent from here)
+- Create: the message to the Chainlink mentor, a draft in the maintainer's private notes (never committed; nothing is sent from here)
 
 - [x] **Step 1: Collect the environment**
 
@@ -3930,9 +3930,9 @@ Result on 2026-10-07: 22 rows `confirmed`, row 3 `corrected` (a run need not rec
 
 - [x] **Step 4: Commit and prepare the message**
 
-The message to the Chainlink mentor is a draft in `docs/feedback/message-to-chainlink-mentor.md`, marked as such, for the maintainer to send himself. It answers his three questions at the idea pitch (session log 2026-10-06): the FAQ entries "Who changes the fee, and how?" and "Can a pool that is already live switch to clim?", the DevEx report, the friction log and the repo https://github.com/DVB-ANS/clim. Add one `- (CRE) Friction log send-ready: ... (plan 06 Task 22).` line under "## Build notes" of today's session log, then commit:
+The message to the Chainlink mentor is a draft in the maintainer's private notes (outside the repo), marked as such, for the maintainer to send himself. It answers his three questions at the idea pitch (session log 2026-10-06): the FAQ entries "Who changes the fee, and how?" and "Can a pool that is already live switch to clim?", the DevEx report, the friction log and the repo https://github.com/DVB-ANS/clim. Add one `- (CRE) Friction log send-ready: ... (plan 06 Task 22).` line under "## Build notes" of today's session log, then commit:
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/feedback/cre-friction-log.md docs/feedback/message-to-chainlink-mentor.md docs/sessions/2026-10-07.md docs/superpowers/plans/2026-10-06-clim-06-demo-submission.md && git commit -m "docs(cre): friction log send-ready, DON deployment cut (deploy access not enabled)"
+cd /Users/fianso/Development/hackathons/clim && git add docs/feedback/cre-friction-log.md docs/sessions/2026-10-07.md docs/superpowers/plans/2026-10-06-clim-06-demo-submission.md && git commit -m "docs(cre): friction log send-ready, DON deployment cut (deploy access not enabled)"
 ```
 
 ---
