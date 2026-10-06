@@ -11,10 +11,11 @@ Storm insurance for Uniswap v4 LPs: a Chainlink CRE "risk desk" publishes multi-
 - Chainlink CRE friction log (developer-experience feedback for the Chainlink team): `docs/feedback/cre-friction-log.md`.
 - FAQ: `docs/faq.md`.
 - Shared single source of truth for addresses, parameters and ABIs: `shared/`.
+- Dashboard (Next.js, live at https://clim-zeta.vercel.app): `app/`. It was built after kickoff in DVB-ANS/clim-front and imported into `app/` with `git subtree`, history kept, on 2026-10-07 (master plan Task 14). Production deploys from the repo root (Vercel Root Directory `app`).
 
 ## Working rules
 - **Start of every session:** read `CLAUDE.local.md` (if present), every `docs/sessions/*.md`, then the master plan.
-- **The dashboard (`app/`) is not built here.** It is developed in DVB-ANS/clim-front (live at https://clim-zeta.vercel.app) and imported into `app/` with `git subtree` by master plan Task 14, once the clim-front session has stopped and pushed. Do not rebuild it from plan 05 Tasks 1 to 24.
+- **The dashboard changes only in `app/` from now on.** DVB-ANS/clim-front is frozen since the import; do not rebuild the dashboard from plan 05 Tasks 1 to 24.
 - **Hackathon rule:** all code is written after kickoff (2026-10-06 12:00 SGT). Never import code from outside this repo written before that time. Public libraries and templates are fine.
 - **Living docs:** the spec and plans are living documents. When the build or new research contradicts them, update them and add a line to today's session log.
 - **Log as you go:**
