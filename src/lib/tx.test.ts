@@ -49,7 +49,7 @@ describe("mockTxHash", () => {
 });
 
 describe("mockSwapLogs (simulated swap)", () => {
-  const common = { sender: ROUTER, feePips: 1_822, ethUsd: 2_500, liquidity: 2n * 10n ** 23n, poolManager: PM, blockNumber: 9, t: 99, n: 1 };
+  const common = { sender: ROUTER, feePips: 1_822, ethUsd: 2_500, liquidity: 2n * 10n ** 23n, poolManager: PM, blockNumber: 9, t: 99, txHash: mockTxHash("Swap on pool V", 1) };
 
   it("emits the Swap log a real swap would: quoted fee, swapper deltas, router as sender", () => {
     const pair = pairOf(tETH, tUSD);
@@ -57,6 +57,7 @@ describe("mockSwapLogs (simulated swap)", () => {
     const s = swapResult(mockSwapLogs({ ...common, plan, token0IsEth: true }), pair.V.poolId)!;
     expect(s.fee).toBe(1_822);
     expect(s.sender).toBe(ROUTER);
+    expect(s.txHash).toBe(mockTxHash("Swap on pool V", 1)); // the hash shown on the swap step
     expect(s.amount0).toBe(-(10n ** 18n));
     expect(Number(s.amount1) / 1e18).toBeCloseTo(2_500 * (1 - 0.001822), 6);
   });

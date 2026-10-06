@@ -77,7 +77,8 @@ export function mockSwapLogs(o: {
   poolManager: Address;
   blockNumber: number;
   t: number;
-  n: number;
+  /** The simulated swap step's hash, so the receipt and the step show the same transaction. */
+  txHash: Hex;
 }): RawLog[] {
   const sellingEth = o.plan.params.zeroForOne === o.token0IsEth;
   const out = estimateOut({
@@ -103,7 +104,7 @@ export function mockSwapLogs(o: {
         tick: ethUsdToTick(o.ethUsd, o.token0IsEth),
         fee: o.feePips,
       },
-      { address: o.poolManager, blockNumber: o.blockNumber, blockTimestamp: o.t, transactionHash: mockTxHash("swap", o.n), logIndex: 0 },
+      { address: o.poolManager, blockNumber: o.blockNumber, blockTimestamp: o.t, transactionHash: o.txHash, logIndex: 0 },
     ),
   ];
 }
