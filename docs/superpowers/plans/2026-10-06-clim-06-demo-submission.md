@@ -157,7 +157,7 @@ exit=1
 .gitignore:<n>:bots/out/*	bots/out/cre-sim/x.log
 exit=1
 ```
-(`exit=1` means not ignored: `lab/out/` and `bots/out/cre-runs.jsonl` are tracked; `<n>` are line numbers.)
+(`exit=1` means not ignored: `lab/out/` is tracked, and `bots/out/cre-runs.jsonl` (with `bots/out/security-demos.jsonl`) can be committed; both stay untracked until Task 13 Step 5 commits them with the evidence (checked 2026-10-07); `<n>` are line numbers.)
 
 - [x] **Step 4: Create the package and the two small data files**
 
@@ -3558,7 +3558,7 @@ cd /Users/fianso/Development/hackathons/clim/bots && bun run status --pair live;
 ```
 Expected: the pool, desk and hook lines and `exit=0`. A hook/mirror mismatch (exit code 1) means `shared/params.json` does not describe the deployed hook: stop and fix it before anything is generated.
 
-Done 2026-10-07 (07:16 SGT): `exit=0`, no `PROBLEM` line; at block 11859036 the live desk was at seq 775, σ 10.0 %/yr, k 1, flags 0, and the hook quoted 500 pips (5.00 bp, normal), equal to the mirror from `shared/params.json` (P\* = 0.3, `etaE4` 25093, floor 500, cap 15000, safe 3000, kill 180 s); S fee 511 pips.
+Done 2026-10-07 (07:16 SGT): `exit=0`, no `PROBLEM` line; at block 11859036 the live desk was at seq 775, σ 10.0 %/yr, k 1, flags 0, and the hook quoted 500 pips (5.00 bp, normal), equal to the mirror from `shared/params.json` (P\* = 0.3, `etaE4` 25093, floor 500, cap 15000, safe 3000, kill 180 s); S fee 511 pips. Re-checked at 07:20 SGT: `exit=0` at block 11859057 (seq 784, σ 20.6 %/yr, 500 pips, normal).
 
 - [x] **Step 5: Log the freeze and commit**
 
@@ -3566,7 +3566,7 @@ Done 2026-10-07 (07:16 SGT): `exit=0`, no `PROBLEM` line; at block 11859036 the 
 cd /Users/fianso/Development/hackathons/clim && P=$(node -p "require('./shared/params.json').pStar") && echo "- **Freeze:** deployments and parameters frozen for the submission at commit $(git rev-parse --short HEAD) (P* = $P). No redeploy after this line." >> docs/sessions/$(date +%F).md && git add docs/submission/links.json docs/submission/team.json docs/sessions && git commit -m "chore(submission): freeze deployments, set live URL and team"
 ```
 
-Done 2026-10-07: `links.json` (live URL, `4060cfc`) and `team.json` (solo, `ad0310c`) were already committed; the deployments last changed in `b791761` (replay suite) and the parameters in `62d01be` (P\* = 0.3). The freeze line, at commit `6257b71`, went into the session log with the plan checkbox pass rather than with the command above.
+Done 2026-10-07: `links.json` (live URL, `4060cfc`) and `team.json` (solo, `ad0310c`) were already committed; the deployments last changed in `b791761` (replay suite) and the parameters in `62d01be` (P\* = 0.3). The freeze line, at commit `6257b71`, is a line of the plan checkbox pass, appended to the 2026-10-07 session log with the other lines of that pass rather than with the command above.
 
 ---
 
@@ -3946,7 +3946,7 @@ Open https://github.com/DVB-ANS/clim: both mermaid diagrams render, the figure s
 curl -s https://edge.builderbase.com/super-events/public/token2049-origins-hackathon | python3 -c "import json,sys; d=json.load(sys.stdin)['data']['super_event']; print(d['updated_at'], d['submission_deadline'])"
 curl -s https://edge.builderbase.com/events/public/chainlink-best-workflow-with-cre | python3 -c "import json,sys; d=json.load(sys.stdin)['data']['event']; print(d['updated_at'], d['submission_deadline_effective'])"
 ```
-Expected: `2026-10-04T08:00:30...` / `2026-10-06T00:36:27...` and `2026-10-07T15:59:00+00:00` twice. A newer `updated_at` means the page changed: re-read it and adjust this checklist.
+Expected: `2026-10-04T08:00:30...` / `2026-10-06T00:36:27...` and `2026-10-07T15:59:00+00:00` twice. A newer `updated_at` means the page changed: re-read it and adjust this checklist. Read on 2026-10-07 at 07:20 SGT: unchanged; read it again just before submitting.
 
 - [ ] **Step 2: Get the CRE evidence figures** **Maintainer's step.**
 
