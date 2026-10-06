@@ -1356,7 +1356,7 @@ Reads every `RiskReported` event of every desk since kickoff (2026-10-06 04:00 U
 - Create: `docs/submission/src/evidence.mjs`, `docs/submission/src/collect-evidence.mjs`, `docs/submission/src/scan-secrets.mjs`
 - Test: `docs/submission/test/evidence.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `docs/submission/test/evidence.test.mjs`:
 ```js
@@ -1412,12 +1412,12 @@ test("redactUrls hides keys in RPC URLs", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expect FAIL**
+- [x] **Step 2: Run it, expect FAIL**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/evidence.test.mjs`
 Expected: FAIL with `Cannot find module '.../docs/submission/src/evidence.mjs'`.
 
-- [ ] **Step 3: Implement the helpers and the CLI**
+- [x] **Step 3: Implement the helpers and the CLI**
 
 `docs/submission/src/evidence.mjs`:
 ```js
@@ -1465,7 +1465,7 @@ export function toReport(log) {
   };
 }
 
-export const ENV_FILES = [".env", "cre/.env", "bots/.env", "contracts/.env", "app/.env.local", "lab/.env"];
+export const ENV_FILES = [".env", "cre/.env", "cre/.env.replay", "bots/.env", "contracts/.env", "app/.env.local", "lab/.env"];
 
 const SECRET_NAME = /KEY|SECRET|TOKEN|PASS|PRIVATE|MNEMONIC|SEED|AUTH/i;
 const KEYED_URL = /\/v[23]\/[A-Za-z0-9_-]{16,}|[?&](?:api[_-]?key|key|token)=/i;
@@ -1579,7 +1579,7 @@ if (!existsSync(logsDir)) {
 ```js
 // Fails if any tracked file contains a secret value from a local .env file. Usage: node src/scan-secrets.mjs
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { REPO_ROOT } from "./paths.mjs";
 import { loadSecrets, findSecrets } from "./evidence.mjs";
@@ -1588,7 +1588,9 @@ const secrets = loadSecrets(REPO_ROOT);
 const files = execFileSync("git", ["ls-files", "-z"], { cwd: REPO_ROOT }).toString().split("\0").filter(Boolean);
 let leaks = 0;
 for (const f of files) {
-  const buf = readFileSync(path.join(REPO_ROOT, f));
+  const full = path.join(REPO_ROOT, f);
+  if (!statSync(full, { throwIfNoEntry: false })?.isFile()) continue; // submodule (contracts/lib/*) or deleted in the working tree
+  const buf = readFileSync(full);
   if (buf.includes(0)) continue; // binary
   const found = findSecrets(buf.toString("utf8"), secrets);
   if (found.length) {
@@ -1600,14 +1602,14 @@ console.log(leaks ? `${leaks} tracked file(s) contain .env secrets` : `no .env s
 process.exit(leaks ? 1 : 0);
 ```
 
-- [ ] **Step 4: Run, expect PASS, then the scan**
+- [x] **Step 4: Run, expect PASS, then the scan**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/evidence.test.mjs`
 Expected: `# pass 6`, `# fail 0`.
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run scan`
 Expected: `no .env secret in <n> tracked files (<m> secret values checked)` and exit code 0.
 
-- [ ] **Step 5: End-to-end check on a local chain (no repo files touched)**
+- [x] **Step 5: End-to-end check on a local chain (no repo files touched)**
 
 This proves the CLI decodes real logs. It runs in a temporary copy of the tooling.
 ```bash
@@ -1639,7 +1641,7 @@ Transaction hash: 0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
 https://eth-sepolia.g.alchemy.com/v2/<redacted>
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/submission/src/evidence.mjs docs/submission/src/collect-evidence.mjs docs/submission/src/scan-secrets.mjs docs/submission/test/evidence.test.mjs && git commit -m "feat(submission): CRE evidence collector and secret scan"
