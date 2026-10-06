@@ -107,3 +107,10 @@ export function mockSwapLogs(o: {
     ),
   ];
 }
+
+/** One readable line from a wallet or RPC error (viem errors carry a shortMessage). */
+export function errorText(e: unknown): string {
+  const short = typeof e === "object" && e !== null && "shortMessage" in e ? String((e as { shortMessage: unknown }).shortMessage) : "";
+  const msg = short || (e instanceof Error ? e.message : String(e));
+  return msg.split("\n")[0];
+}

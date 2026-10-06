@@ -90,3 +90,12 @@ describe("mockStep", () => {
     expect(out).toEqual([]);
   });
 });
+
+describe("errorText", () => {
+  it("prefers viem's short message and keeps one line", async () => {
+    const { errorText } = await import("./tx");
+    expect(errorText({ shortMessage: "User rejected the request.", message: "long\nstack" })).toBe("User rejected the request.");
+    expect(errorText(new Error("execution reverted: cooldown\nmore"))).toBe("execution reverted: cooldown");
+    expect(errorText("plain")).toBe("plain");
+  });
+});
