@@ -11,6 +11,7 @@ const signedPct = (x) => `${x > 0 ? "+" : ""}${x.toFixed(1)}%`;
 const signedPct2 = (x) => `${x > 0 ? "+" : ""}${x.toFixed(2)}%`;
 const bp = (pips) => `${pipsToBp(pips).toFixed(2)} bp`;
 const short = (hex) => `${hex.slice(0, 6)}…${hex.slice(-4)}`;
+const shortHex = (hex) => `${hex.slice(0, 10)}…${hex.slice(-4)}`;
 const utc = (unix) => new Date(unix * 1000).toISOString().slice(0, 19).replace("T", " ");
 
 export function pending(source) {
@@ -18,25 +19,84 @@ export function pending(source) {
 }
 
 export function link(url, text) {
-  return url ? `[${text}](${url})` : `_${text}: added at submission_`;
+  return url ? `**[${text}](${url})**` : `**${text}** _(added at submission)_`;
 }
 
 export function renderLinks(links) {
   return [
-    `**Live dashboard:** ${link(links.liveUrl, "open the dashboard")}`,
-    `**Demo video:** ${link(links.videoUrl, "watch the 3-minute demo")}`,
-    `**Deck:** ${link(links.deckUrl, "slides (.pptx)")}`,
-    `**CRE evidence:** [docs/evidence](docs/evidence/)`,
+    link(links.liveUrl, "Open the dashboard"),
+    link(links.videoUrl, "Video demo"),
+    link(links.deckUrl, "Deck"),
+    link("docs/evidence/", "CRE evidence"),
+    link("docs/feedback/cre-devex-report.md", "CRE DevEx report"),
+    link("docs/feedback/cre-friction-log.md", "CRE friction log"),
   ].join(" · ");
 }
 
+// Human labels for the keys of shared/deployments/sepolia.json, grouped and in display order: [key, label, role].
+// An address under a key not listed here is still shown, under "Other", with its raw key.
+const DEPLOYMENT_GROUPS = [
+  ["clim", [
+    ["riskDesks.live", "`RiskDesk` (live)", "receives the CRE report every 30 s"],
+    ["hooks.live", "`ClimHook` (live)", "prices every swap of the live clim pool from the live desk"],
+    ["riskDesks.replay", "`RiskDesk` (replay)", "receives CRE reports on the 4 February 2026 storm, replayed; flagged REPLAY"],
+    ["hooks.replay", "`ClimHook` (replay)", "prices every swap of the replay clim pool from the replay desk"],
+    ["riskDesks.don", "`RiskDesk` (DON)", "for reports from a CRE DON through the `KeystoneForwarder`"],
+  ]],
+  ["Uniswap v4", [
+    ["uniswap.poolManager", "`PoolManager`", "the v4 singleton; calls the hook on every swap"],
+    ["uniswap.stateView", "`StateView`", "pool state reads"],
+    ["uniswap.poolSwapTest", "`PoolSwapTest`", "test swap router, used by the retail bot"],
+    ["uniswap.poolModifyLiquidityTest", "`PoolModifyLiquidityTest`", "test liquidity router"],
+  ]],
+  ["Chainlink", [
+    ["cre.mockForwarder", "`MockKeystoneForwarder`", "delivers `cre workflow simulate --broadcast` reports; checks no signature"],
+    ["cre.keystoneForwarder", "`KeystoneForwarder`", "delivers DON reports; checks the DON's signatures"],
+  ]],
+  ["Test tokens and bots", [
+    ["tokens.tETH.address", "`tETH`", "test ETH with a public faucet"],
+    ["tokens.tUSD.address", "`tUSD`", "test USD with a public faucet"],
+    ["routers.arb", "`PoolSwapTest` (arbitrage)", "the arbitrage bot's own router, so its swaps can be told apart"],
+    ["deployer", "Operator", "deployer, test-token owner, sender of the live desk's simulated reports"],
+  ]],
+];
+
+const POOL_LABELS = {
+  "pools.liveV": "clim pool (live)",
+  "pools.liveS": "fixed-fee twin (live)",
+  "pools.replayV": "clim pool (replay)",
+  "pools.replayS": "fixed-fee twin (replay)",
+};
+const DYNAMIC_FEE_FLAG = 0x800000;
+
 export function renderDeployments(deployments) {
   const { addresses, poolIds } = collectAddresses(deployments);
-  const rows = addresses.map((a) => `| \`${a.label}\` | [\`${a.address}\`](${ETHERSCAN}/address/${a.address}) |`);
-  const out = ["| Contract | Address (Sepolia) |", "|---|---|", ...rows];
+  const byKey = new Map(addresses.map((a) => [a.label, a.address]));
+  const known = new Set();
+  const groups = DEPLOYMENT_GROUPS.map(([group, entries]) => [
+    group,
+    entries.flatMap(([key, label, role]) => {
+      known.add(key);
+      return byKey.has(key) ? [{ label, address: byKey.get(key), role }] : [];
+    }),
+  ]);
+  groups.push(["Other", addresses.filter((a) => !known.has(a.label)).map((a) => ({ label: `\`${a.label}\``, address: a.address, role: "" }))]);
+  const rows = groups.flatMap(([group, items]) =>
+    items.map((x, i) => `| ${i === 0 ? `**${group}**` : ""} | ${x.label} | [\`${shortHex(x.address)}\`](${ETHERSCAN}/address/${x.address}) | ${x.role} |`),
+  );
+  const chain = deployments.chainId ? ` (chain id ${deployments.chainId})` : "";
+  const out = [`Everything runs on Ethereum Sepolia${chain}. Each address links to Etherscan.`, "", "| | Contract | Address | Role |", "|---|---|---|---|", ...rows];
   if (poolIds.length) {
-    out.push("", "| Pool | PoolId |", "|---|---|", ...poolIds.map((p) => `| \`${p.label}\` | \`${p.poolId}\` |`));
+    const at = (path) => path.split(".").reduce((o, k) => o?.[k], deployments);
+    const feeOf = (fee) => (fee === DYNAMIC_FEE_FLAG ? "dynamic: set by `ClimHook` on every swap" : Number.isInteger(fee) ? `${bp(fee)}, fixed` : "-");
+    out.push(
+      "",
+      "| Pool | LP fee | PoolId |",
+      "|---|---|---|",
+      ...poolIds.map((p) => `| ${POOL_LABELS[p.label] ?? `\`${p.label}\``} | ${feeOf(at(p.label)?.key?.fee)} | \`${shortHex(p.poolId)}\` |`),
+    );
   }
+  out.push("", "The canonical set, with full addresses, pool keys and pool ids, lives in [`shared/deployments/sepolia.json`](shared/deployments/sepolia.json).");
   return out.join("\n");
 }
 
@@ -118,11 +178,8 @@ export function renderEvidence(evidence) {
 }
 
 export function renderTeam(team) {
-  return [
-    "| Name | GitHub | Role |",
-    "|---|---|---|",
-    ...team.map((m) => `| ${m.name} | ${m.github ? `[@${m.github}](https://github.com/${m.github})` : "-"} | ${m.role} |`),
-  ].join("\n");
+  const profiles = (m) => [m.github && `[GitHub](https://github.com/${m.github})`, m.linkedin && `[LinkedIn](${m.linkedin})`].filter(Boolean).join(" · ") || "-";
+  return ["| | Role | |", "|---|---|---|", ...team.map((m) => `| **${m.name}** | ${m.role} | ${profiles(m)} |`)].join("\n");
 }
 
 const SOURCES = {

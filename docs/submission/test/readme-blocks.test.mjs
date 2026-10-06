@@ -5,17 +5,41 @@ import { renderLinks, renderDeployments, renderParams, renderFeeSchedule, render
 
 const fx = (name) => readJson(new URL(`./fixtures/${name}`, import.meta.url));
 
-test("links: empty URLs are marked, present URLs are linked", () => {
+test("links: one bold row, empty URLs marked, the CRE documents linked", () => {
   const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example" });
-  assert.match(out, /\*\*Live dashboard:\*\* \[open the dashboard\]\(https:\/\/clim\.example\)/);
-  assert.match(out, /_watch the 3-minute demo: added at submission_/);
+  assert.equal(out.split("\n").length, 1);
+  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* · /);
+  assert.match(out, / · \*\*Video demo\*\* _\(added at submission\)_ · \*\*Deck\*\* _\(added at submission\)_ · /);
+  assert.match(out, /\*\*\[CRE evidence\]\(docs\/evidence\/\)\*\*/);
+  assert.match(out, /\*\*\[CRE DevEx report\]\(docs\/feedback\/cre-devex-report\.md\)\*\*/);
+  assert.match(out, /\*\*\[CRE friction log\]\(docs\/feedback\/cre-friction-log\.md\)\*\*$/);
 });
 
-test("deployments: one Etherscan row per address and a pool id table", () => {
+test("deployments: human labels, grouped, truncated Etherscan links, pools with their fee", () => {
   const out = renderDeployments(fx("sepolia.json"));
-  assert.match(out, /\| `uniswap\.poolManager` \| \[`0xE03A1074c86CFeDd5C142C4F04F1a1536e203543`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0xE03A1074c86CFeDd5C142C4F04F1a1536e203543\) \|/);
-  assert.match(out, /\| `pools\.liveV` \| `0xa{64}` \|/);
+  assert.match(out, /^Everything runs on Ethereum Sepolia \(chain id 11155111\)\./);
+  assert.match(out, /\| \*\*clim\*\* \| `RiskDesk` \(live\) \| \[`0x33333333…3333`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0x3333333333333333333333333333333333333333\) \|/);
+  assert.match(out, /\| \*\*Uniswap v4\*\* \| `PoolManager` \| \[`0xE03A1074…3543`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0xE03A1074c86CFeDd5C142C4F04F1a1536e203543\) \|/);
+  assert.match(out, /\|  \| `StateView` \|/);
+  const order = ["**clim**", "**Uniswap v4**", "**Chainlink**", "**Test tokens and bots**"].map((g) => out.indexOf(g));
+  assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), `groups out of order: ${order}`);
   assert.equal(out.split("\n").filter((l) => l.includes("etherscan")).length, 8);
+  assert.doesNotMatch(out, /\*\*Other\*\*|riskDesks\.|tokens\./);
+  assert.match(out, /\| clim pool \(live\) \| dynamic: set by `ClimHook` on every swap \| `0xaaaaaaaa…aaaa` \|/);
+  assert.match(out, /lives in \[`shared\/deployments\/sepolia\.json`\]\(shared\/deployments\/sepolia\.json\)\.$/);
+});
+
+test("deployments: unknown keys still listed, fixed-fee twins show their fee", () => {
+  const d = fx("sepolia.json");
+  d.deployer = "0x5555555555555555555555555555555555555555";
+  d.extra = { thing: "0x6666666666666666666666666666666666666666" };
+  d.pools.liveS = { key: { ...d.pools.liveV.key, hooks: "0x0000000000000000000000000000000000000000", fee: 511 }, poolId: "0x" + "b".repeat(64) };
+  const out = renderDeployments(d);
+  assert.match(out, /\| Operator \| \[`0x55555555…5555`\]/);
+  assert.match(out, /\| \*\*Other\*\* \| `extra\.thing` \| \[`0x66666666…6666`\]/);
+  assert.ok(out.indexOf("**Other**") > out.indexOf("**Test tokens and bots**"));
+  assert.match(out, /\| fixed-fee twin \(live\) \| 5\.11 bp, fixed \| `0xbbbbbbbb…bbbb` \|/);
+  assert.doesNotMatch(out, /0x0000000000/);
 });
 
 test("params and fee schedule at P* = 30%", () => {
@@ -48,9 +72,16 @@ test("results show both comparisons, the replay and the weak spots, rounded", ()
   assert.doesNotMatch(out, /\d\.\d{3,}%/);
 });
 
-test("team table links GitHub handles", () => {
-  const out = renderTeam(fx("team.json"));
-  assert.match(out, /\| Test Member \| \[@test-member\]\(https:\/\/github\.com\/test-member\) \|/);
+test("team table: bold names, role, GitHub and LinkedIn when known", () => {
+  const out = renderTeam([
+    ...fx("team.json"),
+    { name: "Second Member", github: "second", linkedin: "https://www.linkedin.com/in/second/", role: "Lab" },
+    { name: "No Handle", github: "", role: "Design" },
+  ]);
+  assert.match(out, /^\| \| Role \| \|\n\|---\|---\|---\|/);
+  assert.match(out, /\| \*\*Test Member\*\* \| Design, contracts, CRE workflow, lab, dashboard \| \[GitHub\]\(https:\/\/github\.com\/test-member\) \|/);
+  assert.match(out, /\| \*\*Second Member\*\* \| Lab \| \[GitHub\]\(https:\/\/github\.com\/second\) · \[LinkedIn\]\(https:\/\/www\.linkedin\.com\/in\/second\/\) \|/);
+  assert.match(out, /\| \*\*No Handle\*\* \| Design \| - \|$/);
 });
 
 test("evidence lists the latest reports newest first", () => {
