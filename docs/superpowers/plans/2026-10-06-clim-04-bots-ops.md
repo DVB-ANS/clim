@@ -2737,7 +2737,7 @@ git commit -m "feat(bots): viem clients and per-block pair reads"
 
 Behaviour: on each new block (polled every 2 s; missed blocks are not replayed; a block that arrives while the previous one is still being handled is skipped), read V and S (`slot0`), the hook fee, the desk, the bot balances and the market price (live: median of the four venues; replay: the replay server's ticker); decide for each pool; outside the band, simulate then send an exact-input swap through `arbRouter(d)` (`routers.arb`, or the shared PoolSwapTest with a warning until plan 01 deploys it) spending up to the whole balance with the band-edge price limit (the swap stops at the limit). A pool with a pending arbitrage is skipped. `PriceLimitAlreadyExceeded` (0x7c9c6e8f) in simulation is logged as `stale`: another swap moved the pool after the read, and nothing was sent.
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/arb.ts`:
 ```ts
@@ -2862,12 +2862,12 @@ client.watchBlockNumber({
 });
 ```
 
-- [ ] **Step 2: Typecheck and wiring check**
+- [x] **Step 2: Typecheck and wiring check**
 
 Run: `cd bots && bun run typecheck && bun run arb --pair live`
 Expected: typecheck clean; then, before plan 01 has deployed, the bot stops at once with `error: pools.liveV is null: deploy it first (plan 01) and record it in shared/deployments/sepolia.json`. On-chain behaviour is checked in Task 23.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/arb.ts
