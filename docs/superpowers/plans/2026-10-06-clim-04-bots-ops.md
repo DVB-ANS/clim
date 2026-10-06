@@ -4407,24 +4407,24 @@ git commit -m "docs(ops): live Sepolia smoke test results"
 **Files:**
 - Modify: today's session log
 
-- [ ] **Step 1: Validate the window and start the server**
+- [x] **Step 1: Validate the window and start the server**
 
 Run: `cd bots && bun run replay-server`
 Expected: the three `[replay]` lines of run-book section 4 with `16200 s from 2026-02-04T11:30:00.000Z, main start 2026-02-04T12:00:00.000Z`. A validation error (`replay window: ...`) means plan 03's export does not follow contract 7: fix the export.
 
-- [ ] **Step 2: Check the klines as plan 02 reads them**
+- [x] **Step 2: Check the klines as plan 02 reads them**
 
 Run: `curl -s "http://127.0.0.1:8787/venue/kraken/api/v3/klines?symbol=ETHUSDT&interval=1m&limit=20" | python3 -c "import json,sys,time; k=json.load(sys.stdin); print(len(k), int(time.time()) - k[-1][0] // 1000)"` and `curl -s http://127.0.0.1:8787/status`
 Expected: `20` and a number between 0 and 59, then a status with `"done":false` and `histNow` between 1770206400 and 1770220800.
 
-- [ ] **Step 3: One recorded replay run, then the replay stack**
+- [x] **Step 3: One recorded replay run, then the replay stack**
 
 Run: `cd bots && ENV_FILE=.env.replay bun run cre-loop --pair replay --once`
 Expected: `[sim-loop replay] run <time>: applied tx 0x... ... forwarderResult true` (`ENV_FILE=.env.replay` makes plan 02's loop sign with the replay desk's own operator key, plan 01 Task 18; without it every replay run is `not-applied`). If the run's log shows `source dropped: replay <venue>: ...` for all four venues, the simulator cannot reach 127.0.0.1: apply the tunnel fallback of run-book section 4 (plan 02 Task 12 records which case holds).
 
 Then start `ENV_FILE=.env.replay bun run cre-loop --pair replay` (its own key: it can run at any moment next to the live loop), `bun run arb --pair replay` and `bun run noise --pair replay`. After five minutes: `curl -s localhost:8787/status` shows `progress` growing, and `bun run status --pair replay` shows the replay desk reporting with `flags 2` and the V fee following the replay volatility.
 
-- [ ] **Step 4: Log and commit**
+- [x] **Step 4: Log and commit**
 
 Append under `## Build notes` in today's session log:
 
