@@ -1802,7 +1802,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/src/ClimHook.s
 **Files:**
 - Test: `contracts/test/Integration.t.sol`
 
-- [ ] **Step 1: Write the test**
+- [x] **Step 1: Write the test**
 
 The story it tells:
 - blind before the first report;
@@ -1909,7 +1909,7 @@ contract IntegrationTest is HookHelpers {
 }
 ```
 
-- [ ] **Step 2: Run, expected PASS**
+- [x] **Step 2: Run, expected PASS**
 
 This task adds no production code, so the test passes at once. If it fails, the bug is in Tasks 3 to 8: use superpowers:systematic-debugging, and do not edit the expected numbers without recomputing them by hand.
 ```bash
@@ -1917,7 +1917,7 @@ cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-pat
 ```
 Expected: `Suite result: ok. 2 passed`, then `66 tests passed, 0 failed, 0 skipped (66 total tests)`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/test/Integration.t.sol && git commit -m "test(contracts): end-to-end storm on twin pools V and S"
