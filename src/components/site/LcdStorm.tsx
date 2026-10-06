@@ -1,3 +1,4 @@
+// Ordered (Bayer 4x4) dither thresholds, textbook definition; idea from Dither it! (github.com/alexharris/ditherit, MIT).
 "use client";
 
 import { useRef } from "react";
@@ -7,6 +8,8 @@ import { useCanvasLoop } from "./useCanvasLoop";
 
 const PARTICLES = stormParticles(1500, 20261006);
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+/** Bayer 4x4 index matrix, row by row: 16 threshold levels for the screen's crisp dot edges. */
+const B4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
 /** The CL-1's dot-matrix screen: the storm in lit pixels, turning faster and wider as σ rises. */
 export function LcdStorm({ sigmaPct, className = "" }: { sigmaPct: number; className?: string }) {
@@ -36,7 +39,7 @@ export function LcdStorm({ sigmaPct, className = "" }: { sigmaPct: number; class
     const dot = cell * 0.62, off = (cell - dot) / 2;
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
-        const v = grid[y * cols + x], dither = ((x * 3 + y * 5) % 4) / 4;
+        const v = grid[y * cols + x], dither = (B4[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
         const hot = v >= mean * (3.2 + dither), lit = v >= mean * (0.7 + 0.5 * dither);
         g.fillStyle = hot ? k.lcdHot : k.lcdLit;
         g.globalAlpha = hot ? 1 : lit ? 0.72 : 0.07;
