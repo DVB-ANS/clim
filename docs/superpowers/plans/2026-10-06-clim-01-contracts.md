@@ -1411,7 +1411,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/src/test-token
 - Create: `contracts/src/ClimHook.sol`
 - Test: `contracts/test/utils/HookHelpers.sol`, `contracts/test/ClimHook.t.sol`
 
-- [ ] **Step 1: Write the v4 fixtures and the failing test**
+- [x] **Step 1: Write the v4 fixtures and the failing test**
 
 `HookHelpers` uses v4-core's `Deployers`, which provides a real `PoolManager`, routers and sorted, minted, approved currencies. It deploys the hook with `deployCodeTo` at an address whose low bits are `AFTER_INITIALIZE_FLAG | BEFORE_SWAP_FLAG`, and reads the fee actually charged from the `Swap` event.
 
@@ -1688,14 +1688,14 @@ contract ClimHookTest is HookHelpers {
 }
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path test/ClimHook.t.sol
 ```
 Expected: `Error (6275): Source "src/ClimHook.sol" not found`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `contracts/src/ClimHook.sol`:
 ```solidity
@@ -1781,14 +1781,14 @@ contract ClimHook is BaseOverrideFee {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path test/ClimHook.t.sol
 ```
 Expected: `Suite result: ok. 17 passed; 0 failed; 0 skipped`. The fuzz test swaps through the real PoolManager 1,000 times, which takes about one second.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/src/ClimHook.sol contracts/test/utils/HookHelpers.sol contracts/test/ClimHook.t.sol && git commit -m "feat(contracts): ClimHook dynamic LP fee from RiskDesk with blind and degraded floors"
