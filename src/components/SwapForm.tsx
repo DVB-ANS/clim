@@ -107,8 +107,8 @@ export function SwapForm() {
             }),
           ),
         ];
-    const logs = await flow.start(steps);
-    const swap = logs ? swapResult(logs, plan.poolId) : undefined;
+    const { ok, logs } = await flow.start(steps);
+    const swap = ok ? swapResult(logs, plan.poolId) : undefined;
     if (swap) setResult({ swap, live });
   }
 
