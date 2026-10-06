@@ -3002,7 +3002,7 @@ Answers the Chainlink mentor's two questions precisely (how the fee is computed 
 **Files:**
 - Create or replace: `docs/faq.md`
 
-- [ ] **Step 1: Write the FAQ**
+- [x] **Step 1: Write the FAQ**
 
 Replace `docs/faq.md` entirely with the text below. The FAQ written with the spec during planning is superseded: every question it answers is covered here (its Data Feeds / Data Streams answer and its owner-power answer are merged below), and its numbers were at the old P\* = 10 % setting. Questions added later by hand (for example from judges) are kept: append them at the end.
 
@@ -3100,12 +3100,12 @@ A venue whose last closed one-minute candle is older than 120 s is dropped. With
 Not directly. `ClimHook` has no owner and no setter, and `RiskDesk` has no function that sets volatility or the fee. `RiskDesk`'s owner (OpenZeppelin `Ownable`, through Chainlink's `ReceiverTemplate`) can choose which forwarder and which workflow to trust (`setForwarderAddress`, `setExpectedWorkflowId`, `setExpectedAuthor`, `setExpectedWorkflowName`), call `disableSim()`, and transfer or renounce ownership. That is a trust assumption: a malicious owner could point the desk at a forwarder it controls, or at address 0, which removes the sender check, and then feed its own volatility. Every such report would still be bounded: volatility moves at most ×2 up and ×0.8 down per report, and the fee stays between the 5 bp floor and the 150 bp cap. In production, after switching to the `KeystoneForwarder`, setting the workflow id and calling `disableSim()`, the owner renounces ownership (or hands it to a timelocked multisig). The hackathon deployment keeps an owner because it must switch forwarders.
 ````
 
-- [ ] **Step 2: Check the anchors the README and the mentor message use**
+- [x] **Step 2: Check the anchors the README and the mentor message use**
 
 Run: `grep -n "^## Can a pool that is already live switch to clim?" /Users/fianso/Development/hackathons/clim/docs/faq.md`
 Expected: one line. GitHub turns it into the anchor `#can-a-pool-that-is-already-live-switch-to-clim`.
 
-- [ ] **Step 3: Log and commit**
+- [x] **Step 3: Log and commit**
 
 Append to today's session log (`docs/sessions/$(date +%F).md`; create it with the header `# Session log · <date> (TOKEN2049 Origins)` if missing):
 ```markdown
