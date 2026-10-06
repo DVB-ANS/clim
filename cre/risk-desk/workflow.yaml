@@ -1,0 +1,23 @@
+# clim risk-desk workflow settings, one block per target of ../project.yaml.
+staging-settings:
+  user-workflow:
+    workflow-name: "clim-risk-desk-staging"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.staging.json"
+    secrets-path: ""
+replay-settings:
+  user-workflow:
+    workflow-name: "clim-risk-desk-replay"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.replay.json"
+    secrets-path: ""
+production-settings:
+  user-workflow:
+    workflow-name: "clim-risk-desk"
+    deployment-registry: "private"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.production.json"
+    secrets-path: ""

@@ -225,7 +225,7 @@ git commit -m "docs(cre): log CRE toolchain, deploy-access request and planning-
 - Create: `cre/risk-desk/config.staging.json`, `cre/risk-desk/config.replay.json`, `cre/risk-desk/config.production.json`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Create `cre/project.yaml`**
+- [x] **Step 1: Create `cre/project.yaml`**
 
 ```yaml
 # clim CRE project settings (cre CLI >= 1.37).
@@ -245,7 +245,7 @@ production-settings:
       url: https://ethereum-sepolia-rpc.publicnode.com
 ```
 
-- [ ] **Step 2: Create `cre/secrets.example.yaml` and `cre/.env.example`**
+- [x] **Step 2: Create `cre/secrets.example.yaml` and `cre/.env.example`**
 
 `cre/secrets.example.yaml`:
 
@@ -268,7 +268,7 @@ CRE_ETH_PRIVATE_KEY=
 SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
 ```
 
-- [ ] **Step 3: Create `cre/risk-desk/package.json`, `cre/risk-desk/tsconfig.json` and `cre/risk-desk/workflow.yaml`**
+- [x] **Step 3: Create `cre/risk-desk/package.json`, `cre/risk-desk/tsconfig.json` and `cre/risk-desk/workflow.yaml`**
 
 `cre/risk-desk/package.json`:
 
@@ -342,7 +342,7 @@ production-settings:
     secrets-path: ""
 ```
 
-- [ ] **Step 4: Create the three workflow configs**
+- [x] **Step 4: Create the three workflow configs**
 
 `deskAddress` is a placeholder burn address (no code) until plan 01 deploys a desk. Task 10 overwrites it with `scripts/sync-config.ts`.
 
@@ -415,7 +415,7 @@ production-settings:
 }
 ```
 
-- [ ] **Step 5: Ignore WASM builds and simulation logs**
+- [x] **Step 5: Ignore WASM builds and simulation logs**
 
 In `.gitignore`, replace the line `cre/**/.cre_build_tmp.js` with these four lines:
 
@@ -426,7 +426,7 @@ cre/**/*.wasm.br.b64
 cre/logs/
 ```
 
-- [ ] **Step 6: Install the dependencies**
+- [x] **Step 6: Install the dependencies**
 
 ```bash
 (cd cre/risk-desk && bun install)
@@ -443,7 +443,7 @@ Expected (last lines; bun may append `(vX available)` to a line, and the timing 
 39 packages installed [<time>]
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add .gitignore cre/project.yaml cre/secrets.example.yaml cre/.env.example cre/risk-desk/package.json cre/risk-desk/bun.lock cre/risk-desk/tsconfig.json cre/risk-desk/workflow.yaml cre/risk-desk/config.staging.json cre/risk-desk/config.replay.json cre/risk-desk/config.production.json

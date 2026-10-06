@@ -1,0 +1,15 @@
+# clim CRE project settings (cre CLI >= 1.37).
+# Targets: staging-settings = live simulation, replay-settings = replay simulation,
+# production-settings = DON deployment (private registry). Every target must also exist in risk-desk/workflow.yaml.
+staging-settings:
+  rpcs:
+    - chain-name: ethereum-testnet-sepolia
+      url: https://ethereum-sepolia-rpc.publicnode.com
+replay-settings:
+  rpcs:
+    - chain-name: ethereum-testnet-sepolia
+      url: https://ethereum-sepolia-rpc.publicnode.com
+production-settings:
+  rpcs:
+    - chain-name: ethereum-testnet-sepolia
+      url: https://ethereum-sepolia-rpc.publicnode.com
