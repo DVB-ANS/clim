@@ -326,7 +326,7 @@ has a dynamic fee. Details in [docs/faq.md](docs/faq.md).
 ## Deployed addresses
 
 <!-- clim:begin deployments -->
-Everything runs on Ethereum Sepolia (chain id 11155111). Each address links to Etherscan. The source of clim's own contracts (both desks, both hooks, tETH and tUSD) is verified on Sourcify; the arbitrage router is Uniswap's unmodified `PoolSwapTest`.
+Everything runs on Ethereum Sepolia (chain id 11155111). Each address links to Etherscan. The source of every contract clim deployed (both desks, both hooks, tETH, tUSD and the arbitrage router, Uniswap's unmodified `PoolSwapTest`) is verified on Sourcify.
 
 | | Contract | Address | Source | Role |
 |---|---|---|---|---|
@@ -342,7 +342,7 @@ Everything runs on Ethereum Sepolia (chain id 11155111). Each address links to E
 |  | `KeystoneForwarder` | [`0xF8344CFd…4482`](https://sepolia.etherscan.io/address/0xF8344CFd5c43616a4366C34E3EEE75af79a74482) |  | delivers DON reports; checks the DON's signatures |
 | **Test tokens and bots** | `tETH` | [`0xcB249894…5A19`](https://sepolia.etherscan.io/address/0xcB2498949AC0c2473a06199e24f2c5062b665A19) | [Sourcify](https://repo.sourcify.dev/11155111/0xcB2498949AC0c2473a06199e24f2c5062b665A19) | test ETH with a public faucet |
 |  | `tUSD` | [`0xce3171cB…4C14`](https://sepolia.etherscan.io/address/0xce3171cB1ad23D9E5D3fD9839078b4624DC84C14) | [Sourcify](https://repo.sourcify.dev/11155111/0xce3171cB1ad23D9E5D3fD9839078b4624DC84C14) | test USD with a public faucet |
-|  | `PoolSwapTest` (arbitrage) | [`0x70856584…ce51`](https://sepolia.etherscan.io/address/0x70856584d9d8ADDB653aBb1786E37C505665ce51) |  | the arbitrage bot's own router, so its swaps can be told apart |
+|  | `PoolSwapTest` (arbitrage) | [`0x70856584…ce51`](https://sepolia.etherscan.io/address/0x70856584d9d8ADDB653aBb1786E37C505665ce51) | [Sourcify](https://repo.sourcify.dev/11155111/0x70856584d9d8ADDB653aBb1786E37C505665ce51) | the arbitrage bot's own router, so its swaps can be told apart |
 |  | Operator | [`0x53aB240f…5A82`](https://sepolia.etherscan.io/address/0x53aB240f6cffC204FC22ac6722D9632d753a5A82) |  | deployer, owner of both desks, the live desk's `simOperator` (the only accepted sender of its simulated reports), test-token owner |
 
 | Pool | LP fee | PoolId |

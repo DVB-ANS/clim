@@ -34,7 +34,7 @@ test("deployments: human labels, grouped, truncated Etherscan links, pools with 
   assert.equal(out.split("\n").filter((l) => l.includes("repo.sourcify.dev")).length, 4);
   assert.match(out, /\| \*\*Uniswap v4\*\* \| `PoolManager` \| \[`0xE03A1074…3543`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0xE03A1074c86CFeDd5C142C4F04F1a1536e203543\) \|/);
   assert.match(out, /\|  \| `StateView` \|/);
-  assert.match(out, /the arbitrage router is Uniswap's unmodified `PoolSwapTest`\./);
+  assert.match(out, /tETH, tUSD and the arbitrage router, Uniswap's unmodified `PoolSwapTest`\) is verified on Sourcify\./);
   const order = ["**clim**", "**Uniswap v4**", "**Chainlink**", "**Test tokens and bots**"].map((g) => out.indexOf(g));
   assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), `groups out of order: ${order}`);
   assert.equal(out.split("\n").filter((l) => l.includes("etherscan")).length, 8);

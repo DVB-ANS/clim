@@ -71,11 +71,11 @@ const POOL_LABELS = {
 };
 const DYNAMIC_FEE_FLAG = 0x800000;
 
-// clim's own contracts whose source is verified on Sourcify, at the level "match" (partial: metadata hash differs),
-// checked with https://sourcify.dev/server/v2/contract/11155111/<address> on 2026-10-06. The Uniswap and Chainlink
-// contracts are their authors' deployments; the arbitrage router (Uniswap's unmodified PoolSwapTest, not verified)
-// and the operator have no Sourcify link.
-const SOURCIFY_VERIFIED = new Set(["riskDesks.live", "hooks.live", "riskDesks.replay", "hooks.replay", "tokens.tETH.address", "tokens.tUSD.address"]);
+// Contracts clim deployed whose source is verified on Sourcify, at the level "match" (partial: metadata hash differs),
+// checked with https://sourcify.dev/server/v2/contract/11155111/<address> on 2026-10-06 (the arbitrage router, Uniswap's
+// unmodified PoolSwapTest, on 2026-10-07). The Uniswap and Chainlink contracts are their authors' deployments and have
+// no Sourcify link here.
+const SOURCIFY_VERIFIED = new Set(["riskDesks.live", "hooks.live", "riskDesks.replay", "hooks.replay", "tokens.tETH.address", "tokens.tUSD.address", "routers.arb"]);
 
 export function renderDeployments(deployments) {
   const { addresses, poolIds } = collectAddresses(deployments);
@@ -94,7 +94,7 @@ export function renderDeployments(deployments) {
   );
   const chain = deployments.chainId ? ` (chain id ${deployments.chainId})` : "";
   const out = [
-    `Everything runs on Ethereum Sepolia${chain}. Each address links to Etherscan. The source of clim's own contracts (both desks, both hooks, tETH and tUSD) is verified on Sourcify; the arbitrage router is Uniswap's unmodified \`PoolSwapTest\`.`,
+    `Everything runs on Ethereum Sepolia${chain}. Each address links to Etherscan. The source of every contract clim deployed (both desks, both hooks, tETH, tUSD and the arbitrage router, Uniswap's unmodified \`PoolSwapTest\`) is verified on Sourcify.`,
     "",
     "| | Contract | Address | Source | Role |",
     "|---|---|---|---|---|",
