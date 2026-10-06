@@ -4811,32 +4811,34 @@ git commit -m "docs(session): record the dashboard's live URL"
 
 Repeat Steps 1 to 6 every time `shared/` or `lab/out/` changes (P\* decision, new deployment, new lab results).
 
-- [ ] **Step 1: Gate check**
+**Done in clim on 2026-10-07** at clim-front `d05ee94` (imported into `app/`). What differs from the text below: the dashboard is at `/app` (the landing is `/`); `/swap` and `/lp` show only the on-chain mode once the deployment has the live pair (no simulated switch or label in production); the replay pair reads as a finished run (`src/lib/finished.ts`: badge "Finished replay on Sepolia", its span and why its hook now quotes the 30 bp safe fee, history panels ending at its last swap); a Contracts panel on `/app` and `/how#contracts` lists every address with Etherscan and Sourcify links; production deploys from the repo root (Vercel Root Directory `app/`, root `.vercelignore`). Results are in the session log of 2026-10-07 (Build notes).
+
+- [x] **Step 1: Gate check**
 
 ```bash
 jq '{deployBlock, desk: .riskDesks.live, hook: .hooks.live, V: .pools.liveV.poolId, S: .pools.liveS.poolId, arb: .routers.arb}' shared/deployments/sepolia.json && jq -r .decidedBy shared/params.json && ls lab/out/
 ```
 Expected: no `null` among `deployBlock`, `desk`, `hook`, `V`, `S`, `arb`; `decidedBy` does not start with `PROVISIONAL`. Missing lab files are fine (fixtures stay, flagged on the page).
 
-- [ ] **Step 2: Sync**
+- [x] **Step 2: Sync**
 
 Run: `(cd app && npm run sync)`
 Expected: `src/generated/sepolia.json` and `src/generated/params.json` show `repo`; each lab file shows `repo` once plan 03 wrote it.
 
-- [ ] **Step 3: Tests, including the ABI drift guard**
+- [x] **Step 3: Tests, including the ABI drift guard**
 
 Run: `(cd app && npm test && npm run typecheck && npm run lint && npm run build)`
-Expected: no `failed` test, and no skipped one once `shared/abis/RiskDesk.json` and `shared/abis/ClimHook.json` exist (the 2 drift tests now run): `Tests  128 passed (128)` with clim-front at `c924078` plus Task 28. A `deployments: poolId mismatch for liveV` error at build means `shared/deployments/sepolia.json` is wrong: fix it in plan 01's script, not in the app. A schema error from a lab file means plan 03 and Task 7 disagree: reconcile `app/src/lib/lab.ts` (interface 6) and log it.
+Expected: no `failed` test, and no skipped one once `shared/abis/RiskDesk.json` and `shared/abis/ClimHook.json` exist (the 2 drift tests now run). Observed: `Tests  156 passed (156)` right after the first sync at clim-front `d05ee94`, then `Test Files  21 passed (21)`, `Tests  170 passed (170)` with Task 28 and the post-import changes. A `deployments: poolId mismatch for liveV` error at build means `shared/deployments/sepolia.json` is wrong: fix it in plan 01's script, not in the app. A schema error from a lab file means plan 03 and Task 7 disagree: reconcile `app/src/lib/lab.ts` (interface 6) and log it.
 
-- [ ] **Step 4: Cross-check the dashboard against the chain**
+- [x] **Step 4: Cross-check the dashboard against the chain**
 
 ```bash
 HOOK=$(jq -r .hooks.live shared/deployments/sepolia.json); DESK=$(jq -r .riskDesks.live shared/deployments/sepolia.json)
 cast call $HOOK "quoteFee()(uint24,uint8)" --rpc-url https://sepolia.gateway.tenderly.co
 cast call $DESK "state()(uint40,uint32,uint16,uint8,uint32)" --rpc-url https://sepolia.gateway.tenderly.co
 ```
-Then run `(cd app && npx next start -p 3000)`, open http://localhost:3000 and check:
-- the badge reads "Live from Sepolia: RiskDesk 0x…, hook 0x…" with Etherscan links;
+Then run `(cd app && npx next start -p 3000)`, open http://localhost:3000/app and check:
+- the badge reads "Live from Sepolia: RiskDesk 0x…, hook 0x…" with Etherscan links (on the replay pair: "Finished replay on Sepolia");
 - the Quote panel's V fee in bp equals the first `quoteFee` value divided by 100, with the same mode (0 normal, 1 degraded, 2 blind);
 - the Desk panel's σ applied equals `state().sigmaE9` converted (`sigmaE9 / 1e9 × √31,536,000 × 100` %), and its last `#seq` equals `state().seq`;
 - in the weather chart, every blue dot (a real `Swap.fee`) sits on the staircase rebuilt from `RiskReported` logs;
@@ -4844,26 +4846,27 @@ Then run `(cd app && npx next start -p 3000)`, open http://localhost:3000 and ch
 
 Stop the server. Any mismatch is a bug in the app or in a contract: debug with superpowers:systematic-debugging before going on.
 
-- [ ] **Step 5: Commit and redeploy**
+Done on 2026-10-07 without a person at the browser: a headless Chromium (Playwright) rendered `/app`, `/swap` and `/replay` against `next start` and against production, the visible numbers (read from the counters' screen-reader copy) were compared with `cast` reads taken a few seconds later (seq, σ, mode, V and S fees, V's price, the replay desk's seq 459 and its blind 30 bp), and every `Swap.fee` on V was checked against the staircase rebuilt from `RiskReported` logs on the frozen snapshots with the app's own `quoteFee` (519 of 519 live, 520 of 520 replay). The table is in the session log.
+
+- [x] **Step 5: Commit and redeploy**
 
 ```bash
-git add app/src/generated app/public/data/lab
-git commit -m "chore(app): sync Sepolia deployments, params and lab outputs"
-(cd app && vercel deploy --prod --yes)
+P=(app/src/generated app/public/data/lab)
+git add $P && git commit -m "chore(app): sync Sepolia deployments, params and lab outputs" -- $P
+VERCEL_ORG_ID=team_bCob7HCJS9NchRXoSxF72ygr VERCEL_PROJECT_ID=prj_9VyLbkFAAOnESPzvfjKL8MMjVMsm vercel deploy --prod --yes
 ```
-Expected: the production URL now shows "Live from Sepolia".
+Run the deploy from the repo root: the Vercel project's Root Directory is `app/` and the root `.vercelignore` uploads `app/` only (the build reads nothing outside `app/` after `npm run sync`). Expected: a `Production: https://clim-<hash>-gamween-7559s-projects.vercel.app` line, the alias https://clim-zeta.vercel.app on the new deployment, and `/app` showing "Live from Sepolia".
 
-- [ ] **Step 6: Log**
+- [x] **Step 6: Log**
 
-Append under `## Decisions` in today's session log, with the real addresses:
+Append under `## Build notes` in today's session log, with the real addresses:
 
 ```markdown
-- **Dashboard wired to Sepolia (plan 05):** RiskDesk <address from shared/deployments>, ClimHook <address>; `quoteFee()` on-chain matches the Quote panel and every `Swap.fee` dot sits on the staircase rebuilt from `RiskReported` logs.
+- (app) Dashboard wired to Sepolia: RiskDesk <address from shared/deployments>, ClimHook <address>; `quoteFee()` on-chain matches the Quote panel and every `Swap.fee` dot sits on the staircase rebuilt from `RiskReported` logs (plan 05 Task 25).
 ```
 
 ```bash
-git add docs/sessions
-git commit -m "docs(session): dashboard wired to Sepolia"
+git add docs/sessions/<today>.md && git commit -m "docs(session): dashboard wired to Sepolia" -- docs/sessions/<today>.md
 ```
 
 ---
@@ -4875,35 +4878,33 @@ git commit -m "docs(session): dashboard wired to Sepolia"
 
 Judges open the URL later; this makes the page load the full history from a static file and ask the RPC only for newer blocks.
 
-- [ ] **Step 1: Snapshot**
+- [x] **Step 1: Snapshot**
 
 ```bash
 (cd app && npm run snapshot -- live)
 (cd app && jq -e '.riskDesks.replay' src/generated/sepolia.json >/dev/null && npm run snapshot -- replay || echo "no replay pair")
 ```
-Expected: `public/data/chain/live.json: blocks <startBlock>..<head-3>, <N> reports, <M> swaps, <K> rejected deliveries` with N, M > 0 and K ≥ 1 after the forged-report demo.
+Expected: `public/data/chain/live.json: blocks <startBlock>..<head-3>, <N> reports, <M> swaps, <K> rejected deliveries` with N, M > 0 and K ≥ 1 after the forged-report demo. Observed on 2026-10-07: `live.json: blocks 11856974..11858653, 622 reports, 1033 swaps, 2 rejected deliveries` and `replay.json: blocks 11856974..11858654, 459 reports, 1028 swaps, 0 rejected deliveries` (the replay is finished, so its file is final).
 
-- [ ] **Step 2: Build, check, commit, deploy**
+- [x] **Step 2: Build, check, commit, deploy**
 
 ```bash
 (cd app && npm run build)
-git add app/public/data/chain
-git commit -m "chore(app): freeze on-chain log history for the submission"
-(cd app && vercel deploy --prod --yes)
+git add app/public/data/chain && git commit -m "chore(app): freeze on-chain log history for the submission" -- app/public/data/chain
+VERCEL_ORG_ID=team_bCob7HCJS9NchRXoSxF72ygr VERCEL_PROJECT_ID=prj_9VyLbkFAAOnESPzvfjKL8MMjVMsm vercel deploy --prod --yes   # from the repo root (Task 25 Step 5)
 ```
 Then open the production URL: the badge ends with "history from the frozen snapshot", and the charts load in a few seconds.
 
-- [ ] **Step 3: Log**
+- [x] **Step 3: Log**
 
-Append under `## Decisions` in today's session log:
+Append under `## Build notes` in today's session log:
 
 ```markdown
-- **On-chain history frozen (plan 05):** app/public/data/chain/live.json covers blocks <from>..<to> (<N> reports, <M> swaps); the live URL reads it first and polls only newer blocks.
+- (app) On-chain history frozen: app/public/data/chain/live.json covers blocks <from>..<to> (<N> reports, <M> swaps); the live URL reads it first and polls only newer blocks (plan 05 Task 26).
 ```
 
 ```bash
-git add docs/sessions
-git commit -m "docs(session): on-chain history frozen in the dashboard"
+git add docs/sessions/<today>.md && git commit -m "docs(session): on-chain history frozen in the dashboard" -- docs/sessions/<today>.md
 ```
 
 ---
@@ -4913,25 +4914,26 @@ git commit -m "docs(session): on-chain history frozen in the dashboard"
 **Delegable:** yes (the browser check needs a wallet with Sepolia ETH)
 **Depends on:** Task 25, plan 01 Task 7 (`TestToken.faucet()`)
 
-The Frontend scope upgrade (session log 2026-10-06) made `/swap` and `/lp` core pages, and clim-front built them (its session log, "`/swap`" and "`/lp` through `PoolModifyLiquidityTest`"). They replace this task's former optional page, which minted with the owner-only `mint` and could not work for visitors. Files (in `app/`): `src/app/swap/page.tsx`, `src/app/lp/page.tsx`, `src/components/{SwapForm,LiquidityBoard,LiquidityForm,PositionPanel,FaucetCard,TxSteps,TxModeSwitch,WalletButton,WalletProviders}.tsx`, `src/hooks/{useTxFlow,useChainSteps,useLpState,useStored}.ts`, `src/lib/{wallet,swap,liquidity,tx}.ts` with their tests. Until the live pair is in `shared/deployments/sepolia.json` both pages run a simulated mode (same steps, fake hashes); the on-chain mode switches on with the deployments.
+The Frontend scope upgrade (session log 2026-10-06) made `/swap` and `/lp` core pages, and clim-front built them (its session log, "`/swap`" and "`/lp` through `PoolModifyLiquidityTest`"). They replace this task's former optional page, which minted with the owner-only `mint` and could not work for visitors. Files (in `app/`): `src/app/swap/page.tsx`, `src/app/lp/page.tsx`, `src/components/{SwapForm,LiquidityBoard,LiquidityForm,PositionPanel,FaucetCard,TxSteps,TxModeSwitch,WalletButton,WalletProviders}.tsx`, `src/hooks/{useTxFlow,useChainSteps,useLpState,useStored}.ts`, `src/lib/{wallet,swap,liquidity,tx}.ts` with their tests. Until the live pair is in `shared/deployments/sepolia.json` both pages run a simulated mode (same steps, fake hashes); with the live pair the on-chain mode is the only one shown (since 2026-10-07, no switch). In clim the pages live under `app/src/app/(app)/` and the transaction code also uses `src/lib/{swap,liquidity,tx}.ts`'s `swapArgs`, `fullRangeParams`, `approvalWithMargin` and `withGasMargin`.
 
-- [ ] **Step 1: Check the pages in a browser, on Sepolia**
+**Done on 2026-10-07 by script, not with a browser wallet** (the maintainer was away and no wallet may be connected in a browser): `app/scripts/e2e-onchain.ts` (`npm run e2e:onchain -- <env file with TEST_PRIVATE_KEY> [--out summary.json]`) sends what the UI sends, with the UI's own builders, from a throwaway test key; the browser check of the pages is read-only (they load, show the live numbers and the Connect button). The faucet credits 10 tETH and 25,000 tUSD per hour (`faucetAmount()`, `FAUCET_COOLDOWN()` = 3600).
 
-After Task 25 (live pair synced and deployed), with MetaMask or Rabby on Sepolia and some Sepolia ETH for gas: open `/lp`, Connect, "Get tETH and tUSD" (two `faucet()` transactions), add 1 tETH of full-range liquidity to pool V; then open `/swap` and swap 0.1 tETH on V, then on S.
+- [x] **Step 1: Check the pages in a browser, on Sepolia**
+
+After Task 25 (live pair synced and deployed), with MetaMask or Rabby on Sepolia and some Sepolia ETH for gas: open `/lp`, Connect, "Get tETH and tUSD" (two `faucet()` transactions), add 1 tETH of full-range liquidity to pool V; then open `/swap` and swap 0.1 tETH on V, then on S. By script instead: `(cd app && npm run e2e:onchain -- <key file> --out <summary.json>)`; expected `PASS` on every check (V's `Swap.fee` equals `ClimHook.quoteFee()` in the swap's block or the one before, S's equals its PoolKey fee, each position read back from StateView then removed, `FaucetCooldown` decoded on a second run within the hour) and every receipt `success`.
 Expected:
 - the faucet credits 10 tETH and 25,000 tUSD; a second click within the hour fails with `FaucetCooldown` (decoded thanks to Task 28's ABI fragment);
 - `/lp` shows the position (liquidity, value, uncollected fees) and "if you had been in S";
 - each swap's status line ends with the fee paid and an Etherscan link; on V it equals the Quote panel's fee at that time, on S the static fee; the dashboard counts these swaps as retail (they go through `uniswap.poolSwapTest`, not `routers.arb`).
 
-- [ ] **Step 2: Log**
+- [x] **Step 2: Log**
 
 Append under `## Build notes` in today's session log:
 ```markdown
-- (app) `/swap` and `/lp` checked on Sepolia with a wallet: faucet <tx>, liquidity added to V <tx>, swap on V paid <x> bp (Quote panel <x> bp), swap on S paid <s> bp.
+- (app) `/swap` and `/lp` checked on Sepolia (by script or with a wallet): faucet <tx>, liquidity added to V <tx>, swap on V paid <x> bp (Quote panel <x> bp), swap on S paid <s> bp (plan 05 Task 27).
 ```
 ```bash
-git add docs/sessions
-git commit -m "docs(session): /swap and /lp checked on Sepolia"
+git add docs/sessions/<today>.md && git commit -m "docs(session): /swap and /lp checked on Sepolia" -- docs/sessions/<today>.md
 ```
 
 ---
@@ -4945,9 +4947,11 @@ The plan review (2026-10-06) found what the clim-front build could not know: lab
 
 **Files:**
 - Create: `app/src/lib/labText.ts`, `app/src/lib/labText.test.ts`
-- Modify: `app/src/lib/lab.ts`, `app/src/app/lab/page.tsx`, `app/src/app/replay/page.tsx`, `app/src/components/ReplayPanel.tsx`, `app/src/lib/abis.ts`
+- Modify: `app/src/lib/lab.ts`, `app/src/app/(app)/lab/page.tsx`, `app/src/app/(app)/replay/page.tsx`, `app/src/components/ReplayPanel.tsx`, `app/src/lib/abis.ts`, `app/src/lib/abis.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+**Done in clim on 2026-10-07** (commit `fix(app): round lab numbers, replay range from data, replay-window context, faucet error ABI`). The imported app is clim-front `d05ee94`, not `c924078`: the pages live under the route group `src/app/(app)/`, and the code below is what was committed. The replay note now uses the README's wording ("no rolling 4 h window of the storm does better (best −18.4 %); median −2.1 %; 66 of 92 windows beat the fixed pool"); the lab page's LP-gain line follows the README too (+0.40 % is the main scenario on an asset twice as volatile, not an upper bound); a drift test checks the TestToken fragments against `shared/abis/TestToken.json`.
+
+- [x] **Step 1: Write the failing test**
 
 `app/src/lib/labText.test.ts`:
 ```ts
@@ -4969,23 +4973,24 @@ describe("lab numbers as judges read them", () => {
     expect(usdPerMillion(0.70240233)).toBe("$7,024");
   });
 
-  it("puts the replay window in the context of the rolling windows", () => {
+  it("puts the replay window in the context of the rolling windows, in the README's words", () => {
     const r = { arbChangeRangePct: [-18.366445, 3.1499447] as [number, number], windowsMedianPct: -2.1181905, windowsBetterCount: 66, windowsCount: 92, windowsBeatingChosenCount: 0 };
     expect(replayWindowNote(r)).toBe(
-      "Picked during design at an earlier setting, around the sharpest rise in volatility: at this P* no rolling 4 h window of the storm does better (best -18.4%); median window -2.1%, 66 of 92 better than the static pool.",
+      "Picked during design at an earlier setting, around the sharpest rise in volatility: at this P* no rolling 4 h window of the storm does better (best -18.4%); median -2.1%; 66 of 92 windows beat the fixed pool.",
     );
+    expect(replayWindowNote(r)).not.toMatch(/most favou?rable/);
     expect(replayWindowNote({ ...r, windowsBeatingChosenCount: 3 })).toContain("3 of the 92 rolling 4 h windows of the storm did better");
     expect(replayWindowNote({})).toBeNull();
   });
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/labText.test.ts)`
 Expected: `Error: Cannot find module './labText'` and `Tests  no tests`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `app/src/lib/labText.ts`:
 ```ts
@@ -5021,20 +5026,21 @@ export function replayWindowNote(r: ReplayWindows): string | null {
   const { windowsMedianPct: median, windowsBetterCount: better, windowsCount: n, windowsBeatingChosenCount: beating } = r;
   if (median === undefined || better === undefined || n === undefined || beating === undefined) return null;
   const best = r.arbChangeRangePct?.[0];
-  // The replay window (12:00-16:00) is not one of the rolling windows (they start at :16), so the note says none does better.
+  // The replay window (12:00-16:00) is not one of the rolling windows (they start at :16), so the note says
+  // that none does better, in the README's words, rather than calling it the best of them.
   const where = beating === 0
     ? `no rolling 4 h window of the storm does better${best === undefined ? "" : ` (best ${signedPct(best, 1)})`}`
     : `${beating} of the ${n} rolling 4 h windows of the storm did better`;
-  return `Picked during design at an earlier setting, around the sharpest rise in volatility: at this P* ${where}; median window ${signedPct(median, 1)}, ${better} of ${n} better than the static pool.`;
+  return `Picked during design at an earlier setting, around the sharpest rise in volatility: at this P* ${where}; median ${signedPct(median, 1)}; ${better} of ${n} windows beat the fixed pool.`;
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/labText.test.ts)`
 Expected: `Tests  3 passed (3)`.
 
-- [ ] **Step 5: Use the helpers and the new fields**
+- [x] **Step 5: Use the helpers and the new fields**
 
 Make these exact replacements (each old text occurs once).
 
@@ -5054,7 +5060,7 @@ with
     pTradePredicted: number;
 ```
 
-In `app/src/app/lab/page.tsx`, replace
+In `app/src/app/(app)/lab/page.tsx`, replace
 ```tsx
 import { labReplay, labSummary } from "@/lib/labData";
 ```
@@ -5071,12 +5077,16 @@ and replace the three `<li>` lines
 ```
 with
 ```tsx
-          <li>LP gain, full-range ETH: {signedPct(lo)} to {signedPct(hi)} of capital per year ({usdPerMillion(lo)} to {usdPerMillion(hi)} a year per $1M of liquidity), up to {signedPct(s.lpGain.volatileAssetPctPerYearMax)} on volatile assets; about {roundPct(s.lpGain.shareFromTop5WeeksPct)} of it in the five most turbulent weeks.</li>
+          <li>
+            LP gain, full-range ETH: {signedPct(lo)} to {signedPct(hi)} of capital per year ({usdPerMillion(lo)} to {usdPerMillion(hi)} a year per $1M of liquidity).
+            In the main scenario, about {roundPct(s.lpGain.shareFromTop5WeeksPct)} of the gain is earned in the five most turbulent weeks; the same scenario on an
+            asset twice as volatile (the same year with every return doubled) gains {signedPct(s.lpGain.volatileAssetPctPerYearMax)} a year.
+          </li>
           <li>The model predicts how often arbitrage happens; it underestimates how much it takes: observed ARB/LVR is {s.modelSeverityRatio[0].toFixed(2)} to {s.modelSeverityRatio[1].toFixed(2)} times the model.</li>
           <li>A volatility computed inside the pool gets {roundPct(s.inPoolVolGainSharePct[0])} to {roundPct(s.inPoolVolGainSharePct[1])} of the same gain{s.inPoolVolGainSharePct[1] > 100 ? " (above 100%: it did slightly better in one sample)" : ""}: Chainlink CRE is here for robustness (four venues must agree), not accuracy.</li>
 ```
 
-In `app/src/app/replay/page.tsx`, replace
+In `app/src/app/(app)/replay/page.tsx`, replace
 ```tsx
         Binance ETHUSDT, 12:00 to 16:00 UTC: hourly volatility goes from 74% to 225%. Below, the lab&apos;s replay of that window
 ```
@@ -5122,19 +5132,18 @@ with
 ]);
 ```
 
-- [ ] **Step 6: Run everything**
+- [x] **Step 6: Run everything**
 
 Run: `(cd app && npm run typecheck && npm run lint && npm test && npm run build)`
-Expected: `tsc --noEmit` and `eslint` print no error; `Tests  126 passed | 2 skipped (128)` before plan 01 exports `shared/abis/` (the 2 ABI drift checks skip), `Tests  128 passed (128)` after it, if clim-front's last commit was `c924078` (a later clim-front commit may add tests: the requirement is no `failed`); the route table lists `/`, `/how`, `/lab`, `/lp`, `/replay` and `/swap`.
+Expected: `tsc --noEmit` and `eslint` print no error; no `failed` test and none skipped once `shared/abis/` exists. Observed on 2026-10-07 at clim-front `d05ee94` plus this task: `Test Files  19 passed (19)`, `Tests  160 passed (160)` (156 after the sync, plus labText's 3 and the TestToken drift test); the route table lists `/`, `/app`, `/credits`, `/how`, `/lab`, `/lp`, `/replay` and `/swap`, all static.
 
-- [ ] **Step 7: Commit and redeploy**
+- [x] **Step 7: Commit and redeploy**
 
 ```bash
-git add app/src/lib/labText.ts app/src/lib/labText.test.ts app/src/lib/lab.ts app/src/app/lab/page.tsx app/src/app/replay/page.tsx app/src/components/ReplayPanel.tsx app/src/lib/abis.ts
-git commit -m "fix(app): round lab numbers, replay range from data, replay-window context, faucet error ABI"
-(cd app && vercel deploy --prod --yes)
+P=(app/src/lib/labText.ts app/src/lib/labText.test.ts app/src/lib/lab.ts "app/src/app/(app)/lab/page.tsx" "app/src/app/(app)/replay/page.tsx" app/src/components/ReplayPanel.tsx app/src/lib/abis.ts app/src/lib/abis.test.ts)
+git add $P && git commit -m "fix(app): round lab numbers, replay range from data, replay-window context, faucet error ABI" -- $P
 ```
-Expected: a `Production: https://...vercel.app` line; the domain `https://clim-zeta.vercel.app` serves the new build.
+Commit with the paths (`git commit -- <paths>`): another session may have staged its own files. The redeploy comes with Task 25 Step 5 (from the repo root, see there).
 
 ---
 
