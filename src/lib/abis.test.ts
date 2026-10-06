@@ -2,7 +2,17 @@ import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { type Abi, toEventSelector, toFunctionSelector } from "viem";
 import { describe, expect, it } from "vitest";
-import { climHookAbi, poolSwapTestAbi, REPORT_PROCESSED_TOPIC, RISK_REPORTED_TOPIC, riskDeskAbi, SWAP_TOPIC } from "./abis";
+import {
+  climHookAbi,
+  poolModifyLiquidityTestAbi,
+  poolSwapTestAbi,
+  REPORT_PROCESSED_TOPIC,
+  RISK_REPORTED_TOPIC,
+  riskDeskAbi,
+  stateViewAbi,
+  SWAP_TOPIC,
+  testTokenAbi,
+} from "./abis";
 
 describe("ABI fragments", () => {
   it("Swap topic matches PoolManager logs seen on Sepolia", () => {
@@ -47,5 +57,26 @@ describe("drift against shared/abis", () => {
   it.skipIf(!hook)("ClimHook.json contains quoteFee()", () => {
     const s = selectors(hook!);
     for (const want of selectors(climHookAbi)) expect(s).toContain(want);
+  });
+});
+
+// Scope upgrade (wallet, /swap, /lp): selectors read from the Sepolia bytecode on 2026-10-06.
+describe("write-side fragments for /swap and /lp", () => {
+  it("PoolModifyLiquidityTest.modifyLiquidity matches the deployed PoolModifyLiquidityTest (0x0C47…0B0A)", () => {
+    const f = poolModifyLiquidityTestAbi.find((x) => x.type === "function" && x.name === "modifyLiquidity");
+    expect(f && toFunctionSelector(f)).toBe("0x5a6bcfda");
+  });
+  it("StateView position reads match the deployed StateView (0xE1Dd…4C)", () => {
+    const sel = (name: string) => {
+      const f = stateViewAbi.find((x) => x.type === "function" && x.name === name);
+      return f && toFunctionSelector(f);
+    };
+    expect(sel("getPositionInfo")).toBe("0xdacf1d2f");
+    expect(sel("getFeeGrowthInside")).toBe("0x53e9c1fb");
+    expect(sel("getSlot0")).toBe("0xc815641c");
+  });
+  it("TestToken exposes the public faucet() decided for plan 01 (no argument)", () => {
+    const f = testTokenAbi.find((x) => x.type === "function" && x.name === "faucet");
+    expect(f && toFunctionSelector(f)).toBe(toFunctionSelector("function faucet()"));
   });
 });

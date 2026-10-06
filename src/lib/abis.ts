@@ -25,6 +25,9 @@ export const poolManagerAbi = parseAbi([
 export const stateViewAbi = parseAbi([
   "function getSlot0(bytes32 poolId) view returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee)",
   "function getLiquidity(bytes32 poolId) view returns (uint128 liquidity)",
+  // /lp: a position of the PoolModifyLiquidityTest router, keyed by salt = the user's address.
+  "function getPositionInfo(bytes32 poolId, address owner, int24 tickLower, int24 tickUpper, bytes32 salt) view returns (uint128 liquidity, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128)",
+  "function getFeeGrowthInside(bytes32 poolId, int24 tickLower, int24 tickUpper) view returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)",
 ]);
 
 export const poolSwapTestAbi = parseAbi([
@@ -34,11 +37,20 @@ export const poolSwapTestAbi = parseAbi([
   "function swap(PoolKey key, SwapParams params, TestSettings testSettings, bytes hookData) payable returns (int256 delta)",
 ]);
 
+// /lp: v4-core src/test/PoolModifyLiquidityTest.sol (selector 0x5a6bcfda checked in the Sepolia bytecode).
+export const poolModifyLiquidityTestAbi = parseAbi([
+  "struct PoolKey { address currency0; address currency1; uint24 fee; int24 tickSpacing; address hooks; }",
+  "struct ModifyLiquidityParams { int24 tickLower; int24 tickUpper; int256 liquidityDelta; bytes32 salt; }",
+  "function modifyLiquidity(PoolKey key, ModifyLiquidityParams params, bytes hookData) payable returns (int256 delta)",
+]);
+
 export const testTokenAbi = parseAbi([
   "function balanceOf(address owner) view returns (uint256)",
   "function allowance(address owner, address spender) view returns (uint256)",
   "function approve(address spender, uint256 amount) returns (bool)",
   "function mint(address to, uint256 amount)",
+  // Frontend scope upgrade: public faucet with a fixed amount and a per-address cooldown (plan 01 change).
+  "function faucet()",
 ]);
 
 export const RISK_REPORTED_TOPIC = toEventSelector(riskDeskAbi[0]);
