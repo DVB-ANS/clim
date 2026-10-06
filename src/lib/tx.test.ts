@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Address } from "viem";
 import { computePoolId, type PairDeployment } from "./deployments";
 import { encodeSwapLog } from "./encode";
@@ -45,6 +45,17 @@ describe("mockTxHash", () => {
     expect(mockTxHash("swap", 1)).toMatch(/^0x[0-9a-f]{64}$/);
     expect(mockTxHash("swap", 1)).toBe(mockTxHash("swap", 1));
     expect(mockTxHash("swap", 2)).not.toBe(mockTxHash("swap", 1));
+  });
+
+  it("changes with the page load, so a reload never shows the same simulated hash again", async () => {
+    const at = async (t: number) => {
+      vi.resetModules();
+      vi.spyOn(Date, "now").mockReturnValue(t);
+      const { mockTxHash: hash } = await import("./tx");
+      vi.restoreAllMocks();
+      return hash("swap", 1);
+    };
+    expect(await at(1)).not.toBe(await at(2));
   });
 });
 

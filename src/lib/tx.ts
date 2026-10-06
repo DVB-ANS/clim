@@ -58,9 +58,12 @@ export function receiptLogs(receipt: Pick<TransactionReceipt, "logs">, blockTime
   }));
 }
 
-/** Deterministic fake transaction hash for a simulated step. */
+// Seeds the simulated hashes per page load: a reload restarts the run counters, not the hashes.
+const LOAD = Date.now().toString(36);
+
+/** Fake transaction hash of a simulated step: the same for the same step and run, within a page load. */
 export function mockTxHash(label: string, n: number): Hex {
-  return keccak256(toHex(`clim-mock:${label}:${n}`));
+  return keccak256(toHex(`clim-mock:${LOAD}:${label}:${n}`));
 }
 
 /**
