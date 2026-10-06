@@ -561,7 +561,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/src/libraries/
 **Files:**
 - Create: `contracts/src/interfaces/IRiskDesk.sol`
 
-- [ ] **Step 1: Write the interface**
+- [x] **Step 1: Write the interface**
 
 This is an interface plus constants and holds no logic: there is nothing to test until Task 5. `contracts/src/interfaces/IRiskDesk.sol`:
 ```solidity
@@ -612,14 +612,14 @@ interface IRiskDesk {
 }
 ```
 
-- [ ] **Step 2: Build**
+- [x] **Step 2: Build**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge build
 ```
 Expected: `Compiler run successful!`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/src/interfaces/IRiskDesk.sol && git commit -m "feat(contracts): IRiskDesk interface, RiskReported event and flags"
