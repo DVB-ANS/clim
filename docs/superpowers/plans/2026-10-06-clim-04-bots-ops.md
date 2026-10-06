@@ -3934,7 +3934,7 @@ git commit -m "feat(bots): funding, approvals and status scripts"
 **Files:**
 - Create: `bots/src/scripts/forge-report.ts`
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/scripts/forge-report.ts`:
 ```ts
@@ -3992,12 +3992,12 @@ console.log(held ? "SIM guard held: forged report rejected" : "FORGED REPORT ACC
 process.exit(held ? 0 : 1);
 ```
 
-- [ ] **Step 2: Typecheck and wiring check**
+- [x] **Step 2: Typecheck and wiring check**
 
 Run: `cd bots && bun run typecheck && bun run forge-report --pair live`
 Expected: typecheck clean; before plan 01 has deployed: `error: riskDesks.live is null: deploy it first (plan 01) and record it in shared/deployments/sepolia.json`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/scripts/forge-report.ts
