@@ -1,4 +1,5 @@
 import type { LabReplay, LabSummary } from "@/lib/lab";
+import { replayWindowNote } from "@/lib/labText";
 import { ReplayCharts } from "./ReplayCharts";
 import { FixtureNote, Panel, Stat } from "./ui";
 
@@ -16,6 +17,7 @@ export function ReplayPanel({ replay, summary }: { replay: LabReplay; summary: L
         <Stat label="Fee V (S)" value={`${r.feeVMinBp.toFixed(1)} to ${r.feeVMaxBp.toFixed(1)} bp`} hint={`S: ${r.feeSBp.toFixed(1)} bp`} />
         <Stat label="P_trade V predicted / observed" value={`${r.pTradePredicted.toFixed(3)} / ${r.pTradeObserved.toFixed(3)}`} />
       </div>
+      {replayWindowNote(r) ? <p className="mb-3 text-xs text-fg-muted">{replayWindowNote(r)}</p> : null}
       <ReplayCharts replay={replay} />
       <p className="mt-2 text-xs text-fg-subtle">Raw data: <a className="underline" href="/data/lab/replay-2026-02-04.json">/data/lab/replay-2026-02-04.json</a></p>
     </Panel>

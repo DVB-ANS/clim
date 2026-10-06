@@ -49,8 +49,12 @@ export const testTokenAbi = parseAbi([
   "function allowance(address owner, address spender) view returns (uint256)",
   "function approve(address spender, uint256 amount) returns (bool)",
   "function mint(address to, uint256 amount)",
-  // Frontend scope upgrade: public faucet with a fixed amount and a per-address cooldown (plan 01 change).
+  // Frontend scope upgrade: public faucet with a fixed amount and a per-address cooldown (plan 01 Task 7:
+  // 10 tETH or 25,000 tUSD per address per hour). The error lets viem decode a second click within the hour.
   "function faucet()",
+  "function faucetAmount() view returns (uint256)",
+  "function lastFaucetAt(address account) view returns (uint256)",
+  "error FaucetCooldown(uint256 nextAt)",
 ]);
 
 export const RISK_REPORTED_TOPIC = toEventSelector(riskDeskAbi[0]);

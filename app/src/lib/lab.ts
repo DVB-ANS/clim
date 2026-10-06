@@ -21,6 +21,11 @@ export type LabSummary = {
     feeSBp: number;
     arbChangePct: number;
     arbChangeRangePct: [number, number];
+    // Added by plan 03 Task 17 in the fixer pass; absent from older outputs and from the fixtures.
+    windowsMedianPct?: number;
+    windowsBetterCount?: number;
+    windowsCount?: number;
+    windowsBeatingChosenCount?: number;
     pTradePredicted: number;
     pTradeObserved: number;
   };

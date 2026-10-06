@@ -3,6 +3,7 @@ import { BacktestTable } from "@/components/BacktestTable";
 import { ReplayPanel } from "@/components/ReplayPanel";
 import { FixtureNote, Panel } from "@/components/ui";
 import { labReplay, labSummary } from "@/lib/labData";
+import { roundPct, signedPct, usdPerMillion } from "@/lib/labText";
 
 export const metadata: Metadata = { title: "Lab" };
 
@@ -19,9 +20,13 @@ export default function LabPage() {
         <FixtureNote show={s.fixture}>Synthetic fixture: the lab has not written lab/out/summary.json yet.</FixtureNote>
         <BacktestTable summary={s} />
         <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
-          <li>LP gain, full-range ETH: {lo}% to {hi}% of capital per year (up to {s.lpGain.volatileAssetPctPerYearMax}% on volatile assets); {s.lpGain.shareFromTop5WeeksPct}% of it in the five most turbulent weeks.</li>
-          <li>The model predicts how often arbitrage happens; it underestimates how much it takes: observed ARB/LVR is {s.modelSeverityRatio[0]} to {s.modelSeverityRatio[1]} times the model.</li>
-          <li>A volatility computed inside the pool gets {s.inPoolVolGainSharePct[0]}% to {s.inPoolVolGainSharePct[1]}% of the same gain: Chainlink CRE is here for robustness (four venues must agree), not accuracy.</li>
+          <li>
+            LP gain, full-range ETH: {signedPct(lo)} to {signedPct(hi)} of capital per year ({usdPerMillion(lo)} to {usdPerMillion(hi)} a year per $1M of liquidity).
+            In the main scenario, about {roundPct(s.lpGain.shareFromTop5WeeksPct)} of the gain is earned in the five most turbulent weeks; the same scenario on an
+            asset twice as volatile (the same year with every return doubled) gains {signedPct(s.lpGain.volatileAssetPctPerYearMax)} a year.
+          </li>
+          <li>The model predicts how often arbitrage happens; it underestimates how much it takes: observed ARB/LVR is {s.modelSeverityRatio[0].toFixed(2)} to {s.modelSeverityRatio[1].toFixed(2)} times the model.</li>
+          <li>A volatility computed inside the pool gets {roundPct(s.inPoolVolGainSharePct[0])} to {roundPct(s.inPoolVolGainSharePct[1])} of the same gain{s.inPoolVolGainSharePct[1] > 100 ? " (above 100%: it did slightly better in one sample)" : ""}: Chainlink CRE is here for robustness (four venues must agree), not accuracy.</li>
         </ul>
         <p className="mt-2 text-xs text-fg-subtle">Raw data: <a className="underline" href="/data/lab/summary.json">/data/lab/summary.json</a></p>
       </Panel>

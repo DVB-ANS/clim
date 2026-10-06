@@ -47,9 +47,17 @@ function selectors(abi: Abi): string[] {
   );
 }
 
+/** "function name(types)" / "error name(types)" / "event name(types)": compares errors too, which have no selector helper. */
+function signatures(abi: Abi): string[] {
+  return abi.flatMap((x) =>
+    x.type === "function" || x.type === "event" || x.type === "error" ? [`${x.type} ${x.name}(${x.inputs.map((i) => i.type).join(",")})`] : [],
+  );
+}
+
 describe("drift against shared/abis", () => {
   const desk = sharedAbi("RiskDesk");
   const hook = sharedAbi("ClimHook");
+  const token = sharedAbi("TestToken");
   it.skipIf(!desk)("RiskDesk.json contains RiskReported and state()", () => {
     const s = selectors(desk!);
     for (const want of selectors(riskDeskAbi)) expect(s).toContain(want);
@@ -57,6 +65,11 @@ describe("drift against shared/abis", () => {
   it.skipIf(!hook)("ClimHook.json contains quoteFee()", () => {
     const s = selectors(hook!);
     for (const want of selectors(climHookAbi)) expect(s).toContain(want);
+  });
+  it.skipIf(!token)("TestToken.json contains the faucet, its cooldown error and the ERC-20 calls /lp uses", () => {
+    const s = signatures(token!);
+    for (const want of signatures(testTokenAbi)) expect(s).toContain(want);
+    expect(signatures(testTokenAbi)).toContain("error FaucetCooldown(uint256)");
   });
 });
 
