@@ -3745,7 +3745,7 @@ git commit -m "feat(bots): replay server"
 **Files:**
 - Create: `bots/src/scripts/fund.ts`, `bots/src/scripts/status.ts`
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/scripts/fund.ts`:
 ```ts
@@ -3912,12 +3912,12 @@ if (hasFlag("--watch")) {
 }
 ```
 
-- [ ] **Step 2: Typecheck and wiring check**
+- [x] **Step 2: Typecheck and wiring check**
 
 Run: `cd bots && bun run typecheck && bun run status --pair live`
 Expected: typecheck clean; before plan 01 has deployed: `error: pools.liveV is null: deploy it first (plan 01) and record it in shared/deployments/sepolia.json`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/scripts/fund.ts bots/src/scripts/status.ts
