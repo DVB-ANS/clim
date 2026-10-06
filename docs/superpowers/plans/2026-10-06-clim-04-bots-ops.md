@@ -2622,7 +2622,7 @@ git commit -m "feat(bots): retail order planning and routing"
 
 This module only wires viem (one `multicall` per block through Multicall3, which viem's `sepolia` chain already knows); its correctness is checked by the typechecker here and against the chain in Task 23.
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/lib/chain.ts`:
 ```ts
@@ -2713,12 +2713,12 @@ export async function readBalances(client: Client, p: ResolvedPair, owner: Addre
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `cd bots && bun run typecheck`
 Expected: `$ tsc --noEmit -p .` with no error (viem infers the multicall result tuple from the `as const` ABIs; a wrong output index fails here).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/lib/chain.ts
