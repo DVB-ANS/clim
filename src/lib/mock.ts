@@ -21,7 +21,8 @@ export const MOCK_ADDR = {
 
 const SIGMA_MIN_E9 = 17_807;
 const SIGMA_MAX_E9 = 1_780_724;
-const BLOCK_SEC = 12;
+export const MOCK_BLOCK_SEC = 12;
+const BLOCK_SEC = MOCK_BLOCK_SEC;
 const REPORT_EVERY_SEC = 30;
 const REPORT_LATENCY_SEC = 36;
 const LIQUIDITY = 2e23; // full-range L in raw units: about $20M of TVL at $2,500
