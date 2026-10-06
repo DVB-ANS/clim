@@ -36,7 +36,7 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
   return (
     <Panel
       title="Validation: predicted vs observed arbitrage frequency"
-      subtitle={`Share of blocks with an arbitrage on V, rolling ${band.windowBlocks} blocks. Model: P_trade = 1 / (η_eff + 0.824), η_eff = fee / (σ·√(Δt/2)). Band: simulated with clustered arbitrage (${band.method}).`}
+      subtitle={`Share of blocks with an arbitrage on V, rolling ${band.windowBlocks} blocks. Model: P_trade = 1 / (η_eff + 0.824), η_eff = fee / (σ·√(Δt/2)). Band: the model's Monte Carlo paths with clustered arbitrage (${band.method.replace(/^model simulation: /, "")}).`}
       className="col-span-full"
     >
       <FixtureNote show={band.fixture}>The band is a fixture until the lab writes lab/out/ptrade-band.json.</FixtureNote>

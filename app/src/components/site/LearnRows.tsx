@@ -3,7 +3,7 @@ import Link from "next/link";
 const ROWS = [
   { href: "/how", title: "How the desk works", text: "The CRE workflow, RiskDesk's checks and the fee formula, step by step." },
   { href: "/how#faq", title: "Questions a judge would ask", text: "Who pays the higher fee, what if a venue lags or lies, what if the desk stops." },
-  { href: "/replay", title: "Replay the 4 Feb storm", text: "Pool V against pool S, report by report, on fixture data." },
+  { href: "/replay", title: "Replay the 4 Feb storm", text: "Pool V against pool S, report by report: the lab's replay of the real Binance data, then the same window replayed on Sepolia." },
   { href: "/lab", title: "The lab", text: "Backtests against a static fee, at equal average fee and at equal cost to traders." },
   { href: "https://docs.chain.link/cre", title: "Chainlink CRE ↗", text: "The runtime the risk desk's workflow runs on." },
   { href: "https://docs.uniswap.org/contracts/v4/overview", title: "Uniswap v4 hooks ↗", text: "How a hook sets a pool's fee inside every swap." },

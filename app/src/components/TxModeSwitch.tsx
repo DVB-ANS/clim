@@ -7,8 +7,13 @@ import type { ReactNode } from "react";
 
 export type TxMode = "mock" | "chain";
 
-/** Simulated flow or real Sepolia transactions; on-chain stays off, with the reason, until it can run. */
+/**
+ * Real Sepolia transactions once the synced deployment has the live pair and the tokens: then on-chain is
+ * the only mode, with no switch and no simulated label (production always builds from the synced
+ * deployment). The simulated flow is a fallback for a build without contracts only.
+ */
 export function TxModeSwitch({ mode, onChange, ready }: { mode: TxMode; onChange: (m: TxMode) => void; ready: { ok: boolean; reason?: string } }) {
+  if (ready.ok) return <p className="text-xs text-fg-subtle">Real transactions on Ethereum Sepolia, signed by your wallet; test tokens only.</p>;
   const tab = (m: TxMode, label: string, disabled = false) => (
     <button
       type="button"
