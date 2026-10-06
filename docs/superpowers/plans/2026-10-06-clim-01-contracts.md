@@ -2255,7 +2255,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/script/02_Depl
 - Test: `contracts/test/CreatePools.t.sol`
 - Modify: `docs/superpowers/specs/2026-10-06-clim-design.md`, `docs/sessions/2026-10-06.md`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `contracts/test/CreatePools.t.sol`. The pool tick for ETH = $4,000 is ⌊ln 4000 / ln 1.0001⌋ = 82,944 when tETH is token0, and −82,945 otherwise. This is also the `refTick` convention of the CRE report.
 ```solidity
@@ -2287,14 +2287,14 @@ contract CreatePoolsTest is Test {
 }
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path test/CreatePools.t.sol
 ```
 Expected: `Error (6275): Source "script/03_CreatePools.s.sol" not found`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `contracts/script/03_CreatePools.s.sol`:
 ```solidity
@@ -2370,14 +2370,14 @@ contract CreatePools is ClimScript {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path test/CreatePools.t.sol
 ```
 Expected: `Suite result: ok. 3 passed; 0 failed; 0 skipped`.
 
-- [ ] **Step 5: Check the spec (one token pair, static fees in params.json)**
+- [x] **Step 5: Check the spec (one token pair, static fees in params.json)**
 
 The plan 00 integration pass already wrote both changes into the spec (§3.7 "Replay pair" and the §2.6 `shared/params.json` table). Check they are there:
 ```bash
@@ -2393,7 +2393,7 @@ and add to the §2.6 `shared/params.json` fields table the rows
 | `replayStaticFeePips` | integer | Fee of the replay S pool: V's exact time-average fee over the replay window; must differ from `staticFeePips` |
 ```
 
-- [ ] **Step 6: Log it**
+- [x] **Step 6: Log it**
 
 Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
 ```markdown
@@ -2402,7 +2402,7 @@ Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
   - The S fees come from `shared/params.json` (`staticFeePips`, `replayStaticFeePips`), written by the lab.
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/script/03_CreatePools.s.sol contracts/test/CreatePools.t.sol docs/superpowers/specs/2026-10-06-clim-design.md docs/sessions/2026-10-06.md && git commit -m "feat(contracts): twin pool initialization script, spec update for the shared token pair"
