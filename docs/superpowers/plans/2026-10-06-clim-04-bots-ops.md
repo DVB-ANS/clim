@@ -193,7 +193,7 @@ git commit -m "build: add root Bun workspace and track lab/out"
 - Create: `shared/package.json`, `shared/tsconfig.json`, `shared/src/units.ts`
 - Test: `shared/test/units.test.ts`
 
-- [ ] **Step 1: Create the package files**
+- [x] **Step 1: Create the package files**
 
 `shared/package.json`:
 ```json
@@ -254,7 +254,7 @@ git commit -m "build: add root Bun workspace and track lab/out"
 Run: `bun install`
 Expected: ends with `N packages installed` (no error).
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 `shared/test/units.test.ts`:
 ```ts
@@ -374,12 +374,12 @@ describe("quoteFeeMirror mirrors ClimHook.quoteFee", () => {
 });
 ```
 
-- [ ] **Step 3: Run it, expected FAIL**
+- [x] **Step 3: Run it, expected FAIL**
 
 Run: `cd shared && bun test test/units.test.ts`
 Expected: `error: Cannot find module '../src/units' from '.../shared/test/units.test.ts'` and ` 0 pass`, ` 1 fail`.
 
-- [ ] **Step 4: Minimal implementation**
+- [x] **Step 4: Minimal implementation**
 
 `shared/src/units.ts`:
 ```ts
@@ -510,12 +510,12 @@ export function quoteFeeMirror(state: DeskState, p: HookParams, nowSec: number):
 }
 ```
 
-- [ ] **Step 5: Run, expected PASS**
+- [x] **Step 5: Run, expected PASS**
 
 Run: `cd shared && bun test test/units.test.ts && bun run typecheck`
 Expected: ` 26 pass`, ` 0 fail`, then `$ tsc --noEmit -p .` with no error.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add shared/package.json shared/tsconfig.json shared/src/units.ts shared/test/units.test.ts bun.lock
