@@ -27,7 +27,7 @@
 | Simulation forwarder | `MockKeystoneForwarder` `0x15fC6ae953E024d975e77382eEeC56A9101f9F88`, `typeAndVersion()` = "MockKeystoneForwarder 1.0.0" | `cast call` on Sepolia, forwarder directory |
 | Production forwarder | `KeystoneForwarder` `0xF8344CFd5c43616a4366C34E3EEE75af79a74482`, `typeAndVersion()` = "KeystoneForwarder 1.0.0" | `cast call` on Sepolia, forwarder directory |
 | Quotas | cron at most once per 30 s; 15 HTTP calls, 250 KB per response, 10 s connection timeout; 15 EVM reads; HTTP trigger 1 run per 30 s with burst 1, which the simulator also enforces by default (`--limits default`); log line at most 1 KB; private registry 3 workflows per organization | docs.chain.link/cre/service-quotas (2026-09-16), cre-cli `limits.json` |
-| `simulate` flags | `--broadcast`, `--non-interactive`, `--trigger-index`, `--target`, `--wasm` (prebuilt binary, skips compilation), `--listen` (HTTP and log triggers only, not cron), `--http-payload` (required for the HTTP trigger in non-interactive mode), `--http-trigger-port` (default 2000), `--limits` | cre-cli v1.37.0 docs and source |
+| `simulate` flags | `--broadcast`, `--non-interactive`, `--trigger-index`, `--target`, `--wasm` (prebuilt binary, skips compilation; a relative path resolves from the workflow folder, not the current directory, so the loop passes an absolute path: Task 9), `--listen` (HTTP and log triggers only, not cron), `--http-payload` (required for the HTTP trigger in non-interactive mode), `--http-trigger-port` (default 2000), `--limits` | cre-cli v1.37.0 docs and source |
 | Listen mode | serves `POST http://localhost:2000/trigger` and reads the payload from the body `{"input": ...}`. The docs page shows a POST of the raw JSON to `http://localhost:2000`. | cre-cli source `cmd/workflow/simulate/simulate.go` |
 | Mock forwarder | `report()` never reverts when the receiver's `onReport` reverts: it emits `ReportProcessed(receiver, executionId, reportId, false)`. With `--broadcast`, the simulator then still returns `receiverContractExecutionStatus = SUCCESS`. | chainlink-evm `MockKeystoneForwarder.sol`; chainlink `core/capabilities/fakes/evm_chain.go`; on Sepolia, tx `0x276dacda91143cb6b8ace8c4d11c8ed8df837620afc01e9fea81c1338a8aa13d` has status 1 with `ReportProcessed(..., false)` |
 | Dry run | `eth_call` of `forwarder.report`, so it always "succeeds" and returns no tx hash | chainlink `fakes/evm_chain.go` (`dryRunWriteReport`) |
@@ -2239,7 +2239,7 @@ git commit -m "feat(cre): risk-desk workflow: node-mode venues, median consensus
 **Files:**
 - Modify: today's session log (and the friction log if anything differs from this plan)
 
-- [ ] **Step 1: Dry run through the cron handler**
+- [x] **Step 1: Dry run through the cron handler**
 
 ```bash
 (cd cre && cre workflow simulate risk-desk --non-interactive --trigger-index 0 --target staging-settings)
@@ -2248,8 +2248,13 @@ git commit -m "feat(cre): risk-desk workflow: node-mode venues, median consensus
 Expected shape (the numbers move with the market). Without `cre/.env`, a warning `Using default private key for chain write simulation...` appears first, which is fine for a dry run:
 
 ```text
-Workflow compiled
+✓ Workflow compiled
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: ... | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 ...
+  Binary hash: <hex>
+  Config hash: <hex>
 <time> [SIMULATION] Simulator Initialized
+
 <time> [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
 <time> [USER LOG] node: sources=coinbase,kraken,binance,hyperliquid n=4 tEnd=<unix minute> price=<ETH price> rv15=<x.x>% disp=<d>bp tick=<tick> dvol=<DVOL>
 <time> [USER LOG] consensus: sigma=<x.x>%/yr sigmaE9=<int> n=4 disp=<d>bp tick=<tick> dvol=<DVOL> price=<ETH price> tObs=<unix now>
@@ -2257,11 +2262,16 @@ Workflow compiled
 <time> [USER LOG] Write report transaction succeeded: 0x0000000000000000000000000000000000000000000000000000000000000000
 <time> [USER LOG] DRY RUN: report encoded and simulated, not broadcast (sigmaE9=<int>)
 
-Workflow Simulation Result:
- "DRY RUN"
+✓ Workflow Simulation Result:
+"DRY RUN"
+
+<time> [SIMULATION] Execution finished signal received
+<time> [SIMULATION] Skipping WorkflowEngineV2
 ```
 
-- [ ] **Step 2: Check the numbers are sane**
+A box "Simulation complete! Ready to deploy your workflow? Run cre account access to request deployment access." closes the output (seen while deploy access is not enabled). `<time>` is the machine's local time with a `Z` suffix (cre v1.37.0, friction row 19): on a Mac set to Singapore it reads 8 h ahead of UTC; prefix the command with `TZ=UTC` for true UTC times.
+
+- [x] **Step 2: Check the numbers are sane**
   - sigma between 5 and 200 %/yr;
   - n = 4, or 3 with a `source dropped: <venue>: <reason>` line naming the missing venue;
   - disp at most 10 bp;
@@ -2271,21 +2281,21 @@ Workflow Simulation Result:
 
   If n < 4, write the venue and the reason in the session log. If the reason is on the CRE side (for example egress or a timeout), also add a friction row.
 
-- [ ] **Step 3: Run the HTTP handler once (the trigger used to drive simulation loops)**
+- [x] **Step 3: Run the HTTP handler once (the trigger used to drive simulation loops)**
 
 ```bash
 (cd cre && cre workflow simulate risk-desk --non-interactive --trigger-index 1 --http-payload '{}' --target staging-settings)
 ```
 
-Expected: `Running trigger trigger=http-trigger@1.0.0-alpha`, then the same five `[USER LOG]` lines and `"DRY RUN"`.
+Expected: `✓ Parsed JSON input successfully` and `✓ Created HTTP trigger payload with 0 fields` before the simulator starts, then `Running trigger trigger=http-trigger@1.0.0-alpha`, the same five `[USER LOG]` lines and `"DRY RUN"`.
 
-- [ ] **Step 4: Log it** (with the values you observed)
+- [x] **Step 4: Log it** (with the values you observed)
 
 ```markdown
 - (CRE) First dry run OK (cron and HTTP handlers): n=4, sigma <x.x> %/yr, dispersion <d> bp, DVOL <v>, one run takes <s> s end to end.
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add docs/sessions/ docs/feedback/cre-friction-log.md
@@ -2305,7 +2315,7 @@ git commit -m "docs(cre): first risk-desk dry-run simulation"
 
 This loop needs nothing outside `cre/`. Plan 04's `bun run cre-loop` (`bots/src/sim-loop.ts`) runs this same script for the demo and records receipts and transcripts.
 
-- [ ] **Step 1: Create `cre/scripts/sim-loop.sh`**
+- [x] **Step 1: Create `cre/scripts/sim-loop.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -2317,25 +2327,29 @@ This loop needs nothing outside `cre/`. Plan 04's `bun run cre-loop` (`bots/src/
 # Output: full log in cre/logs/, USER LOG lines echoed to the terminal. Stop with Ctrl+C.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# The CLI prints local time labeled "Z" (friction row 19): run it in UTC so transcripts match block times.
+export TZ=UTC
 TARGET="${1:?usage: scripts/sim-loop.sh <staging-settings|replay-settings> [--broadcast]}"
 BROADCAST="${2:-}"
 INTERVAL="${INTERVAL:-30}"
 ENV_FILE="${ENV_FILE:-}"
+# Absolute path: simulate resolves a relative --wasm from the workflow folder (risk-desk/), build -o from here.
+WASM="$PWD/risk-desk/binary.wasm"
 mkdir -p logs
 LOG="logs/sim-$(date -u +%Y%m%dT%H%M%SZ)-${TARGET}${BROADCAST:+-broadcast}.log"
-cre workflow build ./risk-desk -o ./risk-desk/binary.wasm
+cre workflow build ./risk-desk -o "$WASM"
 echo "target=${TARGET} broadcast=${BROADCAST:-no} env=${ENV_FILE:-.env} interval=${INTERVAL}s log=${LOG}"
 while true; do
   START=$(date +%s)
   echo "=== $(date -u +%FT%TZ)" | tee -a "$LOG"
-  cre workflow simulate risk-desk --wasm ./risk-desk/binary.wasm --non-interactive --trigger-index 0 \
+  cre workflow simulate risk-desk --wasm "$WASM" --non-interactive --trigger-index 0 \
     --target "$TARGET" ${BROADCAST} ${ENV_FILE:+-e "$ENV_FILE"} 2>&1 | tee -a "$LOG" | grep -E "USER LOG|rror" || true
   ELAPSED=$(( $(date +%s) - START ))
   if (( ELAPSED < INTERVAL )); then sleep $(( INTERVAL - ELAPSED )); fi
 done
 ```
 
-- [ ] **Step 2: Check the syntax**
+- [x] **Step 2: Check the syntax**
 
 ```bash
 chmod +x cre/scripts/sim-loop.sh && bash -n cre/scripts/sim-loop.sh && echo "syntax ok"
@@ -2343,7 +2357,7 @@ chmod +x cre/scripts/sim-loop.sh && bash -n cre/scripts/sim-loop.sh && echo "syn
 
 Expected: `syntax ok`
 
-- [ ] **Step 3: Run three dry-run iterations**
+- [x] **Step 3: Run three dry-run iterations**
 
 In Claude Code, start it with `run_in_background`. In a terminal, use a second tab.
 
@@ -2360,15 +2374,15 @@ pkill -f sim-loop.sh
 
 Expected: `3` or more. The `===` timestamps in the log are about 30 s apart: each run takes well under 30 s because `--wasm` skips compilation.
 
-- [ ] **Step 4: Try listen mode once (it answers friction rows 11 and 12)**
+- [x] **Step 4: Try listen mode once (it answers friction rows 11 and 12)**
 
 Terminal A (or a background task):
 
 ```bash
-(cd cre && cre workflow simulate risk-desk --wasm ./risk-desk/binary.wasm --listen --non-interactive --trigger-index 1 --http-payload '{}' --target staging-settings)
+(cd cre && cre workflow simulate risk-desk --wasm "$PWD/risk-desk/binary.wasm" --listen --non-interactive --trigger-index 1 --http-payload '{}' --target staging-settings)
 ```
 
-Expected: one run, then `Waiting for HTTP request to start execution (listening on http://localhost:2000/trigger)...`
+Expected: one run, then `Listen: ready for next request (run #2)` and `Waiting for HTTP request to start execution (listening on http://localhost:2000/trigger)...`
 
 Terminal B, at least 30 s after that first run:
 
@@ -2377,9 +2391,9 @@ curl -s -X POST http://localhost:2000/trigger -H 'Content-Type: application/json
 curl -s -X POST http://localhost:2000/trigger -H 'Content-Type: application/json' -d '{"input":{}}' -w '%{http_code}\n'
 ```
 
-Expected: `200` twice. Terminal A runs once for the first POST and logs `Trigger rate limited, skipping execution` for the second one, which came less than 30 s later. Stop terminal A with Ctrl+C (or `pkill -f "cre workflow simulate"`).
+Expected: `200` twice (empty body). Terminal A runs once for the first POST and logs `Trigger rate limited, skipping execution trigger=http-trigger@1.0.0-alpha limit=HTTP trigger rate limited: every30s:1` for the second one, which came less than 30 s later. Stop terminal A with Ctrl+C (or `pkill -f "cre workflow simulate"`); it can take about 17 s to exit after `Received interrupt signal, stopping execution` (port 2000 is released at once).
 
-- [ ] **Step 5: Record what you saw**
+- [x] **Step 5: Record what you saw**
 
 In the friction log, set the Status cell of rows 11 and 12 to `confirmed <date>`, or correct the text if the CLI behaved differently.
 
@@ -2391,7 +2405,7 @@ Session log:
 
 If listen mode proved clearly better (for example much faster runs), write that instead in the session log; changing the demo loop then means changing `loopCommand` in plan 04's `bots/src/lib/simParse.ts` and its test.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add cre/scripts/sim-loop.sh docs/feedback/cre-friction-log.md docs/sessions/
