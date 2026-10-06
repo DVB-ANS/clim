@@ -2707,7 +2707,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/script/04_AddL
 **Files:**
 - Create: `contracts/script/export-abis.sh`, `contracts/script/smoke.sh`, `shared/abis/*.json` (generated)
 
-- [ ] **Step 1: Write the exporter**
+- [x] **Step 1: Write the exporter**
 
 `contracts/script/export-abis.sh`. It writes the same `shared/abis/<Name>.json` files as plan 04's `bun run --cwd shared export-abis`, plus five more. Either exporter can run; the outputs are identical.
 ```bash
@@ -2734,7 +2734,7 @@ for artifact in \
 done
 ```
 
-- [ ] **Step 2: Write the smoke script**
+- [x] **Step 2: Write the smoke script**
 
 `contracts/script/smoke.sh`:
 ```bash
@@ -2775,14 +2775,14 @@ echo "V swap fee (pips): $(swap_fee "($C0,$C1,8388608,60,$HOOK)")"
 echo "S swap fee (pips): $(swap_fee "($C0,$C1,$SFEE,60,0x0000000000000000000000000000000000000000)")"
 ```
 
-- [ ] **Step 3: Run the exporter**
+- [x] **Step 3: Run the exporter**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && chmod +x script/export-abis.sh script/smoke.sh && ./script/export-abis.sh && jq -r '[.[] | select(.type=="function") | .name] | join(",")' ../shared/abis/ClimHook.json
 ```
 Expected: eight lines `../shared/abis/RiskDesk.json`, `IRiskDesk.json`, `ClimHook.json`, `TestToken.json`, `IPoolManager.json`, `IStateView.json`, `PoolSwapTest.json`, `PoolModifyLiquidityTest.json`, then a list that contains `quoteFee`, `desk`, `etaE4`, `feeMinPips`, `feeMaxPips`, `feeSafePips`, `tauKillSec`, `MODE_BLIND`, `MODE_DEGRADED`, `MODE_NORMAL`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/script/export-abis.sh contracts/script/smoke.sh shared/abis && git commit -m "feat(contracts): ABI export to shared/ and on-chain smoke script"
