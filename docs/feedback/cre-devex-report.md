@@ -1,0 +1,135 @@
+# Chainlink CRE developer experience report: clim
+
+From Sofiane Ben Taleb ([@gamween](https://github.com/gamween), DeVinci Blockchain), who built [clim](https://github.com/DVB-ANS/clim) solo at TOKEN2049 Origins (Singapore, October 2026). The report follows the format of Chainlink's hackathon template: what worked well, what was confusing or difficult, and what we suggest. The top asks come first. Every row number refers to the full [friction log](cre-friction-log.md).
+
+| | |
+|---|---|
+| CRE CLI | v1.37.0 |
+| TypeScript SDK | `@chainlink/cre-sdk` 1.23.0, Bun 1.3.9 |
+| Host | macOS |
+| Chain | Ethereum Sepolia, through `MockKeystoneForwarder` `0x15fC6ae953E024d975e77382eEeC56A9101f9F88` |
+| Mode | Simulation only: `cre workflow simulate --broadcast` (single node, mock forwarder). DON deploy access was requested on 2026-10-06 at 22:56 SGT with `cre account access` and is still pending. |
+
+**Context.** clim's risk desk is one CRE workflow (cron every 30 s, six HTTP sources per node, a quorum of 3 venues out of 4, median consensus on each field, a signed report, `EVMClient.writeReport`) that feeds a Uniswap v4 hook on Sepolia. From 16:33 to 19:37 UTC on 2026-10-06, our loop recorded 637 `simulate --broadcast` runs on two desks (334 live, 303 replay). 621 of them landed a report on chain: the forwarder's `ReportProcessed` was true and the desk's `RiskReported` was in the same receipt. At 19:37 UTC the live desk was at seq 341 and the replay desk at seq 300 (`bots/out/cre-runs.jsonl`).
+
+## What worked well
+
+<!-- To confirm with the maintainer: drafted from what the repo shows (code, tests, logs); the friction log only records problems. -->
+
+1. **Field-by-field consensus maps straight onto the report.** `ConsensusAggregationByFields` with `median` on each of the seven observation fields (`cre/risk-desk/workflow.ts`) gives the DON median of every field in a few lines, and `buildReport` rounds those medians straight into the ABI-encoded report. The workflow already uses the consensus API, so it is ready for a DON. It has not run on one yet: in simulation the aggregation runs on a single node.
+2. **`simulate --broadcast` against a real testnet.** Without DON access we still ran a live product: real Sepolia transactions through the mock forwarder, a hook that reads them on every swap, and a public dashboard. First report: tx [`0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6`](https://sepolia.etherscan.io/tx/0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6). It used 272,704 gas, under the workflow's 500,000 `gasLimit`, and the hook left blind mode on the next quote (`quoteFee()` 500 pips).
+3. **Build once, then `simulate --wasm`.** With `cre workflow build` plus `simulate --wasm`, our loop (`cre/scripts/sim-loop.sh`) never recompiles. A run takes 2 to 4 s from start to `Execution finished`. Our first dry run, which included the WASM compilation, took 6.7 s end to end. `build` also works without `cre login`.
+4. **ReceiverTemplate.** `RiskDesk` inherits `ReceiverTemplate`, copied from the circuit-breaker starter in cre-templates `d0223f3` (MIT). We got the forwarder check, the optional workflow identity checks and the owner setters without writing them. `setForwarderAddress` and `setExpectedWorkflowId` also give us a way to move from the mock forwarder to `KeystoneForwarder` without redeploying the consumer.
+5. **SDK test runtime and capability mocks.** `@chainlink/cre-sdk/test` (`newTestRuntime` with a `timeProvider`, `HttpActionsMock`, `EvmMock`, `REPORT_METADATA_HEADER_LENGTH`) let us unit-test the whole `onTick` offline. The tests serve the six HTTP sources from captured fixtures and cover consensus, report encoding, `writeReport` and the read-back. They also cover a dry run, a REVERTED receiver status and a failed quorum. 8 of the 39 tests in `cre/risk-desk` use this runtime; all 39 pass with `bun test`.
+
+## Top 5 asks
+
+### 1. A rejected report looks like a success (rows 9 and 10)
+
+- **Problem.** With `--broadcast`, `WriteReportReply.receiverContractExecutionStatus` is SUCCESS whenever the forwarder transaction is mined. But `MockKeystoneForwarder.report` never reverts when the consumer's `onReport` reverts: it emits `ReportProcessed(..., false)`. So the workflow cannot tell an accepted report from a rejected one. The dry run has the same blind spot: it `eth_call`s the mock forwarder, which swallows the consumer's revert.
+- **Repro (cre v1.37.0, Sepolia).**
+  - Forwarder side: call `MockKeystoneForwarder.report(<consumer>, <rawReport>, 0x, [])` with a report the consumer rejects. In clim, `cd bots && bun run forge-report --pair live` does this from a key that `RiskDesk` refuses. The receipt has status 1 and `ReportProcessed` false.
+  - Dry run: `cre workflow simulate risk-desk --non-interactive --trigger-index 0 --target staging-settings` with the receiver set to `0x000000000000000000000000000000000000dEaD`, which has no code on Sepolia. The run returns `txStatus` SUCCESS, no REVERTED receiver status and `Write report transaction succeeded: 0x000…000`.
+- **Evidence.**
+  - Forged report from a throwaway key: tx [`0x34ee46a6947d2831fdb3e5a09f831008589efd9cf099f61dca86dc4cdadc53d9`](https://sepolia.etherscan.io/tx/0x34ee46a6947d2831fdb3e5a09f831008589efd9cf099f61dca86dc4cdadc53d9). Status 1, `ReportProcessed` false, no `RiskReported`, desk unchanged.
+  - `forge-report` demo: tx [`0xadc28d17bde52a6b38627ed734783924876454005b6a7c5e7b3fda49f1fa6c02`](https://sepolia.etherscan.io/tx/0xadc28d17bde52a6b38627ed734783924876454005b6a7c5e7b3fda49f1fa6c02), recorded as `txStatus` success, `forwarderResult` false, `riskReportedInTx` 0.
+  - The same behavior on a Sepolia fork: `contracts/test/fork/MockForwarder.fork.t.sol`.
+  - What our workaround costs: 20 of our 637 recorded runs logged `NOT APPLIED`, yet each receipt shows `ReportProcessed` true and a `RiskReported` event. The workflow's read-back of `RiskDesk.state()` at `latest` had hit a lagging node of a load-balanced public RPC.
+- **Ask.**
+  - Decode `ReportProcessed` in the simulator's EVM chain and return REVERTED.
+  - Let the dry run call the consumer itself, or decode the forwarder's return value.
+  - Say both in the onchain-write guide.
+- **Our workaround.**
+  - The workflow re-reads `RiskDesk.state()` after each write and returns `OK`, `NOT_APPLIED` or `SENT`.
+  - Our loop recorder ignores the workflow's verdict and classifies each run from the receipt: `ReportProcessed.result` plus a `RiskReported` event in the same transaction.
+
+### 2. ReceiverTemplate expects 62 bytes of metadata, forwarders send 64 (row 23)
+
+- **Problem.** cre-templates `d0223f3` has a `ReceiverTemplate.sol` under `starter-templates/sports-resolution/` that requires `metadata.length == 62`. `KeystoneForwarder` and `MockKeystoneForwarder` pass `rawReport[45:109]`, which is 64 bytes: workflow id 32, name 10, owner 20, report id 2.
+  - Once `setExpectedWorkflowId`, `setExpectedAuthor` or `setExpectedWorkflowName` is set, every report reverts with `InvalidMetadataLength(64, 62)`.
+  - The CRE docs say to leave these checks off in simulation. A team therefore first switches them on with a DON, and there the forwarder swallows the revert (ask 1).
+  - The other starter templates (circuit-breaker, event-reactor, and others) have no length check.
+- **Repro (cre-templates `d0223f3`, Foundry).** A forge test with a consumer built on the sports-resolution `ReceiverTemplate`:
+  1. call `setExpectedWorkflowId`;
+  2. call `onReport` from the forwarder with the forwarder's real 64-byte metadata;
+  3. the call reverts with `InvalidMetadataLength(64, 62)`.
+- **Evidence.** We reproduced it with that forge test while designing clim (friction log row 23). The test is not committed in the clim repo; it would ship with the fix. There is no transaction, because we never deployed that variant.
+- **Ask.** Set `METADATA_LENGTH` to 64 and add a test that uses real forwarder metadata. We can open this PR on `smartcontractkit/cre-templates`. We found no existing issue or PR for it.
+- **Our workaround.** We copied the circuit-breaker variant of `ReceiverTemplate`, which has no length check.
+
+### 3. In simulation, anyone can push a report through the mock forwarder (row 1)
+
+- **Problem.** `cre workflow simulate` runs a single node, so consensus is never exercised. With `--broadcast` on Sepolia, the report goes through `MockKeystoneForwarder` (`0x15fC6ae953E024d975e77382eEeC56A9101f9F88`).
+  - The mock checks no signatures, and its `report()` is permissionless, so a third party can push a report into a consumer during a public demo.
+  - The simulator also writes placeholder workflow metadata (workflow CID `0x11…11`, owner `0xaa…aa`), so workflow identity checks cannot help in simulation either.
+- **Repro (cre v1.37.0, Sepolia).** Send `report()` to the mock from any funded key with a well-formed raw report. `cd bots && bun run forge-report --pair live` does this against clim's live desk.
+- **Evidence.**
+  - Our Sepolia fork test (`contracts/test/fork/MockForwarder.fork.t.sol`): `report()` is permissionless, and the consumer sees `msg.sender` = the mock and `tx.origin` = the sender.
+  - On Sepolia, `simulate --broadcast` sends `report()` from the `CRE_ETH_PRIVATE_KEY` account straight to the mock. Our first report, tx [`0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6`](https://sepolia.etherscan.io/tx/0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6), comes from our operator key.
+  - The forged report in tx [`0x34ee46a6947d2831fdb3e5a09f831008589efd9cf099f61dca86dc4cdadc53d9`](https://sepolia.etherscan.io/tx/0x34ee46a6947d2831fdb3e5a09f831008589efd9cf099f61dca86dc4cdadc53d9) was stopped only by our own guard.
+- **Ask.** A multi-node local simulation mode, or a mock forwarder that checks signatures from a local key set. cre-cli issue #393 ("Auto-deploy MockKeystoneForwarder for experimental chains") is related but not the same.
+- **Our workaround.**
+  - `RiskDesk` accepts a simulated report only when `tx.origin` is our operator key (`simOperator`), and it bounds how far volatility can move between two reports.
+  - The demo shows a forged report being ignored.
+  - On a DON, the desk moves to `KeystoneForwarder`, checks the workflow id, and the owner calls `disableSim()`.
+
+### 4. A long-running simulation as the demo backend (rows 3, 6, 22, 24, 25)
+
+- **Problem.** While deploy access is pending, a `simulate --broadcast` loop is the only way to run a live product on CRE. We ran two loops for hours, one per desk. The five issues in the table below made them fragile.
+- **Repro (cre v1.37.0).** From `cre/`, run `scripts/sim-loop.sh staging-settings --broadcast` and `ENV_FILE=.env.replay scripts/sim-loop.sh replay-settings --broadcast`. The script runs `cre workflow build` once, then `cre workflow simulate risk-desk --wasm <abs path> --non-interactive --trigger-index 0 --target <target> --broadcast` every 30 s.
+- **Evidence, ask and workaround, per row.** The first-413 counts cover the first 413 recorded runs on 2026-10-06.
+
+| Row | Problem | Evidence | Ask | Our workaround |
+|---|---|---|---|---|
+| 3 | A cron trigger fires once per `simulate` run. `--listen` keeps a process alive for HTTP and log triggers, not cron. | A 30 s cadence needs a shell loop (`cre/scripts/sim-loop.sh`). | A `--watch` / `--loop` mode for cron workflows. | Build once, then `simulate --wasm` every 30 s. |
+| 24 | `simulate` validates the CLI credentials against the CRE API on every run. | 5 of the first 413 runs stopped before simulating: `✗ Credential validation failed`, then `✗ authentication required: credential validation failed: authentication failed: unable to retrieve organization info. ...`. Twice this came with `Post "https://api.cre.chain.link/graphql": net/http: TLS handshake timeout`. | Cache the validated credentials for local simulation, or let simulation run offline. | The recorder logs the run as `error` (`CRE CLI credential validation failed`); the next run comes 30 s later. |
+| 25 | `cre workflow build` always writes the same temporary file, `<workflow>/.cre_build_tmp.wasm`. | We restarted our live and replay loops (different targets) in the same second: `✗ failed to compile workflow: failed to compile workflow: open .../cre/risk-desk/.cre_build_tmp.wasm: no such file or directory`. | A unique temporary file per build, or a lock. | Start the loops a few seconds apart. |
+| 22 | The workflow's last `[USER LOG]` line can be lost at shutdown. | In 7 of the first 413 runs the result was `OK` but `REPORT applied` never printed, each time with `context canceled` at shutdown; one more `NOT_APPLIED` run lost its line too. In `--listen`, run 1's last line printed after run 2's banner. | Flush the workflow's logs before printing the result and the next banner. | The recorder keeps the hash from `Write report transaction succeeded: 0x...` and checks the receipt. |
+| 6 | Deploying to a DON needs approval, with an unknown delay during a 36 h hackathon. | Requested on 2026-10-06 at 22:56 SGT: `Access request submitted successfully!`. `cre whoami` still says Not enabled, review pending. | A hackathon fast track. | Simulation plus the `tx.origin` guard (ask 3). |
+
+### 5. Docs and messages that disagree with the CLI (rows 2, 11, 12, 15, 18)
+
+- **Problem.** The pages below describe something other than what cre v1.37.0 or the deployed contracts do. We found the gaps by trying the commands or by reading the source.
+- **Repro (cre v1.37.0).** Start listen mode with `cre workflow simulate risk-desk --wasm <abs path> --listen --non-interactive --trigger-index 1 --http-payload '{}' --target staging-settings`. Then POST to `http://localhost:2000`, to `http://localhost:2000/trigger`, and twice 1 s apart.
+- **Evidence, ask and workaround, per row:**
+
+| Row | The docs or messages say | What happens | Ask |
+|---|---|---|---|
+| 11 | "Testing HTTP Triggers in Simulation": POST the raw JSON to `http://localhost:2000`. | A POST to `http://localhost:2000` (or `/`) answers `404 page not found`. `POST /trigger` with `{"input":{}}` runs the workflow. Without `--http-payload`, non-interactive listen stops with `✗ --http-payload is required for http-trigger@1.0.0-alpha in non-interactive mode`. | Align the page with the code. Workaround: `POST /trigger`. |
+| 12 | Nothing next to `--listen` about rate limits. | The simulator enforces the production HTTP-trigger rate. Two POSTs 1 s apart both got 200, but the second logged `Trigger rate limited, skipping execution trigger=http-trigger@1.0.0-alpha limit=HTTP trigger rate limited: every30s:1`. The empty 200 does not tell the caller that the run was skipped. | Mention it next to `--listen`, with `--limits none`, which lifts it. Workaround: `--limits none`. |
+| 2 | One docs page says the mock forwarder does not call the consumer's `onReport`. | The mock's source calls it (chainlink-evm `contracts/cre/src/dev/MockKeystoneForwarder.sol`, `route`). On a Sepolia fork, the deployed "MockKeystoneForwarder 1.0.0" calls `onReport` with `msg.sender` = the mock. | Align the docs with the code. We still have to find that page again before filing. |
+| 15 | The macOS/Linux install page: "The recommended version at the time of writing is ****." and the expected output "CRE CLI version ". | The version variable renders empty. | Fix the variable on the page. |
+| 18 | `install.sh` prints "cre was installed successfully to ~/.cre/cre". | The binary is `~/.cre/bin/cre`, and the installer only edits `~/.zshrc`, which agent shells do not re-read. | Print the real path, and mention a symlink on an existing PATH folder for non-interactive shells. Workaround: that symlink. |
+
+## Everything else
+
+Rows marked "from docs reading, not verified" were written during the design phase, before any code ran.
+
+| Row | Area | What we hit | Suggestion | Status |
+|---|---|---|---|---|
+| 4 | Stateless executions | No state carries over between executions, so a rolling metric (15-minute realized volatility) refetches its history every run. | A small key-value state between executions, or a documented pattern. | From docs reading, not verified |
+| 5 | Quotas and latency | The quotas are documented; end-to-end latency (trigger to consensus to on-chain inclusion) is not. Measured in simulation, from DON time to the Sepolia block: median 14 s, p90 25 s over 211 live reports (`cre/README.md`; an earlier sample of 13 reports gave 11 s and 16 s). | Publish typical end-to-end latency per network. | Quotas confirmed; latency measured in simulation only |
+| 7 | Network coverage | The docs list Robinhood Chain as testnet only (2026-09-18), while our first target DEX is live on its mainnet. | Roadmap visibility for new networks. | From docs reading, not verified |
+| 8 | Node egress | Builders cannot know where DON nodes run, and some APIs geo-block (Binance answers HTTP 451 to US IPs). From our single machine, Binance dropped out in 2 of 226 live runs. | Document egress regions or recommend fallbacks. | From docs reading, not verified on a DON |
+| 13 | CLI auth | `cre init` and `cre workflow simulate` need `cre login`, while `cre templates list` and `cre workflow build` do not, so teammates without an account cannot simulate. | Allow an offline dry-run simulation, or say in the install guide that an account is needed. | Observed (v1.37.0) |
+| 14 | SDK exports | `TxStatus` is exported from `@chainlink/cre-sdk`; `ReceiverContractExecutionStatus` is only reachable through `@chainlink/cre-sdk/pb` (`EVM_PB`). | Export it next to `TxStatus`. | Observed (SDK 1.23.0) |
+| 16 | Access request before login | `cre account access` before `cre login` fails with "unable to retrieve organization info. Your account may not be fully set up yet", then `TLS handshake timeout`. It reads like a server-side account problem. | Detect missing credentials first and say "run `cre login`". | Observed (v1.37.0) |
+| 17 | Non-interactive access request | Without a TTY, `cre account access` fails with `huh: could not open a new TTY: open /dev/tty: device not configured`. No flag covers the confirmation or the use-case text. | Flags such as `--yes --use-case "..."`. | Observed (v1.37.0) |
+| 19 | Simulator log times | Log times are local time with a `Z` suffix. On a Mac set to UTC+8, a run at 15:55:36 UTC printed `2026-10-06T23:55:36Z`. | Print UTC, or the real offset. Workaround: `TZ=UTC`. | Observed (v1.37.0) |
+| 20 | Simulator paths | `build -o` resolves a relative path from the current directory, but `simulate --wasm` resolves it from the workflow folder. The error (`--wasm must be a valid existing file: ./risk-desk/binary.wasm`) does not say which base it used. | Resolve `--wasm` like `-o`, or print the resolved path. Workaround: an absolute path. | Observed (v1.37.0) |
+| 21 | Listen mode shutdown | After SIGTERM the listen-mode simulator released port 2000 but stayed alive, silent, for about 17 s before exiting; 2 of 3 stops lingered. | Exit promptly, or print what it is waiting for. | Observed (v1.37.0) |
+
+## Full log and next steps
+
+- **Full log:** [docs/feedback/cre-friction-log.md](cre-friction-log.md), 25 rows with the full repro details.
+- **Before filing, we will re-check each item on the latest CLI and send them one at a time:**
+  - **Pull request:** row 23 to `smartcontractkit/cre-templates` (`METADATA_LENGTH` 64 plus a forge test with real forwarder metadata).
+  - **Issues on `smartcontractkit/cre-cli`:**
+    - rows 9 and 10 (ask 1);
+    - rows 3, 22, 24 and 25 (ask 4);
+    - then rows 13, 16, 17, 19, 20 and 21;
+    - row 1 goes as a comment on issue #393 or as a new issue, whichever the team prefers.
+  - **Issue on `smartcontractkit/cre-sdk-typescript`:** row 14.
+  - **Issues on `smartcontractkit/documentation`:** rows 2, 11, 12, 15 and 18, using its `bug_report` and `enhance` templates. We can follow with docs pull requests if they are welcome.
+  - **Questions for the CRE team, not bugs:** rows 4, 5, 7 and 8. Row 6 is a request.
+- **Contact:** Sofiane Ben Taleb, [@gamween](https://github.com/gamween). Repo: https://github.com/DVB-ANS/clim. The workflow is in `cre/risk-desk`.

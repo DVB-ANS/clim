@@ -2,6 +2,8 @@
 
 Developer-experience notes for the Chainlink team, written while building clim. Each entry: what we tried, what happened, what would help. Entries marked *(design phase)* come from reading the docs and templates before writing code. Confirm or correct them during the build.
 
+The send-ready summary for the Chainlink team, top asks first, is in [cre-devex-report.md](cre-devex-report.md).
+
 | # | Area | What we hit | Suggestion | Status |
 |---|---|---|---|---|
 | 1 | Simulation trust model | `cre workflow simulate` runs a single node, so no real consensus. With `--broadcast` on Sepolia, the report goes through `MockKeystoneForwarder` (0x15fC6ae953E024d975e77382eEeC56A9101f9F88), which skips signature checks: anyone can push a report to a consumer during a demo. | A multi-node local simulation mode, or a mock forwarder that verifies signatures from a local key set. | confirmed on a Sepolia fork (`contracts/test/fork/MockForwarder.fork.t.sol`): `report()` is permissionless and clim's `tx.origin` guard rejects third parties. `simulate --broadcast` sends `report()` from the `CRE_ETH_PRIVATE_KEY` account straight to the mock (tx `0xe57a006e7585984137cb5064d6be6fc7b9353194760178b85a78274c8785fa2c`), so the guard works in simulation; `bots/src/scripts/forge-report.ts` demonstrates it on the live desk |
