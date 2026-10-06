@@ -1171,7 +1171,7 @@ git commit -m "feat(shared): typed ABI fragments and ABI export script"
 - Create: `shared/deployments/sepolia.json`, `shared/params.json`, `shared/src/config.ts`, `shared/src/index.ts`
 - Test: `shared/test/config.test.ts`
 
-- [ ] **Step 1: Create the data files**
+- [x] **Step 1: Create the data files**
 
 `shared/deployments/sepolia.json` (Uniswap infrastructure and CRE forwarders verified on-chain; everything plan 01 deploys starts as `null`; if plan 01's `05_WriteDeployments` already wrote this file, keep it):
 ```json
@@ -1210,7 +1210,7 @@ git commit -m "feat(shared): typed ABI fragments and ABI export script"
 }
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 The pool id vector comes from `cast keccak $(cast abi-encode "f(address,address,uint24,int24,address)" 0x1111111111111111111111111111111111111111 0x2222222222222222222222222222222222222222 8388608 60 0x3333333333333333333333333333333333333333)`.
 
@@ -1350,12 +1350,12 @@ describe("shared/params.json", () => {
 });
 ```
 
-- [ ] **Step 3: Run it, expected FAIL**
+- [x] **Step 3: Run it, expected FAIL**
 
 Run: `cd shared && bun test test/config.test.ts`
 Expected: `error: Cannot find module '../src/config'`, ` 1 fail`.
 
-- [ ] **Step 4: Minimal implementation**
+- [x] **Step 4: Minimal implementation**
 
 `shared/src/config.ts`:
 ```ts
@@ -1599,12 +1599,12 @@ export * from "./report";
 export * from "./units";
 ```
 
-- [ ] **Step 5: Run, expected PASS**
+- [x] **Step 5: Run, expected PASS**
 
 Run: `cd shared && bun test && bun run typecheck`
 Expected: ` 55 pass`, ` 3 skip`, ` 0 fail` across 5 files (` 15 pass` in `config.test.ts`); typecheck clean.
 
-- [ ] **Step 6: Log the interface**
+- [x] **Step 6: Log the interface**
 
 Append under `## Build notes` in today's session log:
 
@@ -1612,7 +1612,7 @@ Append under `## Build notes` in today's session log:
 - (ops) Shared files: `shared/deployments/sepolia.json` (plan 01's layout: `tokens.tETH/tUSD` objects, `riskDesks.live/replay/don`, `hooks.live/replay`, `pools.*`, plus `routers.arb` for plan 05) and `shared/params.json` are validated on load (pool id = keccak256(abi.encode(key)), tETH/tUSD sorted, token order flag, dynamic flag on V, no hook on S, eta matches P\*). `params.json` starts as `PROVISIONAL`; no hook is deployed from provisional parameters. Plan 02's `sync-config.ts` must read `tokens.tETH.address`, `tokens.tUSD.address` and `riskDesks.*`.
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add shared/deployments/sepolia.json shared/params.json shared/src/config.ts shared/src/index.ts shared/test/config.test.ts docs/sessions/
