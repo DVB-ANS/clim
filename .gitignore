@@ -1,0 +1,34 @@
+# Data (re-downloadable, too large for git)
+lab/data/
+lab/.venv/
+__pycache__/
+*.pyc
+
+# Node / Next / Bun
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Foundry
+contracts/cache/
+contracts/out/
+contracts/broadcast/*/31337/
+
+# CRE
+cre/**/.cre_build_tmp.js
+cre/**/node_modules/
+
+# Secrets
+.env
+.env.*
+!.env.example
+secrets.yaml
+!secrets.example.yaml
+
+# OS
+.DS_Store
+
+# Local, personal instructions
+CLAUDE.local.md
