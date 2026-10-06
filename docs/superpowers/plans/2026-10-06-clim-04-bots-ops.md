@@ -1977,7 +1977,7 @@ git commit -m "feat(bots): seeded PRNG and distributions"
 - Create: `bots/src/lib/swap.ts`
 - Test: `bots/test/swap.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `bots/test/swap.test.ts`:
 ```ts
@@ -2031,12 +2031,12 @@ describe("USD notional -> input amount in base units", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/swap.test.ts`
 Expected: `error: Cannot find module '../src/lib/swap'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/lib/swap.ts`:
 ```ts
@@ -2076,12 +2076,12 @@ export function inputAmountForUsd(side: Side, usd: number, ethUsd: number, ethDe
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/swap.test.ts && bun run typecheck`
 Expected: ` 6 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/lib/swap.ts bots/test/swap.test.ts
