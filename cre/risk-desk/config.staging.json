@@ -1,6 +1,6 @@
 {
   "schedule": "*/30 * * * * *",
-  "deskAddress": "0x000000000000000000000000000000000000dEaD",
+  "deskAddress": "0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F",
   "chainSelectorName": "ethereum-testnet-sepolia",
   "gasLimit": "500000",
   "venues": [
