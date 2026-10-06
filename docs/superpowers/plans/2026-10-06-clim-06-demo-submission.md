@@ -847,7 +847,7 @@ The README fee schedule must show exactly what the hook charges. The formula liv
 - Create: `docs/submission/src/fee.mjs`
 - Test: `docs/submission/test/fee.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `docs/submission/test/fee.test.mjs`:
 ```js
@@ -887,12 +887,12 @@ test("pipsToBp and floor crossover", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expect FAIL**
+- [x] **Step 2: Run it, expect FAIL**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/fee.test.mjs`
 Expected: FAIL with `Cannot find module '.../docs/submission/src/fee.mjs'`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `docs/submission/src/fee.mjs`:
 ```js
@@ -913,12 +913,12 @@ export function floorCrossoverAnnual({ etaE4, sqrtHalfDtE6, feeMinPips }) {
 }
 ```
 
-- [ ] **Step 4: Run, expect PASS**
+- [x] **Step 4: Run, expect PASS**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/fee.test.mjs`
 Expected: `# pass 5`, `# fail 0`. A failure here with `shared/src/units.ts` present means the shared mirror changed: the shared mirror and the contract are the reference, fix the expectation only after checking plan 04's test vectors, and log it.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/submission/src/fee.mjs docs/submission/test/fee.test.mjs && git commit -m "feat(submission): fee helpers on the shared fee mirror"
