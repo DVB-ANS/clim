@@ -3316,7 +3316,7 @@ git commit -m "feat(bots): CRE loop runner that records every run on-chain"
 - Create: `bots/src/replay/klines.ts`
 - Test: `bots/test/replay.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `bots/test/replay.test.ts`:
 ```ts
@@ -3447,12 +3447,12 @@ describe("GET /api/v3/ticker/price and /status", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/replay.test.ts`
 Expected: `error: Cannot find module '../src/replay/klines'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/replay/klines.ts`:
 ```ts
@@ -3645,12 +3645,12 @@ export function handleReplayRequest(
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/replay.test.ts && bun run typecheck`
 Expected: ` 13 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/replay/klines.ts bots/test/replay.test.ts
