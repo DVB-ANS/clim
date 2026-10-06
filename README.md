@@ -133,7 +133,7 @@ Numbers computed by the lab at P* = 30%, floor 5 bp (lab output generated 2026-1
 
 **Replay of the 4 February 2026 storm** (2026-02-04 12:00 to 16:00 UTC): volatility 34% → 296%, clim's fee 5 → 32.4 bp, LP losses to arbitrage -18.6% against a fixed 15 bp pool with the same average fee (range over the 92 rolling 4 h windows of the storm: -18.4% to +3.1%). The window was picked during design, at an earlier setting, around the sharpest rise in volatility of the storm, after comparing three candidate windows (lab/scratch/replay_pick*.py); at P* = 30% it is the most favorable of the 92 rolling 4 h windows of the storm (median window -2.1%, 66 of 92 better than the fixed pool). Share of the clim pool's blocks arbitraged, predicted / observed: 29.8% / 28.5%.
 
-**What an LP can expect:** -0.10% to +0.70% of capital per year (-$981 to $7,024 a year per $1M of liquidity; full-range ETH LP vs a static 5 bp pool, 1-year replay, 5 retail scenarios), up to +0.40% on more volatile assets, with about 53% of it earned in the five stormiest weeks of the year. It is insurance, not a steady yield.
+**What an LP can expect:** -0.10% to +0.70% of capital per year (-$981 to $7,024 a year per $1M of liquidity; full-range ETH LP vs a static 5 bp pool, 1-year replay, 5 retail scenarios), and +0.40% in the main scenario on an asset twice as volatile (the same year with every return doubled), with about 53% of it earned in the five stormiest weeks of the year. It is insurance, not a steady yield.
 
 **Where the model is weak:** it predicts how often arbitrage happens, not how much it costs: realized losses to arbitrage run 1.29 to 1.33 times above the model. In the two 1 s windows the observed share of arbitraged blocks lands within 10% of the prediction, but the gap is statistically significant (p < 0.0005, thresholds simulated from the model because arbitrage comes in clusters). A volatility measured inside the pool itself would capture 54% to 103% of the same gain (see "Why Chainlink CRE"; above 100% means the in-pool estimate did slightly better in one sample).
 <!-- clim:end results -->
@@ -180,7 +180,6 @@ Not by flipping a switch on an existing pool; yes for a new pool, and yes for a 
 | `riskDesks.replay` | [`0x4b843dc3A7ec6202d2337cdeF8C67a0F10f24746`](https://sepolia.etherscan.io/address/0x4b843dc3A7ec6202d2337cdeF8C67a0F10f24746) |
 | `hooks.live` | [`0x89f04C14f8fAbb5c9202F6B972F940C02AF79080`](https://sepolia.etherscan.io/address/0x89f04C14f8fAbb5c9202F6B972F940C02AF79080) |
 | `hooks.replay` | [`0xf6E4CEC98865A0B1D8b2D59f70a0A0036bF4D080`](https://sepolia.etherscan.io/address/0xf6E4CEC98865A0B1D8b2D59f70a0A0036bF4D080) |
-| `pools.liveS.key.hooks` | [`0x0000000000000000000000000000000000000000`](https://sepolia.etherscan.io/address/0x0000000000000000000000000000000000000000) |
 
 | Pool | PoolId |
 |---|---|

@@ -155,6 +155,7 @@ export const EVIDENCE_SPEC = {
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const BYTES32 = /^0x[0-9a-fA-F]{64}$/;
+const ZERO_ADDRESS = /^0x0{40}$/; // e.g. a static pool's `hooks`: not a deployed contract
 
 // Walks any JSON shape. Returns every 20-byte hex value (first label wins per address)
 // and every 32-byte hex value stored under a key that contains "poolId".
@@ -165,7 +166,7 @@ export function collectAddresses(deployments) {
   const visit = (node, segs) => {
     if (typeof node === "string") {
       const label = segs.join(".");
-      if (ADDRESS.test(node) && !seen.has(node.toLowerCase())) {
+      if (ADDRESS.test(node) && !ZERO_ADDRESS.test(node) && !seen.has(node.toLowerCase())) {
         seen.add(node.toLowerCase());
         addresses.push({ label, address: node });
       } else if (BYTES32.test(node) && /poolid/i.test(String(segs[segs.length - 1]))) {

@@ -722,6 +722,7 @@ export const EVIDENCE_SPEC = {
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const BYTES32 = /^0x[0-9a-fA-F]{64}$/;
+const ZERO_ADDRESS = /^0x0{40}$/; // e.g. a static pool's `hooks`: not a deployed contract
 
 // Walks any JSON shape. Returns every 20-byte hex value (first label wins per address)
 // and every 32-byte hex value stored under a key that contains "poolId".
@@ -732,7 +733,7 @@ export function collectAddresses(deployments) {
   const visit = (node, segs) => {
     if (typeof node === "string") {
       const label = segs.join(".");
-      if (ADDRESS.test(node) && !seen.has(node.toLowerCase())) {
+      if (ADDRESS.test(node) && !ZERO_ADDRESS.test(node) && !seen.has(node.toLowerCase())) {
         seen.add(node.toLowerCase());
         addresses.push({ label, address: node });
       } else if (BYTES32.test(node) && /poolid/i.test(String(segs[segs.length - 1]))) {
@@ -981,7 +982,7 @@ test("results show both comparisons, the replay and the weak spots, rounded", ()
   assert.match(out, /against a fixed 55\.7 bp pool/);
   assert.match(out, /range over the 2 rolling 4 h windows of the storm: -25\.0% to -8\.0%\)/);
   assert.match(out, /it is the most favorable of the 2 rolling 4 h windows of the storm \(median window -16\.5%, 2 of 2 better than the fixed pool\)/);
-  assert.match(out, /\+0\.10% to \+0\.50% of capital per year \(\$1,000 to \$5,000 a year per \$1M of liquidity; full-range ETH LP\), up to \+1\.00%/);
+  assert.match(out, /\+0\.10% to \+0\.50% of capital per year \(\$1,000 to \$5,000 a year per \$1M of liquidity; full-range ETH LP\), and \+1\.00% in the main scenario on an asset twice as volatile \(the same year with every return doubled\)/);
   assert.match(out, /with about 53% of it earned/);
   assert.match(out, /1\.29 to 1\.33 times above the model/);
   assert.match(out, /lands within 10% of the prediction, but the gap is statistically significant \(p < 0\.0005/);
@@ -1120,7 +1121,7 @@ export function renderResults(backtest, replay, validation) {
     "",
     `**Replay of the 4 February 2026 storm** (${r.window}): volatility ${r.sigmaMinPct}% → ${r.sigmaMaxPct}%, clim's fee ${r.feeVMinBp} → ${r.feeVMaxBp} bp, LP losses to arbitrage ${signedPct(r.arbChangePct)} against a fixed ${r.feeSBp} bp pool with the same average fee (range over the ${r.windowsCount} rolling 4 h windows of the storm: ${signedPct(r.arbChangeRangePct[0])} to ${signedPct(r.arbChangeRangePct[1])}). ${replayChoiceNote(r, backtest.pStar)} Share of the clim pool's blocks arbitraged, predicted / observed: ${pct(r.pTradePredicted)} / ${pct(r.pTradeObserved)}.`,
     "",
-    `**What an LP can expect:** ${signedPct2(g.low)} to ${signedPct2(g.high)} of capital per year (${usdPerMillion(g.low)} to ${usdPerMillion(g.high)} a year per $1M of liquidity; ${g.note}), up to ${signedPct2(g.volatileAssetHigh)} on more volatile assets, with about ${Math.round(g.top5WeeksSharePct)}% of it earned in the five stormiest weeks of the year. It is insurance, not a steady yield.`,
+    `**What an LP can expect:** ${signedPct2(g.low)} to ${signedPct2(g.high)} of capital per year (${usdPerMillion(g.low)} to ${usdPerMillion(g.high)} a year per $1M of liquidity; ${g.note}), and ${signedPct2(g.volatileAssetHigh)} in the main scenario on an asset twice as volatile (the same year with every return doubled), with about ${Math.round(g.top5WeeksSharePct)}% of it earned in the five stormiest weeks of the year. It is insurance, not a steady yield.`,
     "",
     `**Where the model is weak:** it predicts how often arbitrage happens, not how much it costs: realized losses to arbitrage run ${sev[0].toFixed(2)} to ${sev[1].toFixed(2)} times above the model.${model} A volatility measured inside the pool itself would capture ${Math.round(share.low)}% to ${Math.round(share.high)}% of the same gain (see "Why Chainlink CRE"${share.high > 100 ? "; above 100% means the in-pool estimate did slightly better in one sample" : ""}).`,
   ].join("\n");

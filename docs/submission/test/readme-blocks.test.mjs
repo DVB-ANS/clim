@@ -40,7 +40,7 @@ test("results show both comparisons, the replay and the weak spots, rounded", ()
   assert.match(out, /against a fixed 55\.7 bp pool/);
   assert.match(out, /range over the 2 rolling 4 h windows of the storm: -25\.0% to -8\.0%\)/);
   assert.match(out, /it is the most favorable of the 2 rolling 4 h windows of the storm \(median window -16\.5%, 2 of 2 better than the fixed pool\)/);
-  assert.match(out, /\+0\.10% to \+0\.50% of capital per year \(\$1,000 to \$5,000 a year per \$1M of liquidity; full-range ETH LP\), up to \+1\.00%/);
+  assert.match(out, /\+0\.10% to \+0\.50% of capital per year \(\$1,000 to \$5,000 a year per \$1M of liquidity; full-range ETH LP\), and \+1\.00% in the main scenario on an asset twice as volatile \(the same year with every return doubled\)/);
   assert.match(out, /with about 53% of it earned/);
   assert.match(out, /1\.29 to 1\.33 times above the model/);
   assert.match(out, /lands within 10% of the prediction, but the gap is statistically significant \(p < 0\.0005/);
