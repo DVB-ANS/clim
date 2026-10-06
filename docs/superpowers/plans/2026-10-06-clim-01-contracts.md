@@ -2982,7 +2982,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/sessions/2026-10-06
 - Create: `cre/.env.replay` (never committed: the root `.gitignore` ignores `.env.*`), `contracts/deployments/11155111/{desk,hook,pools,liquidity}-replay.json`
 - Modify: `shared/deployments/sepolia.json`, `docs/sessions/2026-10-06.md`
 
-- [ ] **Step 1: Create and fund the replay operator key**
+- [x] **Step 1: Create and fund the replay operator key**
 
 The replay desk gets its own `simOperator`, so the live and replay CRE loops (both running for hours) never send from the same key and never race for a nonce. `simOperator` is immutable per desk, which is why this happens before the deployment. The key is written without being printed (only its address is shown) and funded with 0.2 Sepolia ETH from the deployer: one report every 30 s for the 4.5 h of the replay costs about 0.1 ETH at 1 gwei.
 ```bash
@@ -2992,7 +2992,7 @@ cd contracts && set -a && source .env && set +a && cast send "$R" --value 0.2eth
 ```
 Expected: `IGNORED_OK`, `replay operator 0x<address>`, `status               1 (success)`, then `0.200000000000000000` (or more if the address already held ETH).
 
-- [ ] **Step 2: Deploy the replay suite at the replay window's first price, with the replay operator as `simOperator`**
+- [x] **Step 2: Deploy the replay suite at the replay window's first price, with the replay operator as `simOperator`**
 
 The replay window starts at 2026-02-04 12:00 UTC, which is 1770206400000 ms; its first Binance close was $2,254.
 ```bash
@@ -3006,7 +3006,7 @@ cast call $(jq -r .riskDesks.replay ../shared/deployments/sepolia.json) "simOper
 ```
 Expected: `SIM_OPERATOR=0x<replay operator>`, `INIT_ETH_USD=2254`, four `ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.` lines, `Script ran successfully.`, then `0 0 0 2 0` (REPLAY flag), then the replay operator address again. `cast` resolves the `sepolia` alias from `foundry.toml` and reads `.env` itself. Plan 02 Task 12 and plan 04's `cre-loop --pair replay` send the replay reports with `cre/.env.replay` (`ENV_FILE=.env.replay`).
 
-- [ ] **Step 3: Log and commit**
+- [x] **Step 3: Log and commit**
 
 Append under `## Contracts (plan 01)`:
 ```markdown

@@ -1,0 +1,20 @@
+{
+  "S": {
+    "currency0": "0xcB2498949AC0c2473a06199e24f2c5062b665A19",
+    "currency1": "0xce3171cB1ad23D9E5D3fD9839078b4624DC84C14",
+    "fee": 1503,
+    "hooks": "0x0000000000000000000000000000000000000000",
+    "poolId": "0x5ccceb29c89cd803efe580366751034ff1779b4f9c8409995dd193d10401c1f4",
+    "tickSpacing": 60
+  },
+  "V": {
+    "currency0": "0xcB2498949AC0c2473a06199e24f2c5062b665A19",
+    "currency1": "0xce3171cB1ad23D9E5D3fD9839078b4624DC84C14",
+    "fee": 8388608,
+    "hooks": "0xf6E4CEC98865A0B1D8b2D59f70a0A0036bF4D080",
+    "poolId": "0xc91db9c403696e8e72e7fac6c11ee502e558a96786ff2047492db5cab116b60f",
+    "tickSpacing": 60
+  },
+  "initEthUsd": 2254,
+  "sqrtPriceX96": "3761460794898915125695953346776"
+}

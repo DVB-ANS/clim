@@ -29,12 +29,12 @@
   },
   "riskDesks": {
     "live": "0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F",
-    "replay": null,
+    "replay": "0x4b843dc3A7ec6202d2337cdeF8C67a0F10f24746",
     "don": null
   },
   "hooks": {
     "live": "0x89f04C14f8fAbb5c9202F6B972F940C02AF79080",
-    "replay": null
+    "replay": "0xf6E4CEC98865A0B1D8b2D59f70a0A0036bF4D080"
   },
   "pools": {
     "liveV": {
@@ -59,11 +59,31 @@
       "poolId": "0x0e4aeceb4d96dda2a3f9d5ae279024e1c3a954a774ca71fdb374cd0650a3abf0",
       "token0IsEth": true
     },
-    "replayV": null,
-    "replayS": null
+    "replayV": {
+      "key": {
+        "currency0": "0xcB2498949AC0c2473a06199e24f2c5062b665A19",
+        "currency1": "0xce3171cB1ad23D9E5D3fD9839078b4624DC84C14",
+        "hooks": "0xf6E4CEC98865A0B1D8b2D59f70a0A0036bF4D080",
+        "fee": 8388608,
+        "tickSpacing": 60
+      },
+      "poolId": "0xc91db9c403696e8e72e7fac6c11ee502e558a96786ff2047492db5cab116b60f",
+      "token0IsEth": true
+    },
+    "replayS": {
+      "key": {
+        "currency0": "0xcB2498949AC0c2473a06199e24f2c5062b665A19",
+        "currency1": "0xce3171cB1ad23D9E5D3fD9839078b4624DC84C14",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "fee": 1503,
+        "tickSpacing": 60
+      },
+      "poolId": "0x5ccceb29c89cd803efe580366751034ff1779b4f9c8409995dd193d10401c1f4",
+      "token0IsEth": true
+    }
   },
   "liquidity": {
     "live": "5199038372622383343353592",
-    "replay": null
+    "replay": "4747630988187687709596417"
   }
 }
