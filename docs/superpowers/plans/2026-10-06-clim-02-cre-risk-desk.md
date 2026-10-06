@@ -2239,7 +2239,7 @@ git commit -m "feat(cre): risk-desk workflow: node-mode venues, median consensus
 **Files:**
 - Modify: today's session log (and the friction log if anything differs from this plan)
 
-- [ ] **Step 1: Dry run through the cron handler**
+- [x] **Step 1: Dry run through the cron handler**
 
 ```bash
 (cd cre && cre workflow simulate risk-desk --non-interactive --trigger-index 0 --target staging-settings)
@@ -2248,8 +2248,13 @@ git commit -m "feat(cre): risk-desk workflow: node-mode venues, median consensus
 Expected shape (the numbers move with the market). Without `cre/.env`, a warning `Using default private key for chain write simulation...` appears first, which is fine for a dry run:
 
 ```text
-Workflow compiled
+✓ Workflow compiled
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: ... | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 ...
+  Binary hash: <hex>
+  Config hash: <hex>
 <time> [SIMULATION] Simulator Initialized
+
 <time> [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
 <time> [USER LOG] node: sources=coinbase,kraken,binance,hyperliquid n=4 tEnd=<unix minute> price=<ETH price> rv15=<x.x>% disp=<d>bp tick=<tick> dvol=<DVOL>
 <time> [USER LOG] consensus: sigma=<x.x>%/yr sigmaE9=<int> n=4 disp=<d>bp tick=<tick> dvol=<DVOL> price=<ETH price> tObs=<unix now>
@@ -2257,11 +2262,16 @@ Workflow compiled
 <time> [USER LOG] Write report transaction succeeded: 0x0000000000000000000000000000000000000000000000000000000000000000
 <time> [USER LOG] DRY RUN: report encoded and simulated, not broadcast (sigmaE9=<int>)
 
-Workflow Simulation Result:
- "DRY RUN"
+✓ Workflow Simulation Result:
+"DRY RUN"
+
+<time> [SIMULATION] Execution finished signal received
+<time> [SIMULATION] Skipping WorkflowEngineV2
 ```
 
-- [ ] **Step 2: Check the numbers are sane**
+A box "Simulation complete! Ready to deploy your workflow? Run cre account access to request deployment access." closes the output (seen while deploy access is not enabled). `<time>` is the machine's local time with a `Z` suffix (cre v1.37.0, friction row 19): on a Mac set to Singapore it reads 8 h ahead of UTC; prefix the command with `TZ=UTC` for true UTC times.
+
+- [x] **Step 2: Check the numbers are sane**
   - sigma between 5 and 200 %/yr;
   - n = 4, or 3 with a `source dropped: <venue>: <reason>` line naming the missing venue;
   - disp at most 10 bp;
@@ -2271,21 +2281,21 @@ Workflow Simulation Result:
 
   If n < 4, write the venue and the reason in the session log. If the reason is on the CRE side (for example egress or a timeout), also add a friction row.
 
-- [ ] **Step 3: Run the HTTP handler once (the trigger used to drive simulation loops)**
+- [x] **Step 3: Run the HTTP handler once (the trigger used to drive simulation loops)**
 
 ```bash
 (cd cre && cre workflow simulate risk-desk --non-interactive --trigger-index 1 --http-payload '{}' --target staging-settings)
 ```
 
-Expected: `Running trigger trigger=http-trigger@1.0.0-alpha`, then the same five `[USER LOG]` lines and `"DRY RUN"`.
+Expected: `✓ Parsed JSON input successfully` and `✓ Created HTTP trigger payload with 0 fields` before the simulator starts, then `Running trigger trigger=http-trigger@1.0.0-alpha`, the same five `[USER LOG]` lines and `"DRY RUN"`.
 
-- [ ] **Step 4: Log it** (with the values you observed)
+- [x] **Step 4: Log it** (with the values you observed)
 
 ```markdown
 - (CRE) First dry run OK (cron and HTTP handlers): n=4, sigma <x.x> %/yr, dispersion <d> bp, DVOL <v>, one run takes <s> s end to end.
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add docs/sessions/ docs/feedback/cre-friction-log.md
