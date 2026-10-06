@@ -1,7 +1,7 @@
 // Typed ABI fragments (`as const`, so viem infers argument and return types).
 // External contracts: copied from Uniswap v4-core / v4-periphery and Chainlink MockKeystoneForwarder sources.
 // clim contracts: the canonical interfaces; test/abis.test.ts checks them against shared/abis/*.json
-// (exported from contracts/out by scripts/export-abis.ts) as soon as those files exist.
+// (exported from contracts/out by contracts/script/export-abis.sh) as soon as those files exist.
 import { erc20Abi } from "viem";
 
 export const POOL_KEY_COMPONENTS = [

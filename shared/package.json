@@ -2,6 +2,7 @@
   "name": "@clim/shared",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -17,8 +18,7 @@
   },
   "scripts": {
     "test": "bun test",
-    "typecheck": "tsc --noEmit -p .",
-    "export-abis": "bun scripts/export-abis.ts"
+    "typecheck": "tsc --noEmit -p ."
   },
   "peerDependencies": {
     "viem": "^2.57.3"

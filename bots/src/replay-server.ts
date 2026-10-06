@@ -18,7 +18,7 @@ const clock = makeClock(w, anchor);
 
 Bun.serve({
   port,
-  hostname: "0.0.0.0",
+  hostname: "127.0.0.1",
   fetch(req) {
     const r = handleReplayRequest(w, clock, new URL(req.url), Date.now());
     return Response.json(r.body, { status: r.status, headers: { "access-control-allow-origin": "*" } });

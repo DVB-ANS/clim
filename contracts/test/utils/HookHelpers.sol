@@ -10,7 +10,6 @@ import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
 import {ModifyLiquidityParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 
 import {ClimHook} from "../../src/ClimHook.sol";
-import {RiskDesk} from "../../src/RiskDesk.sol";
 import {IRiskDesk} from "../../src/interfaces/IRiskDesk.sol";
 import {DeskHelpers} from "./DeskHelpers.sol";
 

@@ -6,7 +6,6 @@ import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {LPFeeLibrary} from "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol";
 import {StateLibrary} from "@uniswap/v4-core/src/libraries/StateLibrary.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-import {PoolId} from "@uniswap/v4-core/src/types/PoolId.sol";
 
 import {ClimHook} from "../src/ClimHook.sol";
 import {RiskDesk} from "../src/RiskDesk.sol";
