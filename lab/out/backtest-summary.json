@@ -1,0 +1,1177 @@
+{
+  "schema": "clim.lab.backtest/1",
+  "generatedAt": "2026-10-06T15:56:16Z",
+  "pStar": 0.3,
+  "feeMinBp": 5.0,
+  "periods": [
+    {
+      "id": "feb-2026",
+      "label": "Feb 2026 storm",
+      "source": "Binance ETHUSDT 1 s",
+      "blocks": 28716,
+      "equalTimeAvgFee": {
+        "staticFeeBp": 14.38881,
+        "dynMeanFeeBp": 14.38881,
+        "arbChangePct": -15.349712
+      },
+      "equalTraderCost": {
+        "staticFeeBp": 18.69747,
+        "dynVolWeightedFeeBp": 18.69747,
+        "arbChangePct": -2.8572273
+      },
+      "pTrade": {
+        "observed": 0.27949575,
+        "predicted": 0.29888317
+      },
+      "arbOverLvr": {
+        "observed": 0.32272248,
+        "model": 0.24687325
+      }
+    },
+    {
+      "id": "oct-2026",
+      "label": "Oct 2026 calm",
+      "source": "Binance ETHUSDT 1 s",
+      "blocks": 21557,
+      "equalTimeAvgFee": {
+        "staticFeeBp": 5.11025,
+        "dynMeanFeeBp": 5.11025,
+        "arbChangePct": -5.4515082
+      },
+      "equalTraderCost": {
+        "staticFeeBp": 5.3349477,
+        "dynVolWeightedFeeBp": 5.3349477,
+        "arbChangePct": -2.2578022
+      },
+      "pTrade": {
+        "observed": 0.17112771,
+        "predicted": 0.15580851
+      },
+      "arbOverLvr": {
+        "observed": 0.25013639,
+        "model": 0.19410137
+      }
+    },
+    {
+      "id": "year",
+      "label": "Oct 2025 to Oct 2026 (1-min data bridged)",
+      "source": "Binance ETHUSDT 1 min, bridged to 12 s blocks",
+      "blocks": 2627970,
+      "equalTimeAvgFee": {
+        "staticFeeBp": 6.5559438,
+        "dynMeanFeeBp": 6.5559438,
+        "arbChangePct": -26.934357
+      },
+      "equalTraderCost": {
+        "staticFeeBp": 9.262057,
+        "dynVolWeightedFeeBp": 9.262057,
+        "arbChangePct": -12.662799
+      },
+      "pTrade": {
+        "observed": 0.23648443,
+        "predicted": 0.24297607
+      },
+      "arbOverLvr": {
+        "observed": 0.31978553,
+        "model": 0.24003519
+      }
+    }
+  ],
+  "replayWindows": [
+    {
+      "id": "feb-000",
+      "label": "2026-02-03 00:16 UTC + 4 h",
+      "arbChangePct": 2.9341544
+    },
+    {
+      "id": "feb-001",
+      "label": "2026-02-03 01:16 UTC + 4 h",
+      "arbChangePct": 0.80559124
+    },
+    {
+      "id": "feb-002",
+      "label": "2026-02-03 02:16 UTC + 4 h",
+      "arbChangePct": 1.2574179
+    },
+    {
+      "id": "feb-003",
+      "label": "2026-02-03 03:16 UTC + 4 h",
+      "arbChangePct": -0.14349956
+    },
+    {
+      "id": "feb-004",
+      "label": "2026-02-03 04:16 UTC + 4 h",
+      "arbChangePct": -1.2307002
+    },
+    {
+      "id": "feb-005",
+      "label": "2026-02-03 05:16 UTC + 4 h",
+      "arbChangePct": -11.377921
+    },
+    {
+      "id": "feb-006",
+      "label": "2026-02-03 06:16 UTC + 4 h",
+      "arbChangePct": -9.6614197
+    },
+    {
+      "id": "feb-007",
+      "label": "2026-02-03 07:16 UTC + 4 h",
+      "arbChangePct": -9.444712
+    },
+    {
+      "id": "feb-008",
+      "label": "2026-02-03 08:16 UTC + 4 h",
+      "arbChangePct": -7.9575029
+    },
+    {
+      "id": "feb-009",
+      "label": "2026-02-03 09:16 UTC + 4 h",
+      "arbChangePct": 2.6911823
+    },
+    {
+      "id": "feb-010",
+      "label": "2026-02-03 10:16 UTC + 4 h",
+      "arbChangePct": 3.1499447
+    },
+    {
+      "id": "feb-011",
+      "label": "2026-02-03 11:16 UTC + 4 h",
+      "arbChangePct": -13.348441
+    },
+    {
+      "id": "feb-012",
+      "label": "2026-02-03 12:16 UTC + 4 h",
+      "arbChangePct": -10.823326
+    },
+    {
+      "id": "feb-013",
+      "label": "2026-02-03 13:16 UTC + 4 h",
+      "arbChangePct": -7.0029361
+    },
+    {
+      "id": "feb-014",
+      "label": "2026-02-03 14:16 UTC + 4 h",
+      "arbChangePct": -1.0310391
+    },
+    {
+      "id": "feb-015",
+      "label": "2026-02-03 15:16 UTC + 4 h",
+      "arbChangePct": -1.1039898
+    },
+    {
+      "id": "feb-016",
+      "label": "2026-02-03 16:16 UTC + 4 h",
+      "arbChangePct": -1.6825555
+    },
+    {
+      "id": "feb-017",
+      "label": "2026-02-03 17:16 UTC + 4 h",
+      "arbChangePct": -9.4223712
+    },
+    {
+      "id": "feb-018",
+      "label": "2026-02-03 18:16 UTC + 4 h",
+      "arbChangePct": -11.656623
+    },
+    {
+      "id": "feb-019",
+      "label": "2026-02-03 19:16 UTC + 4 h",
+      "arbChangePct": -13.900503
+    },
+    {
+      "id": "feb-020",
+      "label": "2026-02-03 20:16 UTC + 4 h",
+      "arbChangePct": -17.592332
+    },
+    {
+      "id": "feb-021",
+      "label": "2026-02-03 21:16 UTC + 4 h",
+      "arbChangePct": -5.7595511
+    },
+    {
+      "id": "feb-022",
+      "label": "2026-02-03 22:16 UTC + 4 h",
+      "arbChangePct": -5.8415943
+    },
+    {
+      "id": "feb-023",
+      "label": "2026-02-03 23:16 UTC + 4 h",
+      "arbChangePct": 0.091542396
+    },
+    {
+      "id": "feb-024",
+      "label": "2026-02-04 00:16 UTC + 4 h",
+      "arbChangePct": 0.99498185
+    },
+    {
+      "id": "feb-025",
+      "label": "2026-02-04 01:16 UTC + 4 h",
+      "arbChangePct": 3.1437765
+    },
+    {
+      "id": "feb-026",
+      "label": "2026-02-04 02:16 UTC + 4 h",
+      "arbChangePct": 1.1428041
+    },
+    {
+      "id": "feb-027",
+      "label": "2026-02-04 03:16 UTC + 4 h",
+      "arbChangePct": 2.4098139
+    },
+    {
+      "id": "feb-028",
+      "label": "2026-02-04 04:16 UTC + 4 h",
+      "arbChangePct": 2.6768108
+    },
+    {
+      "id": "feb-029",
+      "label": "2026-02-04 05:16 UTC + 4 h",
+      "arbChangePct": 2.5646098
+    },
+    {
+      "id": "feb-030",
+      "label": "2026-02-04 06:16 UTC + 4 h",
+      "arbChangePct": 1.4528425
+    },
+    {
+      "id": "feb-031",
+      "label": "2026-02-04 07:16 UTC + 4 h",
+      "arbChangePct": -4.8730618
+    },
+    {
+      "id": "feb-032",
+      "label": "2026-02-04 08:16 UTC + 4 h",
+      "arbChangePct": -2.1513515
+    },
+    {
+      "id": "feb-033",
+      "label": "2026-02-04 09:16 UTC + 4 h",
+      "arbChangePct": -0.87643954
+    },
+    {
+      "id": "feb-034",
+      "label": "2026-02-04 10:16 UTC + 4 h",
+      "arbChangePct": -1.0262058
+    },
+    {
+      "id": "feb-035",
+      "label": "2026-02-04 11:16 UTC + 4 h",
+      "arbChangePct": -18.366445
+    },
+    {
+      "id": "feb-036",
+      "label": "2026-02-04 12:16 UTC + 4 h",
+      "arbChangePct": -12.788229
+    },
+    {
+      "id": "feb-037",
+      "label": "2026-02-04 13:16 UTC + 4 h",
+      "arbChangePct": -4.7419888
+    },
+    {
+      "id": "feb-038",
+      "label": "2026-02-04 14:16 UTC + 4 h",
+      "arbChangePct": 1.3209925
+    },
+    {
+      "id": "feb-039",
+      "label": "2026-02-04 15:16 UTC + 4 h",
+      "arbChangePct": 1.1360457
+    },
+    {
+      "id": "feb-040",
+      "label": "2026-02-04 16:16 UTC + 4 h",
+      "arbChangePct": -2.3470032
+    },
+    {
+      "id": "feb-041",
+      "label": "2026-02-04 17:16 UTC + 4 h",
+      "arbChangePct": -5.7667431
+    },
+    {
+      "id": "feb-042",
+      "label": "2026-02-04 18:16 UTC + 4 h",
+      "arbChangePct": -5.4153839
+    },
+    {
+      "id": "feb-043",
+      "label": "2026-02-04 19:16 UTC + 4 h",
+      "arbChangePct": -1.2740777
+    },
+    {
+      "id": "feb-044",
+      "label": "2026-02-04 20:16 UTC + 4 h",
+      "arbChangePct": 2.4721246
+    },
+    {
+      "id": "feb-045",
+      "label": "2026-02-04 21:16 UTC + 4 h",
+      "arbChangePct": 1.7314307
+    },
+    {
+      "id": "feb-046",
+      "label": "2026-02-04 22:16 UTC + 4 h",
+      "arbChangePct": -0.9098271
+    },
+    {
+      "id": "feb-047",
+      "label": "2026-02-04 23:16 UTC + 4 h",
+      "arbChangePct": -1.5540476
+    },
+    {
+      "id": "feb-048",
+      "label": "2026-02-05 00:16 UTC + 4 h",
+      "arbChangePct": -3.1309423
+    },
+    {
+      "id": "feb-049",
+      "label": "2026-02-05 01:16 UTC + 4 h",
+      "arbChangePct": -2.3834822
+    },
+    {
+      "id": "feb-050",
+      "label": "2026-02-05 02:16 UTC + 4 h",
+      "arbChangePct": -3.6090404
+    },
+    {
+      "id": "feb-051",
+      "label": "2026-02-05 03:16 UTC + 4 h",
+      "arbChangePct": -1.1764036
+    },
+    {
+      "id": "feb-052",
+      "label": "2026-02-05 04:16 UTC + 4 h",
+      "arbChangePct": -1.6708868
+    },
+    {
+      "id": "feb-053",
+      "label": "2026-02-05 05:16 UTC + 4 h",
+      "arbChangePct": -1.14624
+    },
+    {
+      "id": "feb-054",
+      "label": "2026-02-05 06:16 UTC + 4 h",
+      "arbChangePct": -2.7695965
+    },
+    {
+      "id": "feb-055",
+      "label": "2026-02-05 07:16 UTC + 4 h",
+      "arbChangePct": -2.3278966
+    },
+    {
+      "id": "feb-056",
+      "label": "2026-02-05 08:16 UTC + 4 h",
+      "arbChangePct": -8.5550929
+    },
+    {
+      "id": "feb-057",
+      "label": "2026-02-05 09:16 UTC + 4 h",
+      "arbChangePct": -13.607499
+    },
+    {
+      "id": "feb-058",
+      "label": "2026-02-05 10:16 UTC + 4 h",
+      "arbChangePct": -9.7025852
+    },
+    {
+      "id": "feb-059",
+      "label": "2026-02-05 11:16 UTC + 4 h",
+      "arbChangePct": -1.1130521
+    },
+    {
+      "id": "feb-060",
+      "label": "2026-02-05 12:16 UTC + 4 h",
+      "arbChangePct": -7.4109492
+    },
+    {
+      "id": "feb-061",
+      "label": "2026-02-05 13:16 UTC + 4 h",
+      "arbChangePct": -5.4888897
+    },
+    {
+      "id": "feb-062",
+      "label": "2026-02-05 14:16 UTC + 4 h",
+      "arbChangePct": -1.3509659
+    },
+    {
+      "id": "feb-063",
+      "label": "2026-02-05 15:16 UTC + 4 h",
+      "arbChangePct": -2.2601239
+    },
+    {
+      "id": "feb-064",
+      "label": "2026-02-05 16:16 UTC + 4 h",
+      "arbChangePct": 2.3898301
+    },
+    {
+      "id": "feb-065",
+      "label": "2026-02-05 17:16 UTC + 4 h",
+      "arbChangePct": -5.3109852
+    },
+    {
+      "id": "feb-066",
+      "label": "2026-02-05 18:16 UTC + 4 h",
+      "arbChangePct": -5.0007133
+    },
+    {
+      "id": "feb-067",
+      "label": "2026-02-05 19:16 UTC + 4 h",
+      "arbChangePct": -6.7250612
+    },
+    {
+      "id": "feb-068",
+      "label": "2026-02-05 20:16 UTC + 4 h",
+      "arbChangePct": -7.8661978
+    },
+    {
+      "id": "feb-069",
+      "label": "2026-02-05 21:16 UTC + 4 h",
+      "arbChangePct": -6.4721905
+    },
+    {
+      "id": "feb-070",
+      "label": "2026-02-05 22:16 UTC + 4 h",
+      "arbChangePct": -8.5629862
+    },
+    {
+      "id": "feb-071",
+      "label": "2026-02-05 23:16 UTC + 4 h",
+      "arbChangePct": -11.113362
+    },
+    {
+      "id": "feb-072",
+      "label": "2026-02-06 00:16 UTC + 4 h",
+      "arbChangePct": -12.642502
+    },
+    {
+      "id": "feb-073",
+      "label": "2026-02-06 01:16 UTC + 4 h",
+      "arbChangePct": -5.1976416
+    },
+    {
+      "id": "feb-074",
+      "label": "2026-02-06 02:16 UTC + 4 h",
+      "arbChangePct": 0.63177219
+    },
+    {
+      "id": "feb-075",
+      "label": "2026-02-06 03:16 UTC + 4 h",
+      "arbChangePct": 0.57994521
+    },
+    {
+      "id": "feb-076",
+      "label": "2026-02-06 04:16 UTC + 4 h",
+      "arbChangePct": -0.26766581
+    },
+    {
+      "id": "feb-077",
+      "label": "2026-02-06 05:16 UTC + 4 h",
+      "arbChangePct": -4.2114476
+    },
+    {
+      "id": "feb-078",
+      "label": "2026-02-06 06:16 UTC + 4 h",
+      "arbChangePct": -2.0850296
+    },
+    {
+      "id": "feb-079",
+      "label": "2026-02-06 07:16 UTC + 4 h",
+      "arbChangePct": -6.6404732
+    },
+    {
+      "id": "feb-080",
+      "label": "2026-02-06 08:16 UTC + 4 h",
+      "arbChangePct": -9.0562802
+    },
+    {
+      "id": "feb-081",
+      "label": "2026-02-06 09:16 UTC + 4 h",
+      "arbChangePct": -0.57972273
+    },
+    {
+      "id": "feb-082",
+      "label": "2026-02-06 10:16 UTC + 4 h",
+      "arbChangePct": 1.2849094
+    },
+    {
+      "id": "feb-083",
+      "label": "2026-02-06 11:16 UTC + 4 h",
+      "arbChangePct": -9.0616208
+    },
+    {
+      "id": "feb-084",
+      "label": "2026-02-06 12:16 UTC + 4 h",
+      "arbChangePct": -7.4147858
+    },
+    {
+      "id": "feb-085",
+      "label": "2026-02-06 13:16 UTC + 4 h",
+      "arbChangePct": -0.8003104
+    },
+    {
+      "id": "feb-086",
+      "label": "2026-02-06 14:16 UTC + 4 h",
+      "arbChangePct": 2.7080229
+    },
+    {
+      "id": "feb-087",
+      "label": "2026-02-06 15:16 UTC + 4 h",
+      "arbChangePct": 2.2603299
+    },
+    {
+      "id": "feb-088",
+      "label": "2026-02-06 16:16 UTC + 4 h",
+      "arbChangePct": -0.80716624
+    },
+    {
+      "id": "feb-089",
+      "label": "2026-02-06 17:16 UTC + 4 h",
+      "arbChangePct": 0.90605911
+    },
+    {
+      "id": "feb-090",
+      "label": "2026-02-06 18:16 UTC + 4 h",
+      "arbChangePct": 0.73562691
+    },
+    {
+      "id": "feb-091",
+      "label": "2026-02-06 19:16 UTC + 4 h",
+      "arbChangePct": 0.41862046
+    }
+  ],
+  "replayWindowsMedianPct": -2.1181905,
+  "replayWindowsBetterCount": 66,
+  "lpGainPctPerYear": {
+    "low": -0.0981486,
+    "high": 0.70240233,
+    "note": "full-range ETH LP vs a static 5 bp pool, 1-year replay, 5 retail scenarios",
+    "volatileAssetHigh": 0.39936743,
+    "top5WeeksSharePct": 52.87945
+  },
+  "inPoolVolGainSharePct": {
+    "low": 53.686573,
+    "high": 103.34705
+  },
+  "params": {
+    "pStar": 0.3,
+    "etaE4": 25093,
+    "sqrtHalfDtE6": 2449490,
+    "feeMinPips": 500,
+    "feeMaxPips": 15000
+  },
+  "feeCurve": [
+    {
+      "sigmaAnnualPct": 10,
+      "feePips": 500,
+      "feeBp": 5.0
+    },
+    {
+      "sigmaAnnualPct": 15,
+      "feePips": 500,
+      "feeBp": 5.0
+    },
+    {
+      "sigmaAnnualPct": 20,
+      "feePips": 500,
+      "feeBp": 5.0
+    },
+    {
+      "sigmaAnnualPct": 25,
+      "feePips": 500,
+      "feeBp": 5.0
+    },
+    {
+      "sigmaAnnualPct": 30,
+      "feePips": 500,
+      "feeBp": 5.0
+    },
+    {
+      "sigmaAnnualPct": 35,
+      "feePips": 500,
+      "feeBp": 5.0
+    },
+    {
+      "sigmaAnnualPct": 40,
+      "feePips": 500,
+      "feeBp": 5.0
+    },
+    {
+      "sigmaAnnualPct": 45,
+      "feePips": 500,
+      "feeBp": 5.0
+    },
+    {
+      "sigmaAnnualPct": 50,
+      "feePips": 548,
+      "feeBp": 5.48
+    },
+    {
+      "sigmaAnnualPct": 55,
+      "feePips": 602,
+      "feeBp": 6.02
+    },
+    {
+      "sigmaAnnualPct": 60,
+      "feePips": 657,
+      "feeBp": 6.57
+    },
+    {
+      "sigmaAnnualPct": 65,
+      "feePips": 712,
+      "feeBp": 7.12
+    },
+    {
+      "sigmaAnnualPct": 70,
+      "feePips": 767,
+      "feeBp": 7.67
+    },
+    {
+      "sigmaAnnualPct": 75,
+      "feePips": 821,
+      "feeBp": 8.21
+    },
+    {
+      "sigmaAnnualPct": 80,
+      "feePips": 876,
+      "feeBp": 8.76
+    },
+    {
+      "sigmaAnnualPct": 85,
+      "feePips": 931,
+      "feeBp": 9.31
+    },
+    {
+      "sigmaAnnualPct": 90,
+      "feePips": 986,
+      "feeBp": 9.86
+    },
+    {
+      "sigmaAnnualPct": 95,
+      "feePips": 1040,
+      "feeBp": 10.4
+    },
+    {
+      "sigmaAnnualPct": 100,
+      "feePips": 1095,
+      "feeBp": 10.95
+    },
+    {
+      "sigmaAnnualPct": 105,
+      "feePips": 1150,
+      "feeBp": 11.5
+    },
+    {
+      "sigmaAnnualPct": 110,
+      "feePips": 1204,
+      "feeBp": 12.04
+    },
+    {
+      "sigmaAnnualPct": 115,
+      "feePips": 1259,
+      "feeBp": 12.59
+    },
+    {
+      "sigmaAnnualPct": 120,
+      "feePips": 1314,
+      "feeBp": 13.14
+    },
+    {
+      "sigmaAnnualPct": 125,
+      "feePips": 1369,
+      "feeBp": 13.69
+    },
+    {
+      "sigmaAnnualPct": 130,
+      "feePips": 1423,
+      "feeBp": 14.23
+    },
+    {
+      "sigmaAnnualPct": 135,
+      "feePips": 1478,
+      "feeBp": 14.78
+    },
+    {
+      "sigmaAnnualPct": 140,
+      "feePips": 1533,
+      "feeBp": 15.33
+    },
+    {
+      "sigmaAnnualPct": 145,
+      "feePips": 1588,
+      "feeBp": 15.88
+    },
+    {
+      "sigmaAnnualPct": 150,
+      "feePips": 1642,
+      "feeBp": 16.42
+    },
+    {
+      "sigmaAnnualPct": 155,
+      "feePips": 1697,
+      "feeBp": 16.97
+    },
+    {
+      "sigmaAnnualPct": 160,
+      "feePips": 1752,
+      "feeBp": 17.52
+    },
+    {
+      "sigmaAnnualPct": 165,
+      "feePips": 1806,
+      "feeBp": 18.06
+    },
+    {
+      "sigmaAnnualPct": 170,
+      "feePips": 1861,
+      "feeBp": 18.61
+    },
+    {
+      "sigmaAnnualPct": 175,
+      "feePips": 1916,
+      "feeBp": 19.16
+    },
+    {
+      "sigmaAnnualPct": 180,
+      "feePips": 1971,
+      "feeBp": 19.71
+    },
+    {
+      "sigmaAnnualPct": 185,
+      "feePips": 2025,
+      "feeBp": 20.25
+    },
+    {
+      "sigmaAnnualPct": 190,
+      "feePips": 2080,
+      "feeBp": 20.8
+    },
+    {
+      "sigmaAnnualPct": 195,
+      "feePips": 2135,
+      "feeBp": 21.35
+    },
+    {
+      "sigmaAnnualPct": 200,
+      "feePips": 2190,
+      "feeBp": 21.9
+    },
+    {
+      "sigmaAnnualPct": 205,
+      "feePips": 2244,
+      "feeBp": 22.44
+    },
+    {
+      "sigmaAnnualPct": 210,
+      "feePips": 2299,
+      "feeBp": 22.99
+    },
+    {
+      "sigmaAnnualPct": 215,
+      "feePips": 2354,
+      "feeBp": 23.54
+    },
+    {
+      "sigmaAnnualPct": 220,
+      "feePips": 2408,
+      "feeBp": 24.08
+    },
+    {
+      "sigmaAnnualPct": 225,
+      "feePips": 2463,
+      "feeBp": 24.63
+    },
+    {
+      "sigmaAnnualPct": 230,
+      "feePips": 2518,
+      "feeBp": 25.18
+    },
+    {
+      "sigmaAnnualPct": 235,
+      "feePips": 2573,
+      "feeBp": 25.73
+    },
+    {
+      "sigmaAnnualPct": 240,
+      "feePips": 2627,
+      "feeBp": 26.27
+    },
+    {
+      "sigmaAnnualPct": 245,
+      "feePips": 2682,
+      "feeBp": 26.82
+    },
+    {
+      "sigmaAnnualPct": 250,
+      "feePips": 2737,
+      "feeBp": 27.37
+    },
+    {
+      "sigmaAnnualPct": 255,
+      "feePips": 2792,
+      "feeBp": 27.92
+    },
+    {
+      "sigmaAnnualPct": 260,
+      "feePips": 2846,
+      "feeBp": 28.46
+    },
+    {
+      "sigmaAnnualPct": 265,
+      "feePips": 2901,
+      "feeBp": 29.01
+    },
+    {
+      "sigmaAnnualPct": 270,
+      "feePips": 2956,
+      "feeBp": 29.56
+    },
+    {
+      "sigmaAnnualPct": 275,
+      "feePips": 3010,
+      "feeBp": 30.1
+    },
+    {
+      "sigmaAnnualPct": 280,
+      "feePips": 3065,
+      "feeBp": 30.65
+    },
+    {
+      "sigmaAnnualPct": 285,
+      "feePips": 3120,
+      "feeBp": 31.2
+    },
+    {
+      "sigmaAnnualPct": 290,
+      "feePips": 3175,
+      "feeBp": 31.75
+    },
+    {
+      "sigmaAnnualPct": 295,
+      "feePips": 3229,
+      "feeBp": 32.29
+    },
+    {
+      "sigmaAnnualPct": 300,
+      "feePips": 3284,
+      "feeBp": 32.84
+    }
+  ],
+  "samples": [
+    {
+      "name": "feb",
+      "start": 1770077808,
+      "end": 1770422388,
+      "blocks": 28716,
+      "sigmaAnnualPctMedian": 118.08453,
+      "sigmaAnnualPctP90": 219.95487,
+      "sigmaAnnualPctMax": 510.67758,
+      "meanFeeBp": 14.38881,
+      "floorShare": 0.029843989,
+      "capShare": 0.0,
+      "pTradeObserved": 0.27949575,
+      "pTradePredicted": 0.29888317,
+      "arbOverLvrObserved": 0.32272248,
+      "arbOverLvrModel": 0.24687325,
+      "sigmaArbOverSigmaHat": 0.91349935,
+      "clustering": {
+        "afterArb": 0.49676053,
+        "afterNoArb": 0.19522452
+      },
+      "equalTimeAverage": {
+        "staticFeeBp": 14.38881,
+        "arbDynamicBpYr": 906.94726,
+        "arbStaticBpYr": 1071.4048,
+        "arbChangePct": -15.349712
+      },
+      "equalTraderCost": {
+        "staticFeeBp": 18.69747,
+        "arbDynamicBpYr": 906.94726,
+        "arbStaticBpYr": 933.62299,
+        "arbChangePct": -2.8572273,
+        "volumeWeights": "sigma"
+      },
+      "lp": [
+        {
+          "policy": "clim_p20",
+          "meanFeeBp": 23.912826,
+          "retailShare": 0.0379156,
+          "retailFeesBpYr": 160.91985,
+          "retailMarkoutBpYr": 51.320162,
+          "arbBpYr": 635.82032,
+          "arbFeesBpYr": 2109.0957,
+          "lvrBpYr": 2810.3008,
+          "lpPnlBpYr": -584.50016
+        },
+        {
+          "policy": "clim_p30",
+          "meanFeeBp": 14.38881,
+          "retailShare": 0.064329669,
+          "retailFeesBpYr": 161.68679,
+          "retailMarkoutBpYr": 84.903427,
+          "arbBpYr": 882.06553,
+          "arbFeesBpYr": 1900.5042,
+          "lvrBpYr": 2810.3008,
+          "lpPnlBpYr": -797.16211
+        },
+        {
+          "policy": "static_5bp",
+          "meanFeeBp": 5.0,
+          "retailShare": 0.2,
+          "retailFeesBpYr": 220.12374,
+          "retailMarkoutBpYr": 286.48132,
+          "arbBpYr": 1740.0903,
+          "arbFeesBpYr": 1132.8944,
+          "lvrBpYr": 2810.3008,
+          "lpPnlBpYr": -1453.609
+        },
+        {
+          "policy": "static_30bp",
+          "meanFeeBp": 30.0,
+          "retailShare": 0.02305626,
+          "retailFeesBpYr": 152.44762,
+          "retailMarkoutBpYr": 32.613953,
+          "arbBpYr": 683.07909,
+          "arbFeesBpYr": 2131.8572,
+          "lvrBpYr": 2810.3008,
+          "lpPnlBpYr": -650.46514
+        }
+      ]
+    },
+    {
+      "name": "oct",
+      "start": 1791011292,
+      "end": 1791269964,
+      "blocks": 21557,
+      "sigmaAnnualPctMedian": 17.738287,
+      "sigmaAnnualPctP90": 40.004507,
+      "sigmaAnnualPctMax": 85.380986,
+      "meanFeeBp": 5.11025,
+      "floorShare": 0.93255091,
+      "capShare": 0.0,
+      "pTradeObserved": 0.17112771,
+      "pTradePredicted": 0.15580851,
+      "arbOverLvrObserved": 0.25013639,
+      "arbOverLvrModel": 0.19410137,
+      "sigmaArbOverSigmaHat": 1.0523521,
+      "clustering": {
+        "afterArb": 0.59663866,
+        "afterNoArb": 0.083282028
+      },
+      "equalTimeAverage": {
+        "staticFeeBp": 5.11025,
+        "arbDynamicBpYr": 21.115378,
+        "arbStaticBpYr": 22.332856,
+        "arbChangePct": -5.4515082
+      },
+      "equalTraderCost": {
+        "staticFeeBp": 5.3349477,
+        "arbDynamicBpYr": 21.115378,
+        "arbStaticBpYr": 21.603135,
+        "arbChangePct": -2.2578022,
+        "volumeWeights": "sigma"
+      },
+      "lp": [
+        {
+          "policy": "clim_p20",
+          "meanFeeBp": 5.6332444,
+          "retailShare": 0.17356092,
+          "retailFeesBpYr": 193.20901,
+          "retailMarkoutBpYr": 229.6811,
+          "arbBpYr": 28.33617,
+          "arbFeesBpYr": 86.496096,
+          "lvrBpYr": 84.415459,
+          "lpPnlBpYr": 201.34493
+        },
+        {
+          "policy": "clim_p30",
+          "meanFeeBp": 5.11025,
+          "retailShare": 0.19372543,
+          "retailFeesBpYr": 208.3563,
+          "retailMarkoutBpYr": 255.68187,
+          "arbBpYr": 35.498456,
+          "arbFeesBpYr": 94.700738,
+          "lvrBpYr": 84.415459,
+          "lpPnlBpYr": 220.18341
+        },
+        {
+          "policy": "static_5bp",
+          "meanFeeBp": 5.0,
+          "retailShare": 0.2,
+          "retailFeesBpYr": 212.82985,
+          "retailMarkoutBpYr": 263.86039,
+          "arbBpYr": 38.357666,
+          "arbFeesBpYr": 97.135611,
+          "lvrBpYr": 84.415459,
+          "lpPnlBpYr": 225.50273
+        },
+        {
+          "policy": "static_30bp",
+          "meanFeeBp": 30.0,
+          "retailShare": 0.0059945885,
+          "retailFeesBpYr": 38.322764,
+          "retailMarkoutBpYr": 10.539017,
+          "arbBpYr": 4.0110514,
+          "arbFeesBpYr": 39.165099,
+          "lvrBpYr": 84.415459,
+          "lpPnlBpYr": 6.5279654
+        }
+      ]
+    },
+    {
+      "name": "year",
+      "start": 1759735092,
+      "end": 1791270720,
+      "blocks": 2627970,
+      "sigmaAnnualPctMedian": 39.689467,
+      "sigmaAnnualPctP90": 91.370683,
+      "sigmaAnnualPctMax": 1000.0032,
+      "meanFeeBp": 6.5559438,
+      "floorShare": 0.59065857,
+      "capShare": 0.0,
+      "pTradeObserved": 0.23648443,
+      "pTradePredicted": 0.24297607,
+      "arbOverLvrObserved": 0.31978553,
+      "arbOverLvrModel": 0.24003519,
+      "sigmaArbOverSigmaHat": 0.88691875,
+      "clustering": {
+        "afterArb": 0.5272626,
+        "afterNoArb": 0.1464215
+      },
+      "equalTimeAverage": {
+        "staticFeeBp": 6.5559438,
+        "arbDynamicBpYr": 162.51646,
+        "arbStaticBpYr": 222.42529,
+        "arbChangePct": -26.934357
+      },
+      "equalTraderCost": {
+        "staticFeeBp": 9.262057,
+        "arbDynamicBpYr": 162.51646,
+        "arbStaticBpYr": 186.07931,
+        "arbChangePct": -12.662799,
+        "volumeWeights": "sigma"
+      },
+      "lp": [
+        {
+          "policy": "clim_p20",
+          "meanFeeBp": 9.4487167,
+          "retailShare": 0.10655742,
+          "retailFeesBpYr": 160.02296,
+          "retailMarkoutBpYr": 150.17326,
+          "arbBpYr": 122.14952,
+          "arbFeesBpYr": 372.09957,
+          "lvrBpYr": 508.20456,
+          "lpPnlBpYr": 28.023737
+        },
+        {
+          "policy": "clim_p30",
+          "meanFeeBp": 6.5559438,
+          "retailShare": 0.15548488,
+          "retailFeesBpYr": 190.12144,
+          "retailMarkoutBpYr": 215.75327,
+          "arbBpYr": 176.58566,
+          "arbFeesBpYr": 365.20782,
+          "lvrBpYr": 508.20456,
+          "lpPnlBpYr": 39.16761
+        },
+        {
+          "policy": "static_5bp",
+          "meanFeeBp": 5.0,
+          "retailShare": 0.2,
+          "retailFeesBpYr": 218.65113,
+          "retailMarkoutBpYr": 279.46773,
+          "arbBpYr": 279.41032,
+          "arbFeesBpYr": 307.15033,
+          "lvrBpYr": 508.20456,
+          "lpPnlBpYr": 0.057404528
+        },
+        {
+          "policy": "static_30bp",
+          "meanFeeBp": 30.0,
+          "retailShare": 0.013135399,
+          "retailFeesBpYr": 86.27002,
+          "retailMarkoutBpYr": 22.964619,
+          "arbBpYr": 85.008236,
+          "arbFeesBpYr": 349.15615,
+          "lvrBpYr": 508.20456,
+          "lpPnlBpYr": -62.043617
+        }
+      ]
+    }
+  ],
+  "inPool": [
+    {
+      "name": "feb",
+      "deskGainBpYr": 164.45755,
+      "inPoolGainBpYr": 169.96202,
+      "inPoolMeanFeeBp": 11.571474,
+      "sharePct": 103.34705
+    },
+    {
+      "name": "oct",
+      "deskGainBpYr": 1.2174775,
+      "inPoolGainBpYr": 0.65362193,
+      "inPoolMeanFeeBp": 5.0344969,
+      "sharePct": 53.686573
+    },
+    {
+      "name": "year",
+      "deskGainBpYr": 59.908821,
+      "inPoolGainBpYr": 57.539149,
+      "inPoolMeanFeeBp": 5.9104582,
+      "sharePct": 96.044536
+    }
+  ],
+  "volatileAsset": {
+    "volScale": 2.0,
+    "retailOrdersPerBlock": 5.3924157,
+    "lpPnlBpYrClim": 39.968621,
+    "lpPnlBpYrStatic5": 0.031878118,
+    "gainPctPerYear": 0.39936743
+  },
+  "bridgeCheck": [
+    {
+      "window": "feb",
+      "policy": "clim",
+      "arbRatioBridgeOverReal": 0.95486929
+    },
+    {
+      "window": "feb",
+      "policy": "static_5bp",
+      "arbRatioBridgeOverReal": 1.0182219
+    },
+    {
+      "window": "oct",
+      "policy": "clim",
+      "arbRatioBridgeOverReal": 0.98304565
+    },
+    {
+      "window": "oct",
+      "policy": "static_5bp",
+      "arbRatioBridgeOverReal": 1.0033554
+    }
+  ],
+  "pStar10Check": {
+    "feb": {
+      "pTradeObserved": 0.083960162,
+      "pTradePredicted": 0.099918387
+    },
+    "oct": {
+      "pTradeObserved": 0.099410864,
+      "pTradePredicted": 0.096490237
+    }
+  },
+  "yearAttribution": {
+    "clim_p20": {
+      "gainVsStatic5BpYr": 27.966332,
+      "shareOfGainTop5TurbulentWeeks": 0.98429057,
+      "weeksWithGain": 17,
+      "weeks": 53
+    },
+    "clim_p30": {
+      "gainVsStatic5BpYr": 39.110205,
+      "shareOfGainTop5TurbulentWeeks": 0.5287945,
+      "weeksWithGain": 27,
+      "weeks": 53
+    }
+  }
+}

@@ -111,3 +111,101 @@ def test_pstar_decision_json():
         params["staticFeePips"],
         params["replayStaticFeePips"],
     )
+
+
+def test_backtest_summary_json_plan06_shape():
+    d = _load(OUT_DIR / "backtest-summary.json")
+    assert d["schema"] == "clim.lab.backtest/1"
+    plan06 = ["schema", "generatedAt", "pStar", "feeMinBp", "periods", "replayWindows", "lpGainPctPerYear"]
+    plan06 += ["inPoolVolGainSharePct"]
+    details = [
+        "params",
+        "feeCurve",
+        "samples",
+        "inPool",
+        "volatileAsset",
+        "bridgeCheck",
+        "pStar10Check",
+        "yearAttribution",
+    ]
+    _keys(d, plan06 + details + ["replayWindowsMedianPct", "replayWindowsBetterCount"])
+    assert [p["id"] for p in d["periods"]] == ["feb-2026", "oct-2026", "year"]
+    assert 0 <= d["replayWindowsBetterCount"] <= len(d["replayWindows"])
+    _keys(
+        d["periods"][0],
+        ["id", "label", "source", "blocks", "equalTimeAvgFee", "equalTraderCost", "pTrade", "arbOverLvr"],
+    )
+    _keys(d["periods"][0]["equalTimeAvgFee"], ["staticFeeBp", "dynMeanFeeBp", "arbChangePct"])
+    _keys(d["periods"][0]["equalTraderCost"], ["staticFeeBp", "dynVolWeightedFeeBp", "arbChangePct"])
+    _keys(d["periods"][0]["pTrade"], ["observed", "predicted"])
+    _keys(d["periods"][0]["arbOverLvr"], ["observed", "model"])
+    _keys(d["replayWindows"][0], ["id", "label", "arbChangePct"])
+    _keys(d["lpGainPctPerYear"], ["low", "high", "note", "volatileAssetHigh", "top5WeeksSharePct"])
+    _keys(d["inPoolVolGainSharePct"], ["low", "high"])
+    _keys(d["feeCurve"][0], ["sigmaAnnualPct", "feePips", "feeBp"])
+    assert [s["name"] for s in d["samples"]] == ["feb", "oct", "year"]
+    _keys(d["samples"][0]["equalTimeAverage"], ["staticFeeBp", "arbDynamicBpYr", "arbStaticBpYr", "arbChangePct"])
+    _keys(
+        d["samples"][0]["lp"][0],
+        [
+            "policy",
+            "meanFeeBp",
+            "retailShare",
+            "retailFeesBpYr",
+            "retailMarkoutBpYr",
+            "arbBpYr",
+            "arbFeesBpYr",
+            "lvrBpYr",
+            "lpPnlBpYr",
+        ],
+    )
+    _keys(d["inPool"][0], ["name", "deskGainBpYr", "inPoolGainBpYr", "inPoolMeanFeeBp", "sharePct"])
+    _keys(
+        d["volatileAsset"], ["volScale", "retailOrdersPerBlock", "lpPnlBpYrClim", "lpPnlBpYrStatic5", "gainPctPerYear"]
+    )
+
+
+def test_summary_json_plan05_shape():
+    d = _load(OUT_DIR / "summary.json")
+    _keys(
+        d,
+        [
+            "schema",
+            "generatedAt",
+            "setting",
+            "comparisons",
+            "pTrade",
+            "replay",
+            "lpGain",
+            "modelSeverityRatio",
+            "inPoolVolGainSharePct",
+        ],
+    )
+    _keys(d["setting"], ["pStar", "feeMinPips"])
+    _keys(d["comparisons"], ["equalAvgFee", "equalTraderCost"])
+    _keys(d["comparisons"]["equalAvgFee"][0], ["period", "arbChangePct"])
+    _keys(d["pTrade"][0], ["period", "predicted", "observed", "blocks"])
+    _keys(
+        d["replay"],
+        [
+            "window",
+            "sigmaMinPct",
+            "sigmaMaxPct",
+            "feeVMinBp",
+            "feeVMaxBp",
+            "feeSBp",
+            "arbChangePct",
+            "arbChangeRangePct",
+            "windowsMedianPct",
+            "windowsBetterCount",
+            "windowsCount",
+            "windowsBeatingChosenCount",
+            "pTradePredicted",
+            "pTradeObserved",
+        ],
+    )
+    assert 0 <= d["replay"]["windowsBeatingChosenCount"] <= d["replay"]["windowsCount"]
+    _keys(d["lpGain"], ["fullRangeEthPctPerYear", "volatileAssetPctPerYearMax", "shareFromTop5WeeksPct"])
+    for pair in (d["replay"]["arbChangeRangePct"], d["lpGain"]["fullRangeEthPctPerYear"], d["modelSeverityRatio"]):
+        assert len(pair) == 2 and pair[0] <= pair[1]
+    assert len(d["inPoolVolGainSharePct"]) == 2
