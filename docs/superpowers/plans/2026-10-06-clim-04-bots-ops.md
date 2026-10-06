@@ -3720,6 +3720,8 @@ git commit -m "feat(bots): replay window, wall-clock venue klines, snapshot, tic
 **Files:**
 - Create: `bots/src/replay-server.ts`
 
+The server listened on `0.0.0.0` until commit `5ed36a8` (2026-10-07), so during the 2026-10-06 replay; it binds `127.0.0.1` since, the address plan 02's `cre/risk-desk/config.replay.json` already used (`replayUrl` `http://127.0.0.1:8787`). Step 2's smoke test, re-run on 2026-10-07, gives the same output.
+
 - [x] **Step 1: Implementation**
 
 `bots/src/replay-server.ts`:
@@ -4360,6 +4362,8 @@ grep -c txHash out/noise-live.jsonl
 ```
 Expected: about 20 `applied` runs and few others; arbitrage decisions on both pools, swaps whose receipts are `success`, few `stale`; retail swaps in pairs (V then S); the status watch never showing `PROBLEM`.
 
+Done on 2026-10-06 without stopping the stack, which kept running as the live demo: the session log gives the first 5 min of `cre-loop` (8 `applied` runs plus 1 recorded `not-applied` that landed on chain, 12 arbitrage swaps all `success`, 0 `stale`, 8 retail swaps mirrored V then S, no `PROBLEM`).
+
 - [x] **Step 5: Security demos**
 
 Run: `cd bots && bun run forge-report --pair live`
@@ -4379,6 +4383,7 @@ Append under `## Build notes` in today's session log, with the numbers from Step
 git add docs/sessions/
 git commit -m "docs(ops): live Sepolia smoke test results"
 ```
+(The result line went into `docs/sessions/2026-10-06.md` with commit `d64dae4`, "feat(cre): broadcast risk reports to the live RiskDesk on Sepolia; config sync and latency tools", not with a commit of its own.)
 
 ---
 
