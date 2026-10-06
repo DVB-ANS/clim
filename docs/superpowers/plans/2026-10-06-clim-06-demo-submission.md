@@ -1660,7 +1660,7 @@ uv fetches matplotlib, Pillow and pytest into a throwaway environment (`--no-pro
 - Create: `docs/submission/figures/fee_figure.py`, `docs/submission/figures/video_cards.py`
 - Test: `docs/submission/figures/test_figures.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `docs/submission/figures/test_figures.py`:
 ```python
@@ -1697,7 +1697,7 @@ def test_cards_and_captions(tmp_path):
         assert img.getpixel((10, 10))[3] == 0
 ```
 
-- [ ] **Step 2: Run it, expect FAIL**
+- [x] **Step 2: Run it, expect FAIL**
 
 Run:
 ```bash
@@ -1705,7 +1705,7 @@ cd /Users/fianso/Development/hackathons/clim && uv run --no-project --with "matp
 ```
 Expected: FAIL, `ModuleNotFoundError: No module named 'fee_figure'`.
 
-- [ ] **Step 3: Implement both scripts**
+- [x] **Step 3: Implement both scripts**
 
 `docs/submission/figures/fee_figure.py`:
 ```python
@@ -1853,7 +1853,7 @@ if __name__ == "__main__":
         main(sys.argv[1], json.load(f))
 ```
 
-- [ ] **Step 4: Run, expect PASS, and look at the fixture figure**
+- [x] **Step 4: Run, expect PASS, and look at the fixture figure**
 
 Run the same pytest command as Step 2. Expected: `2 passed`.
 
@@ -1863,7 +1863,7 @@ cd /Users/fianso/Development/hackathons/clim && mkdir -p docs/submission/out && 
 ```
 Expected: `wrote docs/submission/out/fee-fixture.png`; the image shows a blue volatility line on top and an amber step line with a grey dashed flat line below, titled "4 February 2026: the storm arrives, the fee follows".
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/submission/figures && git commit -m "feat(submission): README fee figure and video title cards"
