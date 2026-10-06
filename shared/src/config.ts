@@ -190,9 +190,9 @@ export function parseParams(raw: unknown): ClimParams {
   };
 }
 
-/** True while shared/params.json is the bootstrap file. Never deploy a hook from provisional params. */
+/** True while shared/params.json is not a lab decision (the PROVISIONAL bootstrap or a FIXTURE). Never deploy a hook from it. */
 export function isProvisional(p: ClimParams): boolean {
-  return p.decidedBy.startsWith("PROVISIONAL");
+  return p.decidedBy.startsWith("PROVISIONAL") || p.decidedBy.startsWith("FIXTURE");
 }
 
 export function loadDeployments(): Deployments {

@@ -40,7 +40,7 @@
    - `pools.{liveV,liveS,replayV,replayS}`: `{ key: { currency0, currency1, fee, tickSpacing, hooks }, poolId, token0IsEth }` or null, where `poolId = keccak256(abi.encode(key))`, the currencies are tETH and tUSD sorted (`currency0 < currency1`), `token0IsEth == (currency0 == tETH)`, V pools have `fee = 8388608` (0x800000) and `hooks = hooks.<pair>`, S pools have a static fee and `hooks = 0x0000000000000000000000000000000000000000`;
    - `routers.arb`: address or null (may be absent): a second PoolSwapTest (`new PoolSwapTest(IPoolManager(poolManager))`, v4-core `src/test/PoolSwapTest.sol`) that only the arbitrage bot uses. **Plan 01's `00_Tokens` deploys it and `05_WriteDeployments` writes this key** (plan 05's request); `arbRouter(d)` falls back to `uniswap.poolSwapTest` while it is null;
    - other keys (plan 01's `deployer`, `liquidity`) are ignored.
-2. **`shared/params.json`** (written by the lab decision, plan 03, spec 2.6): `pStar, etaE4, sqrtHalfDtE6, feeMinPips, feeMaxPips, feeSafePips, tauKillSec, decidedBy` are read here; the lab also writes `staticFeePips`, `replayStaticFeePips` (plan 01's S pools) and `decidedAt`, which `parseParams` ignores. `parseParams` enforces `|etaE4 - round((1/pStar - 0.824) * 1e4)| <= 1` and `0 < feeMinPips <= feeSafePips <= feeMaxPips <= 1,000,000` (the hook constructor's bounds). This plan commits a bootstrap file whose `decidedBy` starts with `PROVISIONAL`; plan 01's hook deploy script must refuse to deploy while it does (helper `isProvisional`). Both hooks (live and replay) are deployed from the same `params.json`, since `status.ts` checks either pair against it.
+2. **`shared/params.json`** (written by the lab decision, plan 03, spec 2.6): `pStar, etaE4, sqrtHalfDtE6, feeMinPips, feeMaxPips, feeSafePips, tauKillSec, decidedBy` are read here; the lab also writes `staticFeePips`, `replayStaticFeePips` (plan 01's S pools) and `decidedAt`, which `parseParams` ignores. `parseParams` enforces `|etaE4 - round((1/pStar - 0.824) * 1e4)| <= 1` and `0 < feeMinPips <= feeSafePips <= feeMaxPips <= 1,000,000` (the hook constructor's bounds). This plan commits a bootstrap file whose `decidedBy` starts with `PROVISIONAL`; plan 01's hook deploy script must refuse to deploy while it does (helper `isProvisional`, which also flags a `FIXTURE` prefix, as the master plan requires). Both hooks (live and replay) are deployed from the same `params.json`, since `status.ts` checks either pair against it.
 3. **Fee formula mirror** (`feePips`, `quoteFeeMirror` in `shared/src/units.ts`) = spec 3.6. Shared test vectors (sqrtHalfDtE6 2,449,490, kE4 10,000), to be reused by plan 01's Foundry tests: 48 %/yr = sigmaE9 85,475 with etaE4 91,761 gives **1,922 pips** (unrounded 1,921.2: the "1,921" quoted in the design brief is not the ceiling); 25 %/yr = 44,518 gives 1,001; 100 %/yr = 178,072 gives 1,822 (P\* 20 %, etaE4 41,760) and 1,095 (P\* 30 %, etaE4 25,093); 225 %/yr = 400,663 gives 4,099 and 2,463; 46 %/yr = 81,913 at P\* 30 % gives 504; SIGMA_MAX 1,780,730 at P\* 20 % gives raw 18,216, capped to 15,000; k = 2.0 at 100 %/yr, P\* 30 % gives 2,190; an exact product (10,000 x 10,000 x 1,000,000 x 10,000) gives 10 and one more unit of sigma gives 11. Annual sigma to sigmaE9 rounds to nearest (100 %/yr is 178,072, not 178,073). `status.ts` compares the deployed hook's `quoteFee()` with the mirror on every block.
 4. **TestToken** (plan 01): ERC-20, 18 decimals, `mint(address to, uint256 amount)` callable only by the deployer (`onlyOwner`), plus a public `faucet()` (10 tETH or 25,000 tUSD per address per hour) that plan 05's `/swap` and `/lp` pages use; `fund.ts` mints from the deployer key.
 5. **ABIs:** plan 01 Task 14 runs its own `contracts/script/export-abis.sh` (bare ABI arrays for RiskDesk, IRiskDesk, ClimHook, TestToken, IPoolManager, IStateView, PoolSwapTest, PoolModifyLiquidityTest); `bun run --cwd shared export-abis` (Task 5) writes the same three files this package needs and can be used instead; `shared/test/abis.test.ts` then fails if the hand-written fragments drift from the compiled contracts.
@@ -1345,6 +1345,7 @@ describe("shared/params.json", () => {
   });
   test("isProvisional flags the bootstrap file", () => {
     expect(isProvisional({ ...loadParams(), decidedBy: "PROVISIONAL x" })).toBe(true);
+    expect(isProvisional({ ...loadParams(), decidedBy: "FIXTURE x" })).toBe(true);
     expect(isProvisional({ ...loadParams(), decidedBy: "lab/out/pstar-decision.json" })).toBe(false);
   });
 });
@@ -1551,9 +1552,9 @@ export function parseParams(raw: unknown): ClimParams {
   };
 }
 
-/** True while shared/params.json is the bootstrap file. Never deploy a hook from provisional params. */
+/** True while shared/params.json is not a lab decision (the PROVISIONAL bootstrap or a FIXTURE). Never deploy a hook from it. */
 export function isProvisional(p: ClimParams): boolean {
-  return p.decidedBy.startsWith("PROVISIONAL");
+  return p.decidedBy.startsWith("PROVISIONAL") || p.decidedBy.startsWith("FIXTURE");
 }
 
 export function loadDeployments(): Deployments {

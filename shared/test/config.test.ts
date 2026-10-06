@@ -127,6 +127,7 @@ describe("shared/params.json", () => {
   });
   test("isProvisional flags the bootstrap file", () => {
     expect(isProvisional({ ...loadParams(), decidedBy: "PROVISIONAL x" })).toBe(true);
+    expect(isProvisional({ ...loadParams(), decidedBy: "FIXTURE x" })).toBe(true);
     expect(isProvisional({ ...loadParams(), decidedBy: "lab/out/pstar-decision.json" })).toBe(false);
   });
 });
