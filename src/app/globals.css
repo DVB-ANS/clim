@@ -34,7 +34,6 @@
   --clim-normal: #0ca30c;
   --clim-degraded: #fab219;
   --clim-blind: #d03b3b;
-  --clim-blind-fill: rgb(208 59 59 / 0.08); /* blind-mode shading */
 
   /* Shape and type */
   --clim-radius-sm: 4px;
