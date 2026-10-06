@@ -384,7 +384,7 @@ cd /Users/fianso/Development/hackathons/clim && git add .gitignore .gitmodules c
 - Create: `contracts/src/libraries/ClimFeeMath.sol`
 - Test: `contracts/test/ClimFeeMath.t.sol`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `contracts/test/ClimFeeMath.t.sol`:
 ```solidity
@@ -490,14 +490,14 @@ contract ClimFeeMathTest is Test {
 }
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path test/ClimFeeMath.t.sol
 ```
 Expected: `Error (6275): Source "src/libraries/ClimFeeMath.sol" not found`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `contracts/src/libraries/ClimFeeMath.sol`:
 ```solidity
@@ -531,14 +531,14 @@ library ClimFeeMath {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path test/ClimFeeMath.t.sol
 ```
 Expected: `Suite result: ok. 11 passed; 0 failed; 0 skipped`.
 
-- [ ] **Step 5: Log the rounding fix**
+- [x] **Step 5: Log the rounding fix**
 
 Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
 ```markdown
@@ -547,7 +547,7 @@ Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
   - The hook takes the lab's `etaE4` verbatim. The test vectors are shared with `shared/src/units.ts` (plan 04) and `lab/tests/test_fee.py` (plan 03).
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/src/libraries/ClimFeeMath.sol contracts/test/ClimFeeMath.t.sol docs/sessions/2026-10-06.md && git commit -m "feat(contracts): ClimFeeMath fee formula with ceil rounding and clamps"
