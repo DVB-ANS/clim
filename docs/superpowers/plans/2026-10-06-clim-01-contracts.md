@@ -175,7 +175,7 @@ SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
 ETHERSCAN_API_KEY=
 ```
 
-- [ ] **Step 2: Create `contracts/.env` with a fresh testnet key (pending: operator key, done later in the main tree)**
+- [x] **Step 2: Create `contracts/.env` with a fresh testnet key**
 
 ```bash
 cast wallet new
@@ -214,7 +214,7 @@ Expected (verified on 2026-10-06):
 ```
 If any code size is 0, or any view call returns something else, stop. Update the address in `contracts/script/base/ClimScript.sol` (Task 10) and in the spec, and log the change.
 
-- [ ] **Step 4: Check the deployer's balance (pending: operator key, done later in the main tree)**
+- [x] **Step 4: Check the deployer's balance**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && set -a && source .env && set +a && cast balance $(cast wallet address --private-key $PRIVATE_KEY) --rpc-url $SEPOLIA_RPC_URL --ether
