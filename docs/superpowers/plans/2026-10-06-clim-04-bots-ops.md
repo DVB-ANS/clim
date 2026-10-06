@@ -3168,7 +3168,7 @@ git commit -m "feat(bots): per-run outcomes from the CRE simulation loop output"
 
 Behaviour (`bun run cre-loop`): start plan 02's `bash scripts/sim-loop.sh <target> --broadcast` in `cre/` (target `staging-settings` for `--pair live`, `replay-settings` for `--pair replay`, or `--target`), echo its output, cut it into runs with `RunTracker`, write each run's transcript to `bots/out/cre-sim/<pair>-<run start>.log`, and append one JSON line per run to `bots/out/cre-runs.jsonl`: `status` (`applied`, `sent`, `not-applied`, `rejected`, `no-report`, `dry-run`, `error`, `no-outcome`), `detail`, and for runs with a transaction the receipt (`txStatus`, `blockNumber`, `gasUsed`, `from`), the MockKeystoneForwarder `ReportProcessed.result` (`forwarderResult`) and the decoded `RiskReported` fields. `--once` stops after the first run. Ctrl-C stops the loop too.
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/sim-loop.ts`:
 ```ts
@@ -3281,12 +3281,12 @@ console.error(`[sim-loop ${pair}] loop exited with code ${code}`);
 process.exit(code === 0 ? 0 : 1);
 ```
 
-- [ ] **Step 2: Typecheck and wiring check**
+- [x] **Step 2: Typecheck and wiring check**
 
 Run: `cd bots && bun run typecheck && bun run cre-loop --pair live --once`
 Expected: typecheck clean; before plan 01 has deployed: `error: riskDesks.live is null: deploy it first (plan 01) and record it in shared/deployments/sepolia.json`. The real run is in Task 23.
 
-- [ ] **Step 3: Record what the research verified**
+- [x] **Step 3: Record what the research verified**
 
 In `docs/feedback/cre-friction-log.md`, in the row that starts with `| 1 |`, set the last cell to the following text if it still reads `design phase, to confirm`; if plan 01 Task 6 already wrote a status there, append `; ` and this text to it instead:
 `confirmed on Sepolia: simulate --broadcast sends report() from the CRE_ETH_PRIVATE_KEY account straight to the mock (tx 0xe57a006e7585984137cb5064d6be6fc7b9353194760178b85a78274c8785fa2c), so a tx.origin guard works; bots/src/scripts/forge-report.ts demonstrates the guard on our desk`
@@ -3298,7 +3298,7 @@ Append under `## Build notes` in today's session log:
 - (ops) `bun run cre-loop` (`bots/src/sim-loop.ts`) runs plan 02's `cre/scripts/sim-loop.sh`, records each run (receipt, `ReportProcessed.result`, decoded `RiskReported`) in `bots/out/cre-runs.jsonl` and writes one transcript per run to `bots/out/cre-sim/` for plan 06's evidence collector.
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add bots/src/sim-loop.ts docs/feedback/cre-friction-log.md docs/sessions/
