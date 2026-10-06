@@ -25,7 +25,7 @@ export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand;
       <div className="flex flex-wrap items-center gap-3">
         {pairs.length > 1
           ? pairs.map((p) => (
-              <button key={p} type="button" onClick={() => setPair(p)} className={`rounded-sm px-3 py-1 text-sm ${p === pair ? "bg-fg text-surface" : "bg-surface-2"}`}>
+              <button key={p} type="button" onClick={() => setPair(p)} className={`rounded-full px-3.5 py-1.5 text-sm ${p === pair ? "bg-fg text-surface" : "bg-surface-2 text-fg-muted hover:text-fg"}`}>
                 {p === "live" ? "Live pair" : "Replay pair (4 Feb 2026)"}
               </button>
             ))

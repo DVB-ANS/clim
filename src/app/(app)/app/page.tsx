@@ -3,12 +3,12 @@ import { params } from "@/lib/config";
 import { labBand } from "@/lib/labData";
 import { pipsToBp } from "@/lib/units";
 
-export default function Home() {
+export default function DashboardPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold">Storm insurance for Uniswap v4 LPs</h1>
-        <p className="text-sm text-fg-muted">
+        <h1 className="font-display text-[40px] font-normal leading-[1.1] tracking-[-0.02em]">The desk, live</h1>
+        <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-fg-muted">
           The LP fee follows the market&apos;s weather: {pipsToBp(params.feeMinPips)} bp when calm, a toll that rises with volatility in a storm.
           Volatility comes from a Chainlink CRE risk desk; the fee is applied by a Uniswap v4 hook on every swap.
         </p>

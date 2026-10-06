@@ -8,7 +8,7 @@ export default function LabPage() {
   const [lo, hi] = s.lpGain.fullRangeEthPctPerYear;
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Lab: real data, both comparisons</h1>
+      <h1 className="font-display text-[40px] font-normal leading-[1.1] tracking-[-0.02em]">Lab: real data, both comparisons</h1>
       <Panel
         title="Backtest summary"
         subtitle={`P* = ${(s.setting.pStar * 100).toFixed(0)}%, floor ${(s.setting.feeMinPips / 100).toFixed(0)} bp. Two fair comparisons against a static fee: at equal time-average fee, and at equal cost to traders (volume rises with volatility).`}

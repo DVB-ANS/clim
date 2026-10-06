@@ -14,14 +14,15 @@ export function TxModeSwitch({ mode, onChange, ready }: { mode: TxMode; onChange
       type="button"
       disabled={disabled}
       onClick={() => onChange(m)}
-      className={`rounded-sm px-3 py-1 ${mode === m ? "bg-fg text-surface" : "text-fg-muted hover:text-fg"} disabled:cursor-not-allowed disabled:opacity-40`}
+      aria-pressed={mode === m}
+      className={`rounded-full px-3.5 py-1.5 ${mode === m ? "bg-surface text-fg shadow-[0_0_0_1px_var(--clim-line)]" : "text-fg-muted hover:text-fg"} disabled:cursor-not-allowed disabled:opacity-40`}
     >
       {label}
     </button>
   );
   return (
     <div>
-      <div className="inline-flex gap-1 rounded-md border border-line p-0.5 text-sm">
+      <div className="inline-flex gap-1 rounded-full bg-surface-2 p-1 text-sm">
         {tab("mock", "Simulated")}
         {tab("chain", "On-chain (Sepolia)", !ready.ok)}
       </div>
@@ -36,7 +37,7 @@ export function ActionButton({ mode, disabled, onClick, children }: { mode: TxMo
   const { isConnected, chainId } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { openChainModal } = useChainModal();
-  const cls = "rounded-sm bg-accent px-4 py-2 text-sm font-medium text-accent-fg disabled:cursor-not-allowed disabled:opacity-50";
+  const cls = "inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-[15px] font-medium text-accent-fg hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50";
   if (mode === "chain" && !isConnected) {
     return <button type="button" className={cls} onClick={openConnectModal}>Connect a wallet</button>;
   }

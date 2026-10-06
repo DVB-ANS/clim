@@ -43,7 +43,7 @@ export function WeatherChart({ data }: { data: ClimData }) {
             key={w.label}
             type="button"
             onClick={() => setWin(w)}
-            className={`rounded-sm px-2 py-0.5 text-xs ${w === win ? "bg-fg text-surface" : "bg-surface-2"}`}
+            className={`rounded-full px-2.5 py-1 text-xs ${w === win ? "bg-fg text-surface" : "bg-surface-2 text-fg-muted hover:text-fg"}`}
           >
             {w.label}
           </button>

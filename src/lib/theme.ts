@@ -1,8 +1,8 @@
 import { FeeMode } from "./feeMath";
 
-// Chart and status colours: one colour per entity, the same on every chart (dataviz reference
-// palette, light). The values are the design tokens of src/app/globals.css; this file maps roles to
-// them, so the DA changes there without touching components.
+// Chart and status colours: one colour per entity, the same on every chart (Ventriloc's warm system:
+// Ember for V, Graphite for S, Brass for sigma). The values are the design tokens of
+// src/app/globals.css; this file maps roles to them, so the DA changes there without touching components.
 export const COLORS = {
   V: "var(--clim-v)", // clim pool (dynamic fee), categorical slot 1
   S: "var(--clim-s)", // static twin pool, slot 2
@@ -30,6 +30,6 @@ export function utcTime(t: number): string {
 export const WALLET_THEME = {
   accentColor: "var(--clim-accent)",
   accentColorForeground: "var(--clim-accent-fg)",
-  borderRadius: "small",
+  borderRadius: "large",
   fontStack: "system",
 } as const;

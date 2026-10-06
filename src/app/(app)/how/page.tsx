@@ -17,7 +17,7 @@ export default function HowPage() {
   });
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">How clim works</h1>
+      <h1 className="font-display text-[40px] font-normal leading-[1.1] tracking-[-0.02em]">How clim works</h1>
       <Panel title="1. Four weather stations must agree (Chainlink CRE)">
         <p className="text-sm">
           Every 30 seconds a Chainlink CRE workflow pulls one-minute ETH candles from Coinbase, Kraken, Binance and Hyperliquid, plus
