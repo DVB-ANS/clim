@@ -9,8 +9,11 @@
  * Layout and type after refero's Ventriloc style. Colours: pink, blue and white. Chainlink's design
  * system gives the blue and the grays (chain.link: Chainlink Blue #0847f7, the blue ramp, cool grays,
  * navy #1a2b6b); Uniswap's gives the pinks (its interface's colors.ts: pinkVibrant #f50db4,
- * accent1 #ff37c7, pinkBase #fc74fe, pinkLight #fef4ff). Blue is for actions and pool V, pink for
- * σ and the storm, white is the ground. One light theme for the landing and the app.
+ * accent1 #ff37c7, pinkBase #fc74fe, pinkLight #fef4ff). Blue is every action, pool V and the
+ * launch's first wave; pink is σ, the storm, the launch's second wave and a few brand marks (the
+ * nav's marker, live dots); white is the ground. Pink and blue are always flat fills, never blended
+ * (a blend reads purple). Pink as text only from 24 px (3.75:1), else sigma-ink; never white on pink.
+ * One light theme for the landing and the app.
  * ============================================================================================= */
 
 :root {
@@ -29,6 +32,7 @@
   --clim-notice-fg: #00299a;
   --clim-accent: #0847f7; /* Chainlink Blue: primary actions, wallet modal */
   --clim-accent-fg: #ffffff;
+  --clim-accent-strong: #0036c9; /* Chainlink blue 800: the Launch pill's hover sweep, white 8.9:1 */
   --clim-signal: #0847f7; /* the highlight: link underlines, live marks, pool V */
   --clim-deep: #1a2b6b; /* navy: captions, arrows, cursors */
 
@@ -42,6 +46,9 @@
   --clim-pink-600: #ca108e;
   --clim-pink-700: #a21572;
   --clim-pink-900: #361a37;
+  --clim-pink: var(--clim-pink-500); /* brand pink for marks: the launch's 2nd wave, the nav marker, live dots */
+  --clim-pink-soft: var(--clim-pink-300); /* decorative only (the footer's giant degree sign), 2.3:1 */
+  --clim-pink-wash: var(--clim-pink-50); /* eyebrow pills */
 
   /* Entities: one colour per entity on every chart */
   --clim-v: #0847f7; /* pool V, clim (dynamic fee): Chainlink Blue, the highlighted series */
@@ -69,6 +76,7 @@
   --clim-radius-sm: 8px; /* inputs, small chips */
   --clim-radius-md: 12px; /* nested surfaces */
   --clim-radius-lg: 20px; /* data cards */
+  --clim-nav-offset: 88px; /* anchors land below the floating pill nav */
   --clim-shadow-lift: 0 0 0 1px var(--clim-line), 0 24px 60px rgba(14, 17, 25, 0.08); /* the swap and liquidity cards */
   --clim-font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
   --clim-font-display: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif; /* PolySans substitute */
@@ -92,6 +100,10 @@
   --color-notice-fg: var(--clim-notice-fg);
   --color-accent: var(--clim-accent);
   --color-accent-fg: var(--clim-accent-fg);
+  --color-accent-strong: var(--clim-accent-strong);
+  --color-pink: var(--clim-pink);
+  --color-pink-soft: var(--clim-pink-soft);
+  --color-pink-wash: var(--clim-pink-wash);
   --color-signal: var(--clim-signal);
   --color-deep: var(--clim-deep);
   --color-v: var(--clim-v);
@@ -207,6 +219,46 @@ h3 {
   animation: clim-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
+/* The landing: anchors land below the floating pill; the hero's words rise one by one (Uniswap's
+   landing pattern); the "scroll to learn more" chevron bobs; the pools' seam is a dotted line. */
+.anchor {
+  scroll-margin-top: var(--clim-nav-offset);
+}
+
+.rise-word {
+  display: inline-block;
+  animation: clim-rise 0.9s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+@keyframes clim-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+.scroll-cue {
+  animation: clim-bob 2s ease-in-out infinite;
+}
+
+.dotted-divider {
+  background-image: radial-gradient(var(--clim-line) 1px, transparent 1.5px);
+  background-size: 6px 6px;
+}
+
+/* A sentence that lights up word by word as it scrolls through (Ventriloc's word spans): each word
+   goes from fg-subtle (already 4.7:1 on white) to its own colour over its slice of the paragraph's
+   view timeline. Static and full colour where scroll timelines are missing. */
+@keyframes clim-word {
+  from {
+    color: var(--clim-fg-subtle);
+  }
+}
+
 /* Ventriloc's stacked service panels: each sticks a little lower than the last, only where a panel
    fits the window (a taller one would hide its own bottom behind the next) */
 @media (min-width: 768px) and (min-height: 820px) {
@@ -262,6 +314,14 @@ h3 {
       animation: clim-degree linear both;
       animation-timeline: view();
       animation-range: entry 0% cover 55%;
+    }
+    .word-reveal {
+      view-timeline: --reveal block;
+    }
+    .word-reveal > span {
+      animation: clim-word linear both;
+      animation-timeline: --reveal;
+      animation-range: cover calc(12% + var(--p, 0) * 34%) cover calc(16% + var(--p, 0) * 34%);
     }
   }
 }
@@ -321,7 +381,7 @@ h3 {
   animation: 480ms cubic-bezier(0.7, 0, 0.25, 1) both launch-bloom;
 }
 ::view-transition-image-pair(.launch-in) {
-  background: var(--clim-sigma);
+  background: var(--clim-pink);
   animation: 460ms cubic-bezier(0.7, 0, 0.25, 1) 150ms both launch-follow;
 }
 ::view-transition-new(.launch-in) {

@@ -7,6 +7,7 @@ export const COLORS = {
   V: "var(--clim-v)", // clim pool (dynamic fee), categorical slot 1
   S: "var(--clim-s)", // static twin pool, slot 2
   sigma: "var(--clim-sigma)", // desk volatility, slot 3
+  pink: "var(--clim-pink)", // brand pink marks (live dots), not a data series
   muted: "var(--clim-muted)", // secondary series (DVOL, reported sigma), axes
   grid: "var(--clim-grid)",
   band: "var(--clim-band)", // P_trade simulated band (sequential blue step 100)
