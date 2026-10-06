@@ -118,7 +118,7 @@ The workflow config has one field beyond the canonical list: `httpAuthorizedKeys
 
 Both installers only add their folder (`~/.bun/bin`, `~/.cre/bin`) to `~/.zshrc`. Claude Code's Bash tool does not re-read it during a session, so a later tool call would not find `bun` or `cre`, and `cre workflow build` and `simulate` themselves run `bun` (cre-cli `cmd/common/compile.go`). Each step therefore also links the binary into `/opt/homebrew/bin`, which is on PATH and writable without sudo on this Mac.
 
-- [ ] **Step 1: Install bun 1.3.9 (the version this plan was validated with)**
+- [x] **Step 1: Install bun 1.3.9 (the version this plan was validated with)**
 
 ```bash
 curl -fsSL https://bun.sh/install | bash -s "bun-v1.3.9" && ln -sf "$HOME/.bun/bin/bun" /opt/homebrew/bin/bun && ln -sf "$HOME/.bun/bin/bun" /opt/homebrew/bin/bunx && bun --version && which bun
@@ -126,7 +126,7 @@ curl -fsSL https://bun.sh/install | bash -s "bun-v1.3.9" && ln -sf "$HOME/.bun/b
 
 Expected: `1.3.9`, then `/opt/homebrew/bin/bun`.
 
-- [ ] **Step 2: Install the CRE CLI**
+- [x] **Step 2: Install the CRE CLI**
 
 ```bash
 curl -sSL https://app.chain.link/cre/install.sh | bash && ln -sf "$HOME/.cre/bin/cre" /opt/homebrew/bin/cre && cre version && which cre
@@ -134,11 +134,11 @@ curl -sSL https://app.chain.link/cre/install.sh | bash && ln -sf "$HOME/.cre/bin
 
 Expected: `CRE CLI version v1.37.0`, then `/opt/homebrew/bin/cre`. A newer version is fine: write it in the session log in Step 7. If macOS Gatekeeper blocks the binary, run `xattr -c ~/.cre/bin/cre`.
 
-- [ ] **Step 3: Create the CRE account (once, in a browser)**
+- [x] **Step 3: Create the CRE account (once, in a browser)**
 
 Open https://app.chain.link/cre/discover, click "Create an account", verify the email and set up 2FA. This creates an organization that Sofiane owns.
 
-- [ ] **Step 4: Log the CLI in (interactive: run it yourself; in Claude Code, type `! cre login`)**
+- [x] **Step 4: Log the CLI in (interactive: run it yourself; in Claude Code, type `! cre login`)**
 
 ```bash
 cre login
@@ -147,7 +147,9 @@ cre whoami
 
 Expected: `Login completed successfully`. `cre whoami` then prints the email, the Organization ID and `Deploy Access:` followed by `Not enabled` or `Enabled`.
 
-- [ ] **Step 5: Request deploy access now (interactive)**
+- [x] **Step 5: Request deploy access now (interactive, in a regular terminal)**
+
+Run it in a regular terminal window (Terminal or iTerm), not with Claude Code's `!` prefix: the confirmation prompt needs a TTY, and without one the CLI fails with `huh: could not open a new TTY` (friction row 17). Run it after `cre login`: before it, the CLI reports a misleading "account may not be fully set up" error (friction row 16).
 
 ```bash
 cre account access
@@ -165,7 +167,7 @@ Expected: `✓ Access request submitted successfully!`
 
 Invite them from the organization page of the CRE UI (https://app.chain.link/cre/discover; the flow is described in https://docs.chain.link/cre/account/creating-account, "Join an existing organization"). Each teammate then runs Steps 1, 2 and 4. Without an account, they can still run `bun test` and `cre workflow build`.
 
-- [ ] **Step 7: Log the toolchain and the planning-time CRE findings**
+- [x] **Step 7: Log the toolchain and the planning-time CRE findings**
 
 Append under `## Build notes` in today's session log. If your values differ, write the values you observed:
 
@@ -203,7 +205,7 @@ Append these rows at the end of the table:
 | 15 | Docs | The macOS/Linux install page shows empty version strings ("The recommended version at the time of writing is ****.", expected output "CRE CLI version "). | Fix the version variable on the page. | observed 2026-10-06 |
 ```
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add docs/feedback/cre-friction-log.md docs/sessions/
