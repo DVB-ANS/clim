@@ -4027,7 +4027,7 @@ git commit -m "feat(bots): forged report security demo"
 **Files:**
 - Create: `bots/.env.example`, `docs/runbook.md`
 
-- [ ] **Step 1: Environment template**
+- [x] **Step 1: Environment template**
 
 `bots/.env.example`:
 ```bash
@@ -4070,7 +4070,7 @@ REPLAY_PORT=8787
 # CRE_PROJECT_DIR=
 ```
 
-- [ ] **Step 2: Run-book**
+- [x] **Step 2: Run-book**
 
 `docs/runbook.md`:
 ````markdown
@@ -4255,12 +4255,12 @@ ls -t bots/out/cre-sim/*.log | head -3                                # latest r
 | HTTP 429 from the RPC | public endpoint rate limit | set a keyed `SEPOLIA_RPC_URL` |
 ````
 
-- [ ] **Step 3: Full check**
+- [x] **Step 3: Full check**
 
 Run: `bun run test && bun run typecheck`
 Expected: `@clim/shared test:  55 pass`, `@clim/shared test:  3 skip` (or ` 58 pass` and ` 0 skip` once `shared/abis/*.json` exist), `@clim/bots test:  60 pass`, both ` 0 fail`; both typechecks `Exited with code 0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add bots/.env.example docs/runbook.md
