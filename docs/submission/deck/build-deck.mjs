@@ -1,6 +1,6 @@
 // Builds docs/submission/out/clim.pptx from the Figma deck v2: one full-bleed PNG per slide (deck/v2/png/),
 // the slide text and speaker notes (deck/v2/slides.json, live numbers from deck/v2/live.json) and the two
-// demo videos dropped by the maintainer in out/video/ (demo-stage.mp4 on slide 08, demo-full.mp4 on the last slide).
+// demo videos dropped by the maintainer in out/video/ (demo-stage.mp4 full-bleed on slide 10, demo-full.mp4 on slide 20).
 //
 // Usage (from docs/submission): npm run deck                 the final deck, videos required
 //                               npm run deck -- --allow-missing-video   a draft without videos
