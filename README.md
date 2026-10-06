@@ -13,7 +13,7 @@
 **TOKEN2049 Origins · Singapore, October 2026 · Main track and Chainlink "Best workflow with CRE"**
 
 <!-- clim:begin links -->
-**[Open the dashboard](https://clim-zeta.vercel.app)** _(mock data until wired to Sepolia)_ · **Video demo** _(added at submission)_ · **Deck** _(added at submission)_ · **[CRE evidence](cre/README.md#evidence)** · **[CRE DevEx report](docs/feedback/cre-devex-report.md)** · **[CRE friction log](docs/feedback/cre-friction-log.md)**
+**[Open the dashboard](https://clim-zeta.vercel.app)** · **Video demo** _(added at submission)_ · **Deck** _(added at submission)_ · **[CRE evidence](cre/README.md#evidence)** · **[CRE DevEx report](docs/feedback/cre-devex-report.md)** · **[CRE friction log](docs/feedback/cre-friction-log.md)**
 <!-- clim:end links -->
 
 </div>
@@ -94,10 +94,11 @@ flowchart LR
    PoolManager calls `beforeSwap`; the hook reads `RiskDesk.state()` and returns the fee with
    `OVERRIDE_FEE_FLAG`. If the desk has been silent for longer than the kill delay (blind) or the
    venues disagree (degraded), the hook quotes at least the safe fee.
-4. **Dashboard** (https://clim-zeta.vercel.app: deployed; mock data until it is wired to Sepolia).
-   Built to show, from `RiskReported` and `Swap` events, the desk, the clim pool's fee next to a
-   fixed-fee twin pool and how often each one gets arbitraged, plus the test-token faucet, the fee
-   before a swap (`/swap`) and liquidity for either pool (`/lp`).
+4. **Dashboard** ([clim-zeta.vercel.app](https://clim-zeta.vercel.app), reading Sepolia). From
+   `RiskReported` and `Swap` events it shows the desk, the clim pool's fee next to a fixed-fee twin
+   pool and how often each one gets arbitraged (`/app`), plus the test-token faucet, the fee before
+   a swap (`/swap`), liquidity for either pool (`/lp`) and every contract with its Etherscan and
+   Sourcify links.
 
 ## How the fee is computed
 
@@ -283,7 +284,7 @@ We logged every CRE friction as it happened: 25 rows in the
 | The 4 February 2026 storm | ✅ replayed on Sepolia | Historical Binance prices, served at wall-clock speed by `bots/src/replay-server.ts` to a second CRE loop that writes to the replay desk (its REPLAY flag discloses it). It ran from 2026-10-06 16:57 UTC to about 21:00 UTC; after that the replay desk is silent and its hook quotes the 30 bp safe fee |
 | The market | simulated | Our own arbitrage and retail bots trade the clim pool and its fixed-fee twin. No mainnet pool; volume moving to cheaper pools is only approximated; just-in-time liquidity is not modeled |
 | Results | simulated | Lab backtests on historical Binance ETHUSDT data (`lab/out/`), not live P&L |
-| Dashboard | 🛣️ deployed; mock data until it is wired to Sepolia | https://clim-zeta.vercel.app |
+| Dashboard | ✅ live, reads Sepolia | https://clim-zeta.vercel.app: the desk and both pools at `/app`, real Sepolia swaps and liquidity at `/swap` and `/lp` (test tokens from the faucet), the finished replay at `/replay`; numbers checked against `cast` reads |
 
 ## Can a pool that is already live use clim?
 
@@ -375,9 +376,8 @@ bun install                             # root workspace: shared and bots
 (cd cre/risk-desk && bun install)
 (cd cre && cre workflow simulate risk-desk --non-interactive --trigger-index 0 --target staging-settings)
 
-# Dashboard, a standalone npm project: being imported into app/ from its own repository,
-# so this has nothing to run until it lands
-(cd app && npm ci && npm run dev)
+# Dashboard, a standalone npm project (Next.js): copy shared/, lab/out and the FAQ in, then run
+(cd app && npm ci && npm run sync && npm run dev)
 ```
 
 To run the live loop yourself (a CRE report every 30 s with `--broadcast`, plus the arbitrage and
