@@ -135,7 +135,7 @@ export function SwapForm() {
         )}
       </Panel>
 
-      <section aria-labelledby="swap-title" className="rounded-lg bg-surface p-3 shadow-[0_0_0_1px_var(--clim-line),0_24px_70px_rgba(0,0,0,0.28)]">
+      <section aria-labelledby="swap-title" className="rounded-lg bg-surface p-3 shadow-[var(--clim-shadow-lift)]">
         <div className="flex items-center justify-between px-2 pb-3 pt-1">
           <h2 id="swap-title" className="font-display text-[22px] tracking-[-0.02em]">
             Swap

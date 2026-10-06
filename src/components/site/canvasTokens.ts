@@ -20,10 +20,10 @@ export function canvasTokens(el: Element): CanvasTokens {
     signal: v("--clim-signal", "#0847f7"),
     deep: v("--clim-deep", "#1a2b6b"),
     wash: v("--clim-wash", "#eff6ff"),
-    sigma: v("--clim-sigma", "#e86832"),
+    sigma: v("--clim-sigma", "#f50db4"),
     lcdBg: v("--clim-lcd-bg", "#0e1119"),
     lcdLit: v("--clim-lcd-lit", "#cadcf6"),
-    lcdHot: v("--clim-lcd-hot", "#ef894f"),
+    lcdHot: v("--clim-lcd-hot", "#ff37c7"),
     display: v("--font-inter-tight", "system-ui"),
     ui: v("--font-inter", "system-ui"),
   };

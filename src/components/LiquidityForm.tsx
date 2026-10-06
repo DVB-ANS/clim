@@ -55,7 +55,7 @@ export function LiquidityForm({ mode, busy, balances, quote, onAdd, pools, ethUs
   const value = q && ethUsd !== undefined ? q.eth * ethUsd + q.usd : undefined;
 
   return (
-    <section aria-labelledby="add-title" className="rounded-lg bg-surface p-3 shadow-[0_0_0_1px_var(--clim-line),0_24px_70px_rgba(0,0,0,0.28)]">
+    <section aria-labelledby="add-title" className="rounded-lg bg-surface p-3 shadow-[var(--clim-shadow-lift)]">
       <div className="flex items-center justify-between px-2 pb-3 pt-1">
         <h2 id="add-title" className="font-display text-[22px] tracking-[-0.02em]">
           Add liquidity

@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 
 /**
  * Ventriloc's stacked service panel: an Ash card with the signature asymmetric corner, the title
- * behind an Ember square, a Brass subtitle, the text and a link; the live mock on the right.
+ * behind a blue square, a navy subtitle, the text and a link; the live mock on the right.
  * Each panel sticks a little lower than the previous one, so they pile up as the page scrolls.
  */
 export function ServiceSection({ id, index, title, subtitle, link, children, mock }: {

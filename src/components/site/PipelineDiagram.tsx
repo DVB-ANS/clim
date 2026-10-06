@@ -18,7 +18,7 @@ const RAILS = [
 ];
 const STAGE = [0, 0, 0, 0, 0, 1, 2, 3, 3];
 
-/** Icon strokes in Ember, drawn at the node's top-left corner (Ventriloc's orange line icons). */
+/** Icon strokes in the signal blue, drawn at the node's top-left corner (Ventriloc's line icons). */
 function Icon({ kind, x, y }: { kind: "venue" | "don" | "desk" | "hook" | "pool"; x: number; y: number }) {
   const s = { fill: "none", stroke: "var(--clim-signal)", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   const t = `translate(${x} ${y})`;

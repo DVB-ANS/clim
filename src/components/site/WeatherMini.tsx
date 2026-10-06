@@ -4,8 +4,8 @@ import { COLORS } from "@/lib/theme";
 const W = 400, H = 170, TOP = 10, MID = 82, GAP = 14, BOTTOM = 154;
 
 /**
- * The weather in two stacked panels on one time axis: σ (Brass) above, the fee it sets on pool V
- * (Ember area) against pool S's fixed fee (dashed Graphite) below. Step lines, like the hook.
+ * The weather in two stacked panels on one time axis: σ (pink) above, the fee it sets on pool V
+ * (blue area) against pool S's fixed fee (dashed gray) below. Step lines, like the hook.
  */
 export function WeatherMini({ points, staticFeeBp, className = "", labels = true }: { points: WeatherPoint[]; staticFeeBp: number; className?: string; labels?: boolean }) {
   if (points.length < 2) return <div className={`grid place-items-center text-xs text-fg-subtle ${className}`}>Waiting for reports…</div>;

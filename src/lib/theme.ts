@@ -1,7 +1,7 @@
 import { FeeMode } from "./feeMath";
 
-// Chart and status colours: one colour per entity, the same on every chart (Ventriloc's warm system:
-// Ember for V, Graphite for S, Brass for sigma). The values are the design tokens of
+// Chart and status colours: one colour per entity, the same on every chart (Chainlink Blue for V,
+// gray dashed for S, Uniswap pink for sigma). The values are the design tokens of
 // src/app/globals.css; this file maps roles to them, so the DA changes there without touching components.
 export const COLORS = {
   V: "var(--clim-v)", // clim pool (dynamic fee), categorical slot 1
@@ -26,7 +26,7 @@ export function utcTime(t: number): string {
   return new Date(t * 1000).toISOString().slice(11, 16);
 }
 
-/** RainbowKit theme options (darkTheme, like the desk): the wallet modal and button follow the tokens too. */
+/** RainbowKit theme options (lightTheme): the wallet modal and button follow the tokens too. */
 export const WALLET_THEME = {
   accentColor: "var(--clim-accent)",
   accentColorForeground: "var(--clim-accent-fg)",
