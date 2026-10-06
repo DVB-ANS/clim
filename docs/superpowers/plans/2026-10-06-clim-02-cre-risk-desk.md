@@ -2752,7 +2752,7 @@ This task answers an open question from the design: can the simulator reach a se
 **Files:**
 - Modify: `cre/risk-desk/config.replay.json` (desk address through the script; `replayUrl` only if a tunnel is needed), today's session log, `docs/feedback/cre-friction-log.md` (if a tunnel is needed)
 
-- [ ] **Step 1: Point the replay config at the replay desk**
+- [x] **Step 1: Point the replay config at the replay desk**
 
 ```bash
 (cd cre/risk-desk && bun scripts/sync-config.ts)
@@ -2761,7 +2761,7 @@ jq -r '.deskAddress, .replayUrl' cre/risk-desk/config.replay.json
 
 Expected: `config.replay.json: deskAddress=0x<replay desk> token0IsEth=<...>`, then the desk address and `http://127.0.0.1:8787`.
 
-- [ ] **Step 2: Check the replay server answers in Binance format**
+- [x] **Step 2: Check the replay server answers in Binance format**
 
 ```bash
 curl -s http://127.0.0.1:8787/status; echo
@@ -2772,7 +2772,7 @@ Expected:
 - `/status` shows `"done":false` and a growing `progress`;
 - the klines are two Binance-format rows `[openTimeMs,"open","high","low","close","0",closeTimeMs,...]` whose `openTimeMs` is within the last two minutes of wall-clock time.
 
-- [ ] **Step 3: Dry run in replay mode**
+- [x] **Step 3: Dry run in replay mode**
 
 ```bash
 (cd cre && cre workflow simulate risk-desk --non-interactive --trigger-index 0 --target replay-settings)
@@ -2792,7 +2792,7 @@ If the run logs `source dropped: replay <venue>: ...` connection errors for all 
 2. Set `"replayUrl"` in `cre/risk-desk/config.replay.json` to that base URL, with no path, and run again.
 3. Append the friction row `| <n> | Simulation networking | The simulator cannot reach a server on 127.0.0.1; we tunnel the replay server. | Allow loopback in simulation, or document it. | observed <date> |`.
 
-- [ ] **Step 4: Broadcast**
+- [x] **Step 4: Broadcast**
 
 Plan 04's demo loop (`cd bots && ENV_FILE=.env.replay bun run cre-loop --pair replay`) drives the replay desk with the replay operator key. To check the CRE side alone first, run one broadcast with that key:
 
@@ -2803,7 +2803,7 @@ Plan 04's demo loop (`cd bots && ENV_FILE=.env.replay bun run cre-loop --pair re
 
 Expected: the same address twice (the replay operator is the replay desk's `simOperator`), then `Write report transaction succeeded: 0x<tx>`, then `REPORT applied seq=<n> ... flags=2 tx=0x<tx>` (bit 1 is REPLAY; `flags=3` if DEGRADED too) and `"OK 0x<tx>"`. Without `-e .env.replay` the report is sent from the live operator and the desk rejects it (`NOT APPLIED`).
 
-- [ ] **Step 5: Log and commit**
+- [x] **Step 5: Log and commit**
 
 ```markdown
 - (CRE) Replay desk fed by CRE simulation from the plan 04 replay server (localhost reachable: yes|no, tunnel used: yes|no): first tx https://sepolia.etherscan.io/tx/0x<tx>. Replay reports carry nSources=4 venue paths over one Binance series and dispBp=0, disclosed by the REPLAY flag.
