@@ -1,5 +1,6 @@
-// Venue requests and response parsers (pure), tested on fixtures captured from the real
-// endpoints (fixtures/, see scripts/capture-fixtures.sh). The node-mode fetch is added in Task 7.
+// Venue requests, response parsers and the node-mode fetch. Parsers are pure and tested on
+// fixtures captured from the real endpoints (fixtures/, see scripts/capture-fixtures.sh).
+import { HTTPClient, type NodeRuntime, ok, text } from '@chainlink/cre-sdk'
 import type { Candle, Quote, VenueSeries } from './estimator'
 
 export const VENUES = ['coinbase', 'kraken', 'binance', 'hyperliquid'] as const
@@ -177,4 +178,94 @@ export interface DeskInput {
 	dvol: number | null
 	series: VenueSeries[]
 	notes: string[] // per-source fetch/parse problems, for logs
+}
+
+// ---------- node-mode fetch ----------
+
+type Fetched = { json: unknown } | { error: string }
+
+// Sends every request first, then waits for each response, so the calls run concurrently.
+export function sendAll(nodeRuntime: NodeRuntime<unknown>, reqs: HttpReq[]): Fetched[] {
+	const http = new HTTPClient()
+	const pending = reqs.map((r) =>
+		http.sendRequest(nodeRuntime, {
+			url: r.url,
+			method: r.method,
+			headers: r.body === undefined ? {} : { 'Content-Type': 'application/json' },
+			body: r.body === undefined ? '' : Buffer.from(r.body).toString('base64'),
+			timeout: '8s', // below the 10 s connection quota; a hung venue must not stall the tick
+		}),
+	)
+	return pending.map((p): Fetched => {
+		try {
+			const resp = p.result()
+			if (!ok(resp)) return { error: `HTTP ${resp.statusCode}` }
+			return { json: JSON.parse(text(resp)) }
+		} catch (e) {
+			return { error: e instanceof Error ? e.message : String(e) }
+		}
+	})
+}
+
+function settle<T>(f: Fetched, parse: (json: unknown) => T): { value: T } | { error: string } {
+	if ('error' in f) return { error: f.error }
+	try {
+		return { value: parse(f.json) }
+	} catch (e) {
+		return { error: e instanceof Error ? e.message : String(e) }
+	}
+}
+
+export function fetchLive(
+	nodeRuntime: NodeRuntime<unknown>,
+	venues: VenueName[],
+	dvolUrl: string,
+	usdtUsdUrl: string,
+	nowSec: number,
+): DeskInput {
+	const reqs = [
+		...venues.map((v) => venueRequest(v, nowSec)),
+		dvolRequest(dvolUrl, nowSec),
+		{ url: usdtUsdUrl, method: 'GET' as const },
+	]
+	const res = sendAll(nodeRuntime, reqs)
+	const notes: string[] = []
+	const series: VenueSeries[] = []
+	venues.forEach((v, i) => {
+		const r = settle(res[i], (j) => parseVenue(v, j))
+		if ('error' in r) notes.push(`${v}: ${r.error}`)
+		// a failed venue stays in the list with no candles, so the quorum message counts it
+		series.push({ venue: v, quote: VENUE_QUOTE[v], candles: 'error' in r ? [] : r.value })
+	})
+	const dv = settle(res[venues.length], parseDvol)
+	if ('error' in dv) notes.push(`dvol: ${dv.error}`)
+	const ut = settle(res[venues.length + 1], parseUsdtUsd)
+	if ('error' in ut) notes.push(`usdtusd: ${ut.error}`)
+	return {
+		nowSec,
+		usdtUsd: 'error' in ut ? null : ut.value,
+		dvol: 'error' in dv ? null : dv.value,
+		series,
+		notes,
+	}
+}
+
+export function fetchReplay(
+	nodeRuntime: NodeRuntime<unknown>,
+	replayUrl: string,
+	venues: VenueName[],
+	nowSec: number,
+): DeskInput {
+	const res = sendAll(
+		nodeRuntime,
+		venues.map((v) => replayVenueRequest(replayUrl, v)),
+	)
+	const notes: string[] = []
+	const series: VenueSeries[] = venues.map((v, i) => {
+		const r = settle(res[i], parseBinance)
+		if ('error' in r) notes.push(`replay ${v}: ${r.error}`)
+		// replay prices are the historical USDT closes, used as USD (no USDT/USD rate in the replay)
+		return { venue: v, quote: 'USD', candles: 'error' in r ? [] : r.value }
+	})
+	return { nowSec, usdtUsd: null, dvol: null, series, notes }
 }

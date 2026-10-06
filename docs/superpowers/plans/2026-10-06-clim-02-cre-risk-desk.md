@@ -1465,7 +1465,7 @@ How the SDK pieces are used, as read in the SDK source and `cre-templates` (`cus
 - Create: `cre/risk-desk/workflow.ts`, `cre/risk-desk/main.ts`
 - Test: `cre/risk-desk/workflow.test.ts`
 
-- [ ] **Step 1: Write the failing test** at `cre/risk-desk/workflow.test.ts`
+- [x] **Step 1: Write the failing test** at `cre/risk-desk/workflow.test.ts`
 
 ```ts
 import { describe, expect } from 'bun:test'
@@ -1669,7 +1669,7 @@ describe('initWorkflow', () => {
 })
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 (cd cre/risk-desk && bun test workflow.test.ts)
@@ -1677,7 +1677,7 @@ describe('initWorkflow', () => {
 
 Expected: `error: Cannot find module './workflow' from '.../cre/risk-desk/workflow.test.ts'`, then `0 pass`, `1 fail`, `1 error`.
 
-- [ ] **Step 3: Replace `cre/risk-desk/venues.ts` entirely** (the pure part is unchanged; the SDK import and the node-mode fetch are added)
+- [x] **Step 3: Replace `cre/risk-desk/venues.ts` entirely** (the pure part is unchanged; the SDK import and the node-mode fetch are added)
 
 ```ts
 // Venue requests, response parsers and the node-mode fetch. Parsers are pure and tested on
@@ -1953,7 +1953,7 @@ export function fetchReplay(
 }
 ```
 
-- [ ] **Step 4: Create `cre/risk-desk/workflow.ts` and `cre/risk-desk/main.ts`**
+- [x] **Step 4: Create `cre/risk-desk/workflow.ts` and `cre/risk-desk/main.ts`**
 
 `cre/risk-desk/workflow.ts`:
 
@@ -2194,7 +2194,7 @@ export async function main() {
 main()
 ```
 
-- [ ] **Step 5: Run every test, expected PASS**
+- [x] **Step 5: Run every test, expected PASS**
 
 ```bash
 (cd cre/risk-desk && bun test)
@@ -2202,7 +2202,7 @@ main()
 
 Expected: `36 pass`, `0 fail`, `Ran 36 tests across 4 files.`
 
-- [ ] **Step 6: Typecheck and compile to WASM (no login needed)**
+- [x] **Step 6: Typecheck and compile to WASM (no login needed)**
 
 ```bash
 (cd cre/risk-desk && bun run typecheck)
@@ -2220,7 +2220,7 @@ Expected: `$ tsc --noEmit` with no error lines. Then:
 
 `cre-compile` also rejects APIs that are unavailable in the WASM runtime (`fetch`, `setTimeout`, `node:*`). If it reports one, replace it with a CRE capability rather than skipping the checks.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add cre/risk-desk/venues.ts cre/risk-desk/workflow.ts cre/risk-desk/main.ts cre/risk-desk/workflow.test.ts
