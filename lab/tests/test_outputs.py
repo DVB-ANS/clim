@@ -261,3 +261,67 @@ def test_ptrade_band_json_plan05_shape():
     _keys(d["grid"][0], ["p", "lo95", "hi95", "lo99", "hi99"])
     ps = [r["p"] for r in d["grid"]]
     assert ps == sorted(ps) and ps[0] == 0.05 and ps[-1] == 0.6
+
+
+def test_replay_json_plan05_and_plan06_shapes():
+    d = _load(OUT_DIR / "replay-2026-02-04.json")
+    assert d["schema"] == "clim.lab.replay/1"
+    plan06 = ["schema", "generatedAt", "window", "params", "units", "points", "summary"]
+    plan05 = ["t", "price", "sigmaAnnualPct", "feeVBp", "feeSBp", "arbCumVUsd", "arbCumSUsd"]
+    _keys(d, plan06 + plan05 + ["pointSec"])
+    _keys(d["window"], ["id", "label", "startUtc", "endUtc", "source"])
+    _keys(d["params"], ["pStar", "etaE4", "sqrtHalfDtE6", "feeMinPips", "feeMaxPips", "staticFeePips"])
+    assert len(d["points"]) == 480 and all(len(d[k]) == 480 for k in plan05 if k != "feeSBp")
+    _keys(
+        d["points"][0],
+        [
+            "t",
+            "price",
+            "sigmaAnnualPct",
+            "feeVBp",
+            "feeSBp",
+            "cumArbV",
+            "cumArbS",
+            "sigmaE9",
+            "rv15E9",
+            "tObs",
+            "feePips",
+            "pTradeObsCum",
+            "pTradePredCum",
+            "pTradeStaticObsCum",
+            "dvol",
+        ],
+    )
+    _keys(
+        d["summary"],
+        [
+            "meanFeeVBp",
+            "meanFeeSBp",
+            "arbV",
+            "arbS",
+            "arbChangePct",
+            "pTradeObsV",
+            "pTradePredV",
+            "pTradeObsS",
+            "blocks",
+            "staticFeePips",
+            "minFeeVBp",
+            "maxFeeVBp",
+            "sigmaAnnualPctMin",
+            "sigmaAnnualPctMax",
+        ],
+    )
+    params = _load(SHARED_DIR / "params.json")
+    assert d["params"]["staticFeePips"] == params["replayStaticFeePips"]
+
+
+def test_replay_window_json_plan04_shape():
+    w = _load(OUT_DIR / "replay-window.json")
+    _keys(w, ["symbol", "source", "startTs", "stepSec", "warmupSec", "closes"])
+    assert (w["symbol"], w["startTs"], w["stepSec"], w["warmupSec"], len(w["closes"])) == (
+        "ETHUSDT",
+        1_770_204_600,
+        1,
+        1_800,
+        16_200,
+    )
