@@ -3884,21 +3884,23 @@ Push this commit only if the maintainer asks.
 
 ### Task 22: Final pass on the CRE friction log (send-ready)
 
-**Delegable:** no (it is the maintainer's feedback to Chainlink)
-**Depends on:** the build (plans 02 and 04 logged their frictions)
+**Delegable:** the pass, yes (done by an agent on 2026-10-07 while the maintainer was away); sending the message, no (the maintainer sends it himself)
+**Depends on:** the build (plans 02 and 04 logged their frictions) and the DevEx report (`docs/feedback/cre-devex-report.md`), whose counts and asks the log must match
 
 **Files:**
-- Modify: `docs/feedback/cre-friction-log.md`
+- Modify: `docs/feedback/cre-friction-log.md`, `docs/sessions/2026-10-07.md`
+- Create: `docs/feedback/message-to-chainlink-mentor.md` (a draft; nothing is sent from here)
 
-- [ ] **Step 1: Collect the environment**
+- [x] **Step 1: Collect the environment**
 
 ```bash
-cre version; bun --version; sw_vers -productVersion; node -p "require('/Users/fianso/Development/hackathons/clim/cre/risk-desk/package.json').dependencies['@chainlink/cre-sdk']"
+cre version; bun --version; sw_vers -productVersion; node -p "require('/Users/fianso/Development/hackathons/clim/cre/risk-desk/package.json').dependencies['@chainlink/cre-sdk']"; cre whoami
 ```
+Got on 2026-10-07: CRE CLI v1.37.0, `@chainlink/cre-sdk` 1.23.0, Bun 1.3.9, macOS 15.7; `cre whoami` printed `Deploy Access: Not enabled` for organization `org_5FPbh9KQQJLGWcEh` at about 05:35 SGT (21:35 UTC on 2026-10-06), so the DON deployment is cut (master plan cut list item 1, master Task 16 Step 2).
 
-- [ ] **Step 2: Rewrite the header**
+- [x] **Step 2: Rewrite the header**
 
-Replace everything above the table with (fill the four values from Step 1 and the three asks from Step 3):
+Replace everything above the table with (fill the four values from Step 1 and the five asks from Step 3), then put `## All entries` above the table:
 ```markdown
 # Chainlink CRE friction log
 
@@ -3906,29 +3908,31 @@ Developer-experience feedback for the Chainlink team, written while building cli
 
 **Environment:** CRE CLI <version>, `@chainlink/cre-sdk` <version>, Bun <version>, macOS <version>, target `ethereum-testnet-sepolia`.
 
-## Top three asks
-1. <ask>
-2. <ask>
-3. <ask>
+**Mode:** <simulation only, and the deploy-access status with its date (row 6)>.
+
+<one line linking the DevEx report and cre-loop-evidence.md>
+
+## Top five asks
+
+The same five asks as the DevEx report, in its order.
+
+1. **<the DevEx report's ask 1 title> (rows <n>).** <ask>
+2. ...
+5. ...
 ```
 
-- [ ] **Step 3: Resolve every row**
+- [x] **Step 3: Resolve every row**
 
-For each row, set Status to `confirmed`, `corrected: <one sentence>` or `not hit`, using what plans 02 and 04 logged. The three asks are the three `confirmed` rows that cost the most time; one sentence each, starting with a verb ("Add a `--loop` mode to `cre workflow simulate`...").
+For each row, set Status to `confirmed`, `corrected: <one sentence>` or `not hit`, followed by its evidence, using what plans 02 and 04 logged. The five asks are the DevEx report's "Top 5 asks", in its order and with its wording: its bold title, then one sentence starting with a verb. Each row's suggestion and counts match the DevEx report and `cre-loop-evidence.md`. Row 6 gives the deploy-access status with its date, and says whether the DON deployment ran or was cut.
 Then run: `grep -c -E "design phase|to confirm" /Users/fianso/Development/hackathons/clim/docs/feedback/cre-friction-log.md`
 Expected: `0`.
+Result on 2026-10-07: 22 rows `confirmed`, row 3 `corrected` (a run need not recompile: `cre workflow build` once, then `simulate --wasm`), rows 7 and 8 `not hit` (no Robinhood Chain, no DON).
 
-- [ ] **Step 4: Commit and prepare the message**
+- [x] **Step 4: Commit and prepare the message**
 
+The message to the Chainlink mentor is a draft in `docs/feedback/message-to-chainlink-mentor.md`, marked as such, for the maintainer to send himself. It answers his three questions at the idea pitch (session log 2026-10-06): the FAQ entries "Who changes the fee, and how?" and "Can a pool that is already live switch to clim?", the DevEx report, the friction log and the repo https://github.com/DVB-ANS/clim. Add one `- (CRE) Friction log send-ready: ... (plan 06 Task 22).` line under "## Build notes" of today's session log, then commit:
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/feedback/cre-friction-log.md && git commit -m "docs(feedback): send-ready CRE friction log"
-```
-Give the maintainer this message to send himself to the Chainlink mentor (it stays out of the repo):
-```text
-Hi, thanks again for your questions at our idea pitch on day one. Two follow-ups from clim:
-1. How the fee changes, and whether a live pool can switch: https://github.com/DVB-ANS/clim/blob/main/docs/faq.md#can-a-pool-that-is-already-live-switch-to-clim
-2. The CRE developer-experience log we kept while building, with our top three asks first: https://github.com/DVB-ANS/clim/blob/main/docs/feedback/cre-friction-log.md
-Happy to walk your team through any of it. Sofiane (clim, TOKEN2049 Origins)
+cd /Users/fianso/Development/hackathons/clim && git add docs/feedback/cre-friction-log.md docs/feedback/message-to-chainlink-mentor.md docs/sessions/2026-10-07.md docs/superpowers/plans/2026-10-06-clim-06-demo-submission.md && git commit -m "docs(cre): friction log send-ready, DON deployment cut (deploy access not enabled)"
 ```
 
 ---
