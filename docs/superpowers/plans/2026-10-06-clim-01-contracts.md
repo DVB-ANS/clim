@@ -2931,7 +2931,7 @@ Expected:
 
 The two swaps also leave the PoolSwapTest approvals in place for the bots.
 
-- [ ] **Step 6: Log, commit, hand over**
+- [x] **Step 6: Log, commit, hand over**
 
 Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
 ```markdown

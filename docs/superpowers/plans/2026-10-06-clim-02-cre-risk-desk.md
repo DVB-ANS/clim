@@ -2686,7 +2686,7 @@ This test is a cross-plan contract, not new behaviour. The three tests are skipp
 **Files:**
 - Test: `cre/risk-desk/abi-sync.test.ts`
 
-- [ ] **Step 1: Write the test** at `cre/risk-desk/abi-sync.test.ts`
+- [x] **Step 1: Write the test** at `cre/risk-desk/abi-sync.test.ts`
 
 ```ts
 import { describe, expect, test } from 'bun:test'
@@ -2723,7 +2723,7 @@ describe.skipIf(exported === null)('RiskDesk ABI matches the workflow', () => {
 })
 ```
 
-- [ ] **Step 2: Run it**
+- [x] **Step 2: Run it**
 
 ```bash
 (cd cre/risk-desk && bun test abi-sync.test.ts)
@@ -2733,7 +2733,7 @@ Expected: `3 skip` before plan 01's export, and `3 pass`, `0 fail` after it.
 
 A failure is an interface bug between plans. Compare both sides with the canonical interfaces (`state()`, `onReport(bytes,bytes)`, `RiskReported(uint32 indexed seq, uint40 tObs, uint32 sigmaApplied, uint32 sigmaReported, uint32 rv15E9, uint16 dvolE2, int24 refTick, uint16 dispBp, uint8 nSources, uint16 kE4, uint8 zone)`), fix the side that deviates, and add a session-log bullet.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add cre/risk-desk/abi-sync.test.ts
