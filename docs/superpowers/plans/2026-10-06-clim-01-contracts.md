@@ -250,7 +250,7 @@ Expected: `contracts/.env` does not appear in the `git status --short` output (i
 - Generated: `.gitmodules`, `contracts/foundry.lock`, `contracts/lib/forge-std`, `contracts/lib/uniswap-hooks`
 - Modify: `.gitignore`, `docs/sessions/2026-10-06.md`
 
-- [ ] **Step 1: Write the Foundry config**
+- [x] **Step 1: Write the Foundry config**
 
 Do **not** run `forge init`: inside a monorepo it creates a nested `.git` in `contracts/`.
 
@@ -300,7 +300,7 @@ permit2/=lib/uniswap-hooks/lib/v4-periphery/lib/permit2/
 mkdir -p /Users/fianso/Development/hackathons/clim/contracts/{src/receiver,src/interfaces,src/libraries,src/test-tokens,test/utils,test/fork,test/fixtures,script/base} /Users/fianso/Development/hackathons/clim/shared/{deployments,abis}
 ```
 
-- [ ] **Step 2: Install the dependencies**
+- [x] **Step 2: Install the dependencies**
 
 The install is slow: it clones about 25 nested submodules and took 12 to 15 minutes on 2026-10-06. Run it with `run_in_background: true` and wait for it to finish. Do not add `--shallow`: in forge 1.4.2, `--shallow` cannot check out a tag (`Error: Tag: "v1.17.0" not found`).
 ```bash
@@ -312,7 +312,7 @@ Expected (last lines):
     Installed uniswap-hooks tag=v1.2.1@acbd604c409a827f7f98c9517236da860c4fca1a
 ```
 
-- [ ] **Step 3: Stage the submodules at the tags and verify the pins**
+- [x] **Step 3: Stage the submodules at the tags and verify the pins**
 
 `forge install` stages each submodule at the default-branch HEAD and checks the tag out only in the working tree. `git add` records the tag commits.
 ```bash
@@ -327,7 +327,7 @@ Expected: no line starts with `+` or `-`, and the commits are exactly:
  fcbae5394ae8ad52d8e580a3477db99814b9d565 lib/openzeppelin-contracts (…)
 ```
 
-- [ ] **Step 4: Vendor the Chainlink receiver at the pinned commit and check the hashes**
+- [x] **Step 4: Vendor the Chainlink receiver at the pinned commit and check the hashes**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts/src/receiver && C=d0223f31182c76bc36b1cc9d47b13b18efcf2bf6 && for f in ReceiverTemplate.sol IReceiver.sol IERC165.sol; do curl -fsSL -o $f "https://raw.githubusercontent.com/smartcontractkit/cre-templates/$C/starter-templates/circuit-breaker/circuit-breaker-ts/contracts/evm/src/$f"; done && shasum -a 256 ReceiverTemplate.sol IReceiver.sol IERC165.sol
@@ -340,7 +340,7 @@ c6a3b82a876e50eba9cd4673a712f861eca2a476cd2ad28fc0f26e66ae5f2dda  IERC165.sol
 ```
 Do not edit these files. Their MIT headers stay as they are.
 
-- [ ] **Step 5: Ignore the local dry-run outputs**
+- [x] **Step 5: Ignore the local dry-run outputs**
 
 Append to `/Users/fianso/Development/hackathons/clim/.gitignore`:
 ```gitignore
@@ -350,14 +350,14 @@ contracts/deployments/31337/
 shared/deployments/anvil.json
 ```
 
-- [ ] **Step 6: Build check**
+- [x] **Step 6: Build check**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge build
 ```
 Expected: `Compiler run successful!`. The first run downloads solc 0.8.26. This compiles the vendored receiver against OpenZeppelin 5.5.0's `Ownable`, which validates the remappings.
 
-- [ ] **Step 7: Log the pins**
+- [x] **Step 7: Log the pins**
 
 Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
 ```markdown
@@ -369,7 +369,7 @@ Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
   - Not the `sports-resolution` variant: its 62-byte metadata check rejects the forwarder's 64-byte metadata (friction log).
 ```
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add .gitignore .gitmodules contracts/foundry.toml contracts/remappings.txt contracts/foundry.lock contracts/lib/forge-std contracts/lib/uniswap-hooks contracts/src/receiver docs/sessions/2026-10-06.md && git commit -m "build(contracts): Foundry project, pinned v4 and OZ hooks deps, vendored CRE receiver"

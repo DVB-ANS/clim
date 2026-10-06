@@ -37,3 +37,7 @@ bots/out/*
 
 # Local, personal instructions
 CLAUDE.local.md
+
+# Foundry dry runs on a local anvil fork
+contracts/deployments/31337/
+shared/deployments/anvil.json
