@@ -1632,7 +1632,7 @@ git commit -m "feat(shared): deployments and params schemas with validated loade
 - Create: `bots/package.json`, `bots/tsconfig.json`, `bots/src/lib/env.ts`, `bots/src/lib/jsonl.ts`
 - Test: `bots/test/env.test.ts`
 
-- [ ] **Step 1: Register the workspace and create the package**
+- [x] **Step 1: Register the workspace and create the package**
 
 In the root `package.json`, change `"workspaces": ["shared"]` to `"workspaces": ["shared", "bots"]` (keep `"app"` if plan 05 already added it).
 
@@ -1689,7 +1689,7 @@ In the root `package.json`, change `"workspaces": ["shared"]` to `"workspaces": 
 Run: `bun install`
 Expected: no error; `ls -la node_modules/@clim` shows `bots -> ../../bots` and `shared -> ../../shared`.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 `bots/test/env.test.ts`:
 ```ts
@@ -1728,12 +1728,12 @@ describe("jsonl", () => {
 });
 ```
 
-- [ ] **Step 3: Run it, expected FAIL**
+- [x] **Step 3: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/env.test.ts`
 Expected: `error: Cannot find module '../src/lib/env'`, ` 1 fail`.
 
-- [ ] **Step 4: Minimal implementation**
+- [x] **Step 4: Minimal implementation**
 
 `bots/src/lib/env.ts`:
 ```ts
@@ -1822,12 +1822,12 @@ export function shortError(e: unknown): string {
 }
 ```
 
-- [ ] **Step 5: Run, expected PASS**
+- [x] **Step 5: Run, expected PASS**
 
 Run: `cd bots && bun test test/env.test.ts && bun run typecheck`
 Expected: ` 5 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json bun.lock bots/package.json bots/tsconfig.json bots/src/lib/env.ts bots/src/lib/jsonl.ts bots/test/env.test.ts
