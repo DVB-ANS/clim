@@ -2181,7 +2181,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/script/base/Cl
 **Files:**
 - Create: `contracts/script/02_DeployHook.s.sol`
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 The hook is deployed by a raw call to the CREATE2 deployer (`salt ‖ initCode`), not `new ClimHook{salt: …}(8 args)`. That expression hits "stack too deep" without `via_ir`.
 ```solidity
@@ -2232,14 +2232,14 @@ contract DeployHook is ClimScript {
 }
 ```
 
-- [ ] **Step 2: Build**
+- [x] **Step 2: Build**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge build
 ```
 Expected: `Compiler run successful!`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/script/02_DeployHook.s.sol && git commit -m "feat(contracts): mined CREATE2 deployment of ClimHook from params.json"
