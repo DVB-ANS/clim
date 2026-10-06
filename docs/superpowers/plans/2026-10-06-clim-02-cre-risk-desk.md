@@ -808,7 +808,7 @@ The fixtures below were captured from the six live endpoints at `1791282309` (20
 - Create: `cre/risk-desk/scripts/capture-fixtures.sh`
 - Create: `cre/risk-desk/fixtures/now.txt`, `coinbase.json`, `kraken.json`, `binance.json`, `hyperliquid.json`, `deribit.json`, `kraken_usdt.json`
 
-- [ ] **Step 1: Create the capture script** at `cre/risk-desk/scripts/capture-fixtures.sh`
+- [x] **Step 1: Create the capture script** at `cre/risk-desk/scripts/capture-fixtures.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -832,7 +832,7 @@ curl -sf -m 10 "https://api.kraken.com/0/public/Ticker?pair=USDTUSD" -o "$OUT"/k
 echo "captured at $NOW into $OUT"; wc -c "$OUT"/*.json
 ```
 
-- [ ] **Step 2: Run it into a temporary directory (health check of the six endpoints from this machine)**
+- [x] **Step 2: Run it into a temporary directory (health check of the six endpoints from this machine)**
 
 ```bash
 (cd cre/risk-desk && chmod +x scripts/capture-fixtures.sh && bash scripts/capture-fixtures.sh "$(mktemp -d)")
@@ -842,7 +842,7 @@ Expected: `captured at <unix time> into /var/folders/.../tmp.XXXX`, then six JSO
 
 The script exits non-zero on the first failing endpoint. If one fails (for example Binance HTTP 451), note which one in the session log. The workflow still works with 3 venues.
 
-- [ ] **Step 3: Write the committed fixtures exactly as below**
+- [x] **Step 3: Write the committed fixtures exactly as below**
 
 ```bash
 mkdir -p cre/risk-desk/fixtures
@@ -890,7 +890,7 @@ mkdir -p cre/risk-desk/fixtures
 {"error":[],"result":{"USDTZUSD":{"a":["0.99967000","1923929","1923929.000"],"b":["0.99966000","322231","322231.000"],"c":["0.99967000","584.25689800"],"v":["85221528.19729484","255050800.45003680"],"p":["0.99971343","0.99978489"],"t":[11698,34958],"l":["0.99959000","0.99944000"],"h":["0.99992000","1.00010000"],"o":"0.99987000"}}}
 ```
 
-- [ ] **Step 4: Check that every fixture parses**
+- [x] **Step 4: Check that every fixture parses**
 
 ```bash
 (cd cre/risk-desk && for f in fixtures/*.json; do python3 -m json.tool "$f" > /dev/null && echo "ok $f"; done)
@@ -898,7 +898,7 @@ mkdir -p cre/risk-desk/fixtures
 
 Expected: six `ok fixtures/<name>.json` lines.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add cre/risk-desk/scripts/capture-fixtures.sh cre/risk-desk/fixtures
