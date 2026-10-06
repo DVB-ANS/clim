@@ -533,7 +533,7 @@ git commit -m "feat(shared): unit conversions and ClimFeeMath mirror"
 - Create: `shared/src/price.ts`
 - Test: `shared/test/price.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 The exact integers were computed with 60-digit decimals (`python3`, `decimal`): `floor(sqrt(price) * 2^96)`.
 
@@ -606,12 +606,12 @@ describe("clampSqrtPriceLimit keeps limits strictly inside the v4 bounds", () =>
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd shared && bun test test/price.test.ts`
 Expected: `error: Cannot find module '../src/price'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `shared/src/price.ts`:
 ```ts
@@ -654,12 +654,12 @@ export function clampSqrtPriceLimit(x: bigint): bigint {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd shared && bun test test/price.test.ts && bun run typecheck`
 Expected: ` 8 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add shared/src/price.ts shared/test/price.test.ts
