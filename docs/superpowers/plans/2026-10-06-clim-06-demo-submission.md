@@ -2751,7 +2751,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck doc
 **Files:**
 - Create or replace: `README.md`
 
-- [ ] **Step 1: Write the README**
+- [x] **Step 1: Write the README**
 
 Replace the whole of `README.md` with the text below. The `<!-- clim:begin X -->` / `<!-- clim:end X -->` pairs are filled by `npm run readme`; never edit between them by hand.
 
@@ -2973,12 +2973,12 @@ A first design charged a directional toll against a reference price from the des
 <!-- clim:end team -->
 ````
 
-- [ ] **Step 2: Render the draft with pending blocks**
+- [x] **Step 2: Render the draft with pending blocks**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node src/update-readme.mjs --allow-missing`
 Expected: `README.md updated: links, results, params, fee-schedule, deployments, evidence, team (pending: deployments, params, backtest, replay, validation, evidence)` (the list shrinks as inputs appear; provisional parameters count as pending; without `lab/out/validation.json` the results block is still written, without the sentence on the significance of the gap). Then: `grep -c "_Pending:" /Users/fianso/Development/hackathons/clim/README.md` prints the number of blocks still pending (at most 5: results, params, fee-schedule, deployments, evidence).
 
-- [ ] **Step 3: Check both mermaid diagrams render**
+- [x] **Step 3: Check both mermaid diagrams render**
 
 GitHub renders mermaid natively; check locally before pushing. Install mermaid-cli in a throwaway folder and point it at the installed Chrome (no Chromium download):
 ```bash
@@ -2987,7 +2987,7 @@ awk '/^```mermaid/{f=1;n++;next} /^```/{if(f){f=0}} f{print > ("d" n ".mmd")}' /
 ```
 Expected: `Generating single mermaid chart` twice and two PNG paths. Open both with the Read tool: a left-to-right architecture (4 stations, CRE desk, RiskDesk, hook, PoolManager, dashboard) and a 4-participant sequence diagram.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add README.md && git commit -m "docs: judge-facing README with generated blocks"
