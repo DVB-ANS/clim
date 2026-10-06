@@ -158,7 +158,7 @@ Every code block below was compiled and run before this plan was written (scratc
 - Create: `contracts/.env.example`, `contracts/.env` (never committed)
 - Modify: `docs/sessions/2026-10-06.md`
 
-- [ ] **Step 1: Create the env template**
+- [x] **Step 1: Create the env template**
 
 ```bash
 mkdir -p /Users/fianso/Development/hackathons/clim/contracts
@@ -175,14 +175,14 @@ SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
 ETHERSCAN_API_KEY=
 ```
 
-- [ ] **Step 2: Create `contracts/.env` with a fresh testnet key**
+- [ ] **Step 2: Create `contracts/.env` with a fresh testnet key (pending: operator key, done later in the main tree)**
 
 ```bash
 cast wallet new
 ```
 Expected: `Successfully created new keypair.`, then an `Address:` line and a `Private key:` line. Copy `contracts/.env.example` to `contracts/.env`, then paste the private key after `PRIVATE_KEY=`. Use this key only on testnets. Plan 02 puts the same key in `cre/.env` as `CRE_ETH_PRIVATE_KEY`.
 
-- [ ] **Step 3: Verify every Sepolia address on-chain**
+- [x] **Step 3: Verify every Sepolia address on-chain**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && set -a && source .env && set +a && R=$SEPOLIA_RPC_URL && \
@@ -214,14 +214,14 @@ Expected (verified on 2026-10-06):
 ```
 If any code size is 0, or any view call returns something else, stop. Update the address in `contracts/script/base/ClimScript.sol` (Task 10) and in the spec, and log the change.
 
-- [ ] **Step 4: Check the deployer's balance**
+- [ ] **Step 4: Check the deployer's balance (pending: operator key, done later in the main tree)**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && set -a && source .env && set +a && cast balance $(cast wallet address --private-key $PRIVATE_KEY) --rpc-url $SEPOLIA_RPC_URL --ether
 ```
 Expected: at least `0.05`. The whole live suite uses under 7M gas: about 0.007 ETH at Sepolia's 1 gwei on 2026-10-06. If the balance is lower, fund the address from a Sepolia faucet and run the command again.
 
-- [ ] **Step 5: Log the verification**
+- [x] **Step 5: Log the verification**
 
 Append to `docs/sessions/2026-10-06.md`. If the section `## Contracts (plan 01)` does not exist, create it at the end of the file first.
 ```markdown
@@ -233,7 +233,7 @@ Append to `docs/sessions/2026-10-06.md`. If the section `## Contracts (plan 01)`
   - CREATE2 deployer `0x4e59…956C` (69 B).
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/.env.example docs/sessions/2026-10-06.md && git status --short && git commit -m "chore(contracts): env template and verified Sepolia infrastructure"
