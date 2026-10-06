@@ -1845,7 +1845,7 @@ git commit -m "feat(bots): package scaffold, env and jsonl helpers"
 - Create: `bots/src/lib/rng.ts`
 - Test: `bots/test/rng.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `bots/test/rng.test.ts`:
 ```ts
@@ -1903,12 +1903,12 @@ describe("distributions", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/rng.test.ts`
 Expected: `error: Cannot find module '../src/lib/rng'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/lib/rng.ts`:
 ```ts
@@ -1954,12 +1954,12 @@ export function logNormal(rand: Rand, median: number, sigmaLn: number): number {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/rng.test.ts`
 Expected: ` 5 pass`, ` 0 fail`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/lib/rng.ts bots/test/rng.test.ts
