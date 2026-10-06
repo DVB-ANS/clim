@@ -1931,7 +1931,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/test/Integrati
 **Files:**
 - Create: `contracts/script/base/ClimScript.sol`, `contracts/script/00_Tokens.s.sol`, `contracts/script/01_DeployDesk.s.sol`, `contracts/test/fixtures/params.p30.json`
 
-- [ ] **Step 1: Write the shared script base**
+- [x] **Step 1: Write the shared script base**
 
 `contracts/script/base/ClimScript.sol`:
 ```solidity
@@ -2060,7 +2060,7 @@ abstract contract ClimScript is Script {
 }
 ```
 
-- [ ] **Step 2: Write 00_Tokens and 01_DeployDesk**
+- [x] **Step 2: Write 00_Tokens and 01_DeployDesk**
 
 `contracts/script/00_Tokens.s.sol`:
 ```solidity
@@ -2142,7 +2142,7 @@ contract DeployDesk is ClimScript {
 }
 ```
 
-- [ ] **Step 3: Write the dry-run params fixture**
+- [x] **Step 3: Write the dry-run params fixture**
 
 `contracts/test/fixtures/params.p30.json`. Its `decidedBy` starts with `FIXTURE`, so `02_DeployHook` refuses it on Sepolia.
 ```json
@@ -2160,14 +2160,14 @@ contract DeployDesk is ClimScript {
 }
 ```
 
-- [ ] **Step 4: Build**
+- [x] **Step 4: Build**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge build
 ```
 Expected: `Compiler run successful!`. These scripts run for real in Task 15, on a fork.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/script/base/ClimScript.sol contracts/script/00_Tokens.s.sol contracts/script/01_DeployDesk.s.sol contracts/test/fixtures/params.p30.json && git commit -m "feat(contracts): deploy script base, test tokens, arbitrage router and RiskDesk scripts"
