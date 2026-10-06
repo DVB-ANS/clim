@@ -1,0 +1,20 @@
+[project]
+name = "clim-lab"
+version = "0.1.0"
+description = "clim research lab: backtests, P* decision and model validation"
+requires-python = ">=3.12,<3.13"
+dependencies = ["numpy==2.5.3"]
+
+[dependency-groups]
+dev = ["pytest==9.1.1"]
+
+[build-system]
+requires = ["uv_build>=0.11.19,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "clim_lab"
+module-root = ""
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
