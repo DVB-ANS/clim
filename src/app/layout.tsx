@@ -18,7 +18,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${interTight.variable} ${doto.variable}`}>
+    // In-page anchors glide (globals.css); a route change jumps to the top instead (Next 16 opt-in).
+    <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${interTight.variable} ${doto.variable}`}>
       <body className="min-h-screen">
         <WalletProviders>
           <LaunchProvider>{children}</LaunchProvider>
