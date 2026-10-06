@@ -2416,7 +2416,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/script/03_Crea
 **Files:**
 - Create: `contracts/script/04_AddLiquidity.s.sol`, `contracts/script/05_WriteDeployments.s.sol`
 
-- [ ] **Step 1: Write 04_AddLiquidity**
+- [x] **Step 1: Write 04_AddLiquidity**
 
 L is sized so that each pool holds `LIQ_TETH` tETH at the initial price. The default of 100,000 tETH gives L ≈ 5.2e24 at $2,713, the depth plan 04 asks for: a $2,000 retail order then moves the price about 0.15 bp (measured 0.147 bp on a Sepolia fork), far below the per-block volatility (about 3 bp at 50 %/yr), so retail flow does not distort the arbitrage-frequency check. With 10,000 tETH a $2,000 order moved it about 1.5 bp (measured 1.25 bp for $1,696). Both suites use 400,000 of the 1,000,000 minted tETH and about 1 billion of the 10 billion tUSD. V and S get the same L, and the script asserts it.
 ```solidity
@@ -2500,7 +2500,7 @@ contract AddLiquidity is ClimScript {
 }
 ```
 
-- [ ] **Step 2: Write 05_WriteDeployments**
+- [x] **Step 2: Write 05_WriteDeployments**
 
 The JSON is built by hand with `string.concat`, because forge's `serialize*` cannot write `null`, which plan 04's schema uses for suites not yet deployed.
 ```solidity
@@ -2686,14 +2686,14 @@ contract WriteDeployments is ClimScript {
 }
 ```
 
-- [ ] **Step 3: Build and run the whole offline suite**
+- [x] **Step 3: Build and run the whole offline suite**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge build && forge test --no-match-path 'test/fork/*'
 ```
 Expected: `Compiler run successful!`, then `69 tests passed, 0 failed, 0 skipped (69 total tests)`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/script/04_AddLiquidity.s.sol contracts/script/05_WriteDeployments.s.sol && git commit -m "feat(contracts): full-range liquidity and deployments writer in plan 04's schema"
