@@ -20,7 +20,7 @@ const STAGE = [0, 0, 0, 0, 0, 1, 2, 3, 3];
 
 /** Icon strokes in Ember, drawn at the node's top-left corner (Ventriloc's orange line icons). */
 function Icon({ kind, x, y }: { kind: "venue" | "don" | "desk" | "hook" | "pool"; x: number; y: number }) {
-  const s = { fill: "none", stroke: "var(--clim-ember)", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const s = { fill: "none", stroke: "var(--clim-signal)", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   const t = `translate(${x} ${y})`;
   if (kind === "venue") return <path transform={t} d="M2 14V9M7 14V4M12 14V7" {...s} />;
   if (kind === "don") return <path transform={t} d="M7 1l6 3.5v7L7 15l-6-3.5v-7z M7 5.5v5" {...s} />;
@@ -72,7 +72,7 @@ export function PipelineDiagram({ live }: { live: Live }) {
       <div className="flex items-center justify-between border-b border-line px-4 py-2.5 text-xs text-fg-subtle">
         <span>clim · risk desk pipeline</span>
         <span className="flex items-center gap-2">
-          <span className="size-4 rounded-full bg-ivory ring-1 ring-line" />
+          <span className="size-4 rounded-full bg-wash ring-1 ring-line" />
           100%
         </span>
       </div>
@@ -80,7 +80,7 @@ export function PipelineDiagram({ live }: { live: Live }) {
         <svg viewBox="0 0 770 350" className="block h-auto w-full min-w-[560px]" role="img" aria-label="Four venues and Deribit feed the Chainlink CRE network, which writes RiskDesk; ClimHook reads it and prices pools V and S">
           <defs>
             <marker id="clim-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0 0l8 4-8 4z" fill="var(--clim-brass)" />
+              <path d="M0 0l8 4-8 4z" fill="var(--clim-deep)" />
             </marker>
           </defs>
           {RAILS.map((d, i) => (
@@ -89,7 +89,7 @@ export function PipelineDiagram({ live }: { live: Live }) {
               ref={(el) => { paths.current[i] = el; }}
               d={d}
               fill="none"
-              stroke="var(--clim-brass)"
+              stroke="var(--clim-deep)"
               strokeWidth={1.2}
               strokeDasharray={i === RAILS.length - 1 ? "5 4" : undefined}
               markerEnd="url(#clim-arrow)"
@@ -104,7 +104,7 @@ export function PipelineDiagram({ live }: { live: Live }) {
                 <text x={42} y={VY[i] + 38} fontSize={10.5} fill="var(--clim-fg-subtle)">1-min ETH candles</text>
               </g>
             ))}
-            <rect x={12} y={286} width={140} height={50} rx={6} fill="var(--clim-ivory)" stroke="var(--clim-line)" />
+            <rect x={12} y={286} width={140} height={50} rx={6} fill="var(--clim-wash)" stroke="var(--clim-line)" />
             <Icon kind="venue" x={22} y={295} />
             <text x={42} y={307}>Deribit DVOL</text>
             <text x={42} y={324} fontSize={10.5} fill="var(--clim-fg-subtle)">the market&apos;s forecast</text>
@@ -125,19 +125,19 @@ export function PipelineDiagram({ live }: { live: Live }) {
             <Icon kind="hook" x={558} y={160} />
             <text x={576} y={172}>ClimHook</text>
             <text x={558} y={194} fontSize={12}>quoteFee()</text>
-            <text x={558} y={212} fontSize={12} fill="var(--clim-ember)">{bp(live.feeVBp)}</text>
+            <text x={558} y={212} fontSize={12} fill="var(--clim-signal)">{bp(live.feeVBp)}</text>
 
-            <rect x={684} y={62} width={80} height={60} rx={6} fill="var(--clim-surface)" stroke="var(--clim-ember)" />
+            <rect x={684} y={62} width={80} height={60} rx={6} fill="var(--clim-surface)" stroke="var(--clim-signal)" />
             <Icon kind="pool" x={692} y={70} />
             <text x={710} y={82}>Pool V</text>
-            <text x={692} y={108} fontSize={12} fill="var(--clim-ember)">{bp(live.feeVBp)}</text>
+            <text x={692} y={108} fontSize={12} fill="var(--clim-signal)">{bp(live.feeVBp)}</text>
             <rect x={684} y={250} width={80} height={60} rx={6} fill="var(--clim-surface)" stroke="var(--clim-line)" />
             <Icon kind="pool" x={692} y={258} />
             <text x={710} y={270}>Pool S</text>
             <text x={692} y={296} fontSize={12}>{bp(live.feeSBp)}</text>
           </g>
           {RAILS.map((d, i) => (
-            <circle key={`dot-${d}`} ref={(el) => { dots.current[i] = el; }} r={4} fill="var(--clim-ember)" opacity={0} />
+            <circle key={`dot-${d}`} ref={(el) => { dots.current[i] = el; }} r={4} fill="var(--clim-signal)" opacity={0} />
           ))}
         </svg>
       </div>

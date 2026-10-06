@@ -2,6 +2,8 @@
 
 import type { WeatherPoint } from "@/lib/series";
 import { Cursor } from "./Cursor";
+import { type BootValues, LAUNCH_ORIGIN } from "./Launch";
+import { LaunchLink } from "./LaunchLink";
 import { LcdStorm } from "./LcdStorm";
 import { WeatherMini } from "./WeatherMini";
 
@@ -9,8 +11,8 @@ export type HeroLive = { points: WeatherPoint[]; feeVBp?: number; feeSBp?: numbe
 
 const card = "rounded-md border border-line bg-surface shadow-[0_10px_30px_rgba(32,32,32,0.06)]";
 
-function Chip({ children, tone = "ember" }: { children: React.ReactNode; tone?: "ember" | "brass" }) {
-  return <span className={`grid size-8 shrink-0 place-items-center rounded-full ${tone === "ember" ? "bg-ember/12 text-ember" : "bg-brass/12 text-brass"}`}>{children}</span>;
+function Chip({ children, tone = "signal" }: { children: React.ReactNode; tone?: "signal" | "deep" }) {
+  return <span className={`grid size-8 shrink-0 place-items-center rounded-full ${tone === "signal" ? "bg-signal/12 text-signal" : "bg-deep/12 text-deep"}`}>{children}</span>;
 }
 
 /** A sparkline of V's fee with Ventriloc's highlighted last point. */
@@ -32,17 +34,17 @@ function Spark({ points }: { points: WeatherPoint[] }) {
 }
 
 /** The hero's cluster of live cards: the weather, the fee now, and the CL-1 instrument's screen. */
-export function HeroCards({ live }: { live: HeroLive }) {
+export function HeroCards({ live, boot }: { live: HeroLive; boot: BootValues }) {
   const bp = (x?: number) => (x === undefined ? "…" : x.toFixed(2));
   return (
     <div className="relative flex flex-col gap-4 md:block md:h-[500px]">
-      <article className={`${card} relative p-4 md:absolute md:right-0 md:top-0 md:w-[86%]`}>
+      <article className={`${card} rise relative p-4 md:absolute md:right-0 md:top-0 md:w-[86%]`} style={{ animationDelay: "120ms" }}>
         <div className="flex items-center gap-3">
           <Chip>
             <svg viewBox="0 0 14 14" className="size-3.5" aria-hidden><path d="M2 12V8M7 12V3M12 12V6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" /></svg>
           </Chip>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-ember">Weather</p>
+            <p className="text-sm font-medium text-signal">Weather</p>
             <p className="text-xs text-fg-subtle">σ and the fee it sets, last 2 hours{live.simulated ? " · simulated" : ""}</p>
           </div>
         </div>
@@ -50,7 +52,7 @@ export function HeroCards({ live }: { live: HeroLive }) {
         <Cursor label="Chainlink DON" className="left-[42%] top-[38%]" />
       </article>
 
-      <article className={`${card} relative p-4 md:absolute md:left-0 md:top-[262px] md:w-[50%]`}>
+      <article className={`${card} rise relative p-4 md:absolute md:left-0 md:top-[262px] md:w-[50%]`} style={{ animationDelay: "240ms" }}>
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm font-medium">Fee now · pool V</p>
@@ -58,10 +60,10 @@ export function HeroCards({ live }: { live: HeroLive }) {
               {bp(live.feeVBp)} <span className="text-base text-fg-subtle">bp</span>
             </p>
             <p className="mt-1.5 text-xs text-fg-subtle">
-              <span className="text-brass">vs {bp(live.feeSBp)} bp</span> in pool S · {live.modeLabel ?? "…"} mode
+              <span className="text-deep">vs {bp(live.feeSBp)} bp</span> in pool S · {live.modeLabel ?? "…"} mode
             </p>
           </div>
-          <Chip tone="brass">
+          <Chip tone="deep">
             <svg viewBox="0 0 14 14" className="size-3.5" aria-hidden><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.4" fill="none" /><path d="M7 4v3.2l2 1.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" /></svg>
           </Chip>
         </div>
@@ -69,14 +71,20 @@ export function HeroCards({ live }: { live: HeroLive }) {
         <Cursor label="ClimHook" className="right-[8%] top-[44%]" delay="-2s" />
       </article>
 
-      <article className="relative overflow-hidden rounded-md bg-fg p-4 text-surface shadow-[0_10px_30px_rgba(32,32,32,0.18)] md:absolute md:right-[2%] md:top-[300px] md:w-[46%]">
-        <div className="flex items-center justify-between text-[11px] text-fg-subtle">
-          <span className="text-surface/80">CL-1 · risk desk</span>
-          <span className="font-lcd text-xs font-bold tracking-wider text-ember">#{live.seq ?? "…"}</span>
+      <LaunchLink
+        boot={boot}
+        aria-label="Enter the desk: open the app"
+        className="rise group relative block overflow-hidden rounded-md bg-lcd-bg p-4 text-lcd-lit shadow-[0_10px_30px_rgba(14,17,25,0.22)] transition-transform duration-500 ease-out hover:-translate-y-1 md:absolute md:right-[2%] md:top-[300px] md:w-[46%]"
+        style={{ animationDelay: "360ms" }}
+      >
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="text-lcd-lit/80">CL-1 · risk desk</span>
+          <span className="font-lcd text-xs font-bold tracking-wider text-lcd-hot transition-opacity duration-300 group-hover:opacity-0">#{live.seq ?? "…"}</span>
+          <span className="absolute right-4 top-4 font-lcd text-xs font-bold tracking-wider text-lcd-hot opacity-0 transition-opacity duration-300 group-hover:opacity-100">ENTER ↗</span>
         </div>
-        <div className="relative mt-3 aspect-[16/9] overflow-hidden rounded-sm">
+        <div {...{ [LAUNCH_ORIGIN]: "" }} className="relative mt-3 aspect-[16/9] overflow-hidden rounded-sm">
           <LcdStorm sigmaPct={live.sigmaPct ?? 40} className="absolute inset-0 h-full w-full" />
-          <div className="absolute inset-x-3 bottom-2 flex items-end justify-between font-lcd text-ivory">
+          <div className="absolute inset-x-3 bottom-2 flex items-end justify-between font-lcd text-lcd-lit">
             <span>
               <span className="block text-[10px] font-bold opacity-70">σ %/YR</span>
               <span className="text-[34px] font-black leading-none tabular-nums">{live.sigmaPct === undefined ? "…" : live.sigmaPct.toFixed(1)}</span>
@@ -85,7 +93,7 @@ export function HeroCards({ live }: { live: HeroLive }) {
           </div>
         </div>
         <Cursor label="LP" className="left-[18%] top-[30%]" delay="-4s" />
-      </article>
+      </LaunchLink>
     </div>
   );
 }

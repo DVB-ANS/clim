@@ -11,10 +11,9 @@ const NAV = [
   { href: "/replay", label: "replay" },
 ];
 
-export const pillDark = "inline-flex min-h-11 items-center gap-2 rounded-full bg-fg px-5 text-[15px] text-surface hover:opacity-90";
-export const pillOutline = "inline-flex min-h-11 items-center gap-2 rounded-full border border-fg px-5 text-[15px] text-fg hover:bg-fg hover:text-surface";
+const pillBlue = "inline-flex min-h-11 items-center gap-2 rounded-full bg-accent px-5 text-[15px] text-accent-fg transition-[filter] hover:brightness-110";
 
-/** Ventriloc's header: wordmark, the navigation in an Ash pill, the network in Slate, a dark pill CTA. */
+/** Ventriloc's header: wordmark, the navigation in a pill, the network, and Chainlink's blue pill to enter the app. */
 export function SiteHeader({ boot }: { boot: BootValues }) {
   return (
     <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur">
@@ -31,7 +30,7 @@ export function SiteHeader({ boot }: { boot: BootValues }) {
         </nav>
         <div className="flex items-center gap-5">
           <span className="text-sm text-fg-subtle">Sepolia</span>
-          <LaunchLink boot={boot} className={pillDark}>
+          <LaunchLink boot={boot} className={pillBlue}>
             Launch app
           </LaunchLink>
         </div>
@@ -43,31 +42,28 @@ export function SiteHeader({ boot }: { boot: BootValues }) {
 /** The degree sign of the wordmark, blown up as Ventriloc does with its bracket. */
 function GiantDegree({ className = "" }: { className?: string }) {
   return (
-    <span aria-hidden className={`pointer-events-none absolute select-none font-display leading-none text-ember ${className}`}>
+    <span aria-hidden className={`pointer-events-none absolute select-none font-display leading-none text-signal ${className}`}>
       °
     </span>
   );
 }
 
-export function CtaPanel({ boot }: { boot: BootValues }) {
+/**
+ * The closing panel, as at the bottom of Ventriloc: no button, the desk's dark ground growing to the
+ * full width as it scrolls in while the giant degree sign turns into place.
+ */
+export function ClosingPanel() {
   return (
-    <section aria-labelledby="cta-title" className="relative mx-auto max-w-[1200px] overflow-hidden rounded-lg bg-fg px-6 py-14 text-surface md:px-14 md:py-20">
-      <GiantDegree className="-right-10 -top-28 text-[460px] md:text-[620px]" />
+    <section aria-labelledby="closing-title" className="grow-in relative mx-auto max-w-[1200px] overflow-hidden rounded-lg bg-lcd-bg px-6 py-16 text-lcd-lit md:px-14 md:py-24">
+      <GiantDegree className="degree-in -right-10 -top-28 text-[460px] md:text-[640px]" />
       <div className="relative max-w-xl">
-        <h2 id="cta-title" className="font-display text-[44px] font-normal leading-[0.98] tracking-[-0.02em] md:text-[56px]">
-          Read the weather. Then swap.
+        <h2 id="closing-title" className="font-display text-[44px] font-normal leading-[0.98] tracking-[-0.02em] text-surface md:text-[60px]">
+          Every swap reads the weather.
         </h2>
-        <p className="mt-4 text-[17px] leading-relaxed text-surface/75">
-          The live desk, the fee before you pay it, and full-range liquidity on V or S, with a faucet for test tokens.
+        <p className="mt-5 text-[17px] leading-relaxed text-lcd-lit/80">
+          Four exchanges, one Chainlink median every 30 seconds, one fee inside every Uniswap v4 swap: cheap when the market is calm, paid
+          for the risk when it storms.
         </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <LaunchLink boot={boot} className="inline-flex min-h-11 items-center rounded-full bg-surface px-5 text-[15px] text-fg hover:opacity-90">
-            Launch app
-          </LaunchLink>
-          <Link href="/lp" className="inline-flex min-h-11 items-center rounded-full border border-surface/60 px-5 text-[15px] text-surface hover:bg-surface hover:text-fg">
-            Provide liquidity
-          </Link>
-        </div>
       </div>
     </section>
   );
@@ -88,8 +84,8 @@ const FOOT = [
 
 export function SiteFooter({ simulated }: { simulated: boolean }) {
   return (
-    <footer className="relative mx-2 mb-2 overflow-hidden rounded-lg bg-fg px-6 pb-8 pt-12 text-surface md:px-14">
-      <GiantDegree className="-bottom-24 -right-6 text-[360px] md:-bottom-40 md:text-[560px]" />
+    <footer className="relative mx-2 mb-2 overflow-hidden rounded-lg bg-lcd-bg px-6 pb-8 pt-12 text-surface md:px-14">
+      <GiantDegree className="degree-in -bottom-24 -right-6 text-[360px] md:-bottom-40 md:text-[560px]" />
       <div className="relative flex flex-wrap items-center gap-4">
         <Wordmark tone="light" className="text-[40px]" />
         <span className="rounded-full bg-surface/10 px-3 py-1 text-xs text-surface/80">Ethereum Sepolia</span>

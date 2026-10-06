@@ -31,7 +31,7 @@ export function DashboardPreview({ kpis, points, staticFeeBp }: { kpis: Kpi[]; p
               </p>
               {k.delta ? (
                 <p className="mt-1.5 text-[11px] text-fg-subtle">
-                  <span className={k.delta.up ? "text-ember" : "text-brass"}>{k.delta.up ? "↑" : "↓"} {k.delta.text}</span> vs 1 h ago
+                  <span className={k.delta.up ? "text-signal" : "text-deep"}>{k.delta.up ? "↑" : "↓"} {k.delta.text}</span> vs 1 h ago
                 </p>
               ) : (
                 <p className="mt-1.5 text-[11px] text-fg-subtle">{k.note}</p>

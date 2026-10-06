@@ -30,6 +30,7 @@
     "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@web3icons/core": "^4.0.58",
     "dotted-map": "^2.2.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",

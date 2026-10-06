@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo } from "react";
 import { useClimData } from "@/hooks/useClimData";
 import { params } from "@/lib/config";
@@ -15,12 +14,11 @@ import { DeskChecks } from "./DeskChecks";
 import { HeroCards } from "./HeroCards";
 import { IsobarCanvas } from "./IsobarCanvas";
 import type { BootValues } from "./Launch";
-import { LaunchLink } from "./LaunchLink";
 import { LiveTicker, type TickerItem } from "./LiveTicker";
 import { LogoStrip } from "./LogoStrip";
 import { PipelineDiagram } from "./PipelineDiagram";
 import { ServiceSection } from "./ServiceSection";
-import { CtaPanel, pillDark, pillOutline, SiteFooter, SiteHeader } from "./SiteChrome";
+import { ClosingPanel, SiteFooter, SiteHeader } from "./SiteChrome";
 import { VenueMap } from "./VenueMap";
 
 /** The last report published at or before t (reports are in chain order). */
@@ -92,30 +90,26 @@ export function Landing() {
 
       <section className="mx-auto grid max-w-[1200px] items-center gap-12 px-4 pb-16 pt-10 md:pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <div>
-          <h1 className="font-display text-[48px] font-normal leading-[0.94] tracking-[-0.02em] sm:text-[58px] lg:text-[66px]">
-            Your Liquidity. Our Risk Desk. Fees That Follow The <span className="text-brass underline decoration-1 underline-offset-[10px]">Storm</span>.
+          <h1 className="rise font-display text-[48px] font-normal leading-[0.94] tracking-[-0.02em] sm:text-[58px] lg:text-[66px]">
+            Your Liquidity. Our Risk Desk. Fees That Follow The <span className="text-signal underline decoration-1 underline-offset-[10px]">Storm</span>.
           </h1>
-          <p className="mt-6 max-w-[34rem] text-[18px] leading-[1.45] text-fg-muted">
+          <p className="rise mt-6 max-w-[34rem] text-[18px] leading-[1.45] text-fg-muted" style={{ animationDelay: "100ms" }}>
             clim plugs a Chainlink CRE risk desk into a Uniswap v4 hook. Four exchanges measure ETH volatility every 30 seconds, and every swap
             pays the fee that weather sets: 5 bp in calm markets, more as the storm builds.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <LaunchLink boot={boot} className={pillDark}>
-              Launch app
-            </LaunchLink>
-            <Link href="/how" className={pillOutline}>
-              How it works
-            </Link>
-          </div>
+          <p className="rise mt-8 flex items-center gap-2 text-sm text-fg-subtle" style={{ animationDelay: "200ms" }}>
+            <span aria-hidden className="size-2 rounded-full bg-signal" />
+            Live from the desk{simulated ? ", simulated until the contracts are on Sepolia" : ""}. Click the CL-1 to enter.
+          </p>
         </div>
-        <HeroCards live={{ points, feeVBp, feeSBp, sigmaPct, modeLabel, seq: last?.seq, simulated }} />
+        <HeroCards live={{ points, feeVBp, feeSBp, sigmaPct, modeLabel, seq: last?.seq, simulated }} boot={boot} />
       </section>
 
       <LogoStrip />
       <LiveTicker items={ticker} simulated={simulated} />
 
       <div className="bg-bg px-2 pb-24 pt-16 md:px-4">
-        <div className="mx-auto max-w-[1200px] space-y-6">
+        <div className="stack mx-auto max-w-[1200px] space-y-6">
           <ServiceSection
             id="desk"
             index={0}
@@ -188,7 +182,7 @@ export function Landing() {
       </div>
 
       <div className="bg-bg px-2 pb-6 md:px-4">
-        <CtaPanel boot={boot} />
+        <ClosingPanel />
       </div>
       <div className="bg-bg pt-2">
         <SiteFooter simulated={simulated} />

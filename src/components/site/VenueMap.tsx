@@ -31,12 +31,12 @@ export function VenueMap({ className = "" }: { className?: string }) {
             <path
               d={`M${x} ${y} Q ${(x + DON[0]) / 2} ${Math.max(y, DON[1]) + 7} ${DON[0]} ${DON[1]}`}
               fill="none"
-              stroke="var(--clim-brass)"
+              stroke="var(--clim-deep)"
               strokeWidth={0.35}
               strokeDasharray="1.4 1.6"
               className="animate-[clim-dash_1.6s_linear_infinite]"
             />
-            <circle cx={x} cy={y} r={1.15} fill="var(--clim-ember)" stroke="var(--clim-surface)" strokeWidth={0.4} />
+            <circle cx={x} cy={y} r={1.15} fill="var(--clim-signal)" stroke="var(--clim-surface)" strokeWidth={0.4} />
             <text x={x + p.lx} y={y + p.ly} textAnchor={p.anchor} fontSize={2.4} fill="var(--clim-fg)" fontFamily="var(--font-inter)">
               {name === "Deribit" ? "Deribit DVOL" : name}
             </text>

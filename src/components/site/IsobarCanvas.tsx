@@ -33,7 +33,7 @@ export function IsobarCanvas({ sigmaPct, className = "" }: { sigmaPct: number; c
     g.lineWidth = dpr;
     for (let lv = -3.4; lv < 1.3; lv += 0.2) {
       const major = Math.abs(lv - Math.round(lv)) < 0.01;
-      g.strokeStyle = major ? k.fg : k.brass;
+      g.strokeStyle = major ? k.fg : k.deep;
       g.globalAlpha = major ? 0.42 : 0.34;
       g.beginPath();
       for (const [x1, y1, x2, y2] of contourSegments(F, cols, rows, lv, cw, ch)) {
@@ -43,7 +43,7 @@ export function IsobarCanvas({ sigmaPct, className = "" }: { sigmaPct: number; c
       g.stroke();
     }
     g.globalAlpha = 1;
-    g.fillStyle = k.ember;
+    g.fillStyle = k.sigma;
     g.font = `500 ${22 * dpr}px ${k.display}`;
     g.fillText("L", lx * w - 7 * dpr, ly * h + 8 * dpr);
     g.fillStyle = k.fg;

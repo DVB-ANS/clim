@@ -22,7 +22,7 @@ export function LcdStorm({ sigmaPct, className = "" }: { sigmaPct: number; class
     if (s.t) s.angle += ((now - s.t) / 1000) * (0.35 + 1.4 * storm);
     s.t = now;
     g.globalAlpha = 1;
-    g.fillStyle = k.fg;
+    g.fillStyle = k.lcdBg;
     g.fillRect(0, 0, w, h);
     const cell = Math.max(4, Math.min(7, w / dpr / 60)) * dpr, cols = Math.floor(w / cell), rows = Math.floor(h / cell);
     const grid = new Float32Array(cols * rows);
@@ -38,7 +38,7 @@ export function LcdStorm({ sigmaPct, className = "" }: { sigmaPct: number; class
       for (let x = 0; x < cols; x++) {
         const v = grid[y * cols + x], dither = ((x * 3 + y * 5) % 4) / 4;
         const hot = v >= mean * (3.2 + dither), lit = v >= mean * (0.7 + 0.5 * dither);
-        g.fillStyle = hot ? k.ember : k.ivory;
+        g.fillStyle = hot ? k.lcdHot : k.lcdLit;
         g.globalAlpha = hot ? 1 : lit ? 0.72 : 0.07;
         g.fillRect(x * cell + off, y * cell + off, dot, dot);
       }

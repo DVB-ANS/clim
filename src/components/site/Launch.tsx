@@ -2,8 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { stormParticles, stormPositions } from "@/lib/desk";
-import { canvasTokens } from "./canvasTokens";
+import { LcdStorm } from "./LcdStorm";
 
 /** What the desk says at the moment of launch, shown while the app opens (no fake waiting). */
 export type BootValues = { block?: number; seq?: number; sources?: number; sigmaPct?: number; feeBp?: number; mode?: string; simulated: boolean };
@@ -11,51 +10,67 @@ export type BootValues = { block?: number; seq?: number; sources?: number; sigma
 const LaunchContext = createContext<(boot: BootValues) => void>(() => {});
 export const useLaunch = () => useContext(LaunchContext);
 
-const PARTICLES = stormParticles(1400, 7);
-const ZOOM_MS = 1000;
+/** The CL-1 screen the launch zooms into: the hero card marks it with this attribute. */
+export const LAUNCH_ORIGIN = "data-launch-origin";
+const ZOOM_MS = 1100;
+// where the storm's eye sits in an LcdStorm canvas (cx = 0.62 w, cy = 0.5 h)
+const EYE = { x: 0.62, y: 0.5 };
+
+type Origin = { left: number; top: number; width: number; height: number };
+
+/** The CL-1 screen's box if it is on screen, else a small screen in the middle of the window. */
+function originBox(): Origin {
+  const el = document.querySelector(`[${LAUNCH_ORIGIN}]`);
+  const r = el?.getBoundingClientRect();
+  if (r && r.width > 0 && r.bottom > 0 && r.top < window.innerHeight) return { left: r.left, top: r.top, width: r.width, height: r.height };
+  const width = Math.min(360, window.innerWidth * 0.6), height = width * 0.5625;
+  return { left: (window.innerWidth - width) / 2, top: (window.innerHeight - height) / 2, width, height };
+}
 
 /**
- * "Launch app": Ventriloc's Brass page transition. The storm zooms into its eye while the boot lines
- * name the live block, report and quote, then /app opens and the panel fades out. Lives in the root
- * layout so it survives the navigation.
+ * "Launch app": the page zooms into the CL-1's screen. A copy of the screen sits exactly over the
+ * hero's, then grows around the storm's eye (a compositor transform, so it stays fluid) while the
+ * desk's dark ground fills the window; the app, which wears the same dark ground, opens underneath
+ * and the screen fades. Lives in the root layout so it survives the navigation.
  */
 export function LaunchProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const path = usePathname();
-  const [boot, setBoot] = useState<BootValues | null>(null);
+  const [run, setRun] = useState<{ boot: BootValues; origin: Origin; sigmaPct: number } | null>(null);
   const [leaving, setLeaving] = useState(false);
 
   const launch = useCallback(
-    (b: BootValues) => {
+    (boot: BootValues) => {
       router.prefetch("/app");
       setLeaving(false);
-      setBoot(b);
+      setRun({ boot, origin: originBox(), sigmaPct: boot.sigmaPct ?? 40 });
     },
     [router],
   );
 
-  // Once /app is on screen, fade the panel out.
+  // Once /app is on screen, let the zoom finish its last frames, then fade the screen out.
   useEffect(() => {
-    if (!boot || path !== "/app") return;
-    const fade = setTimeout(() => setLeaving(true), 120);
-    const done = setTimeout(() => setBoot(null), 520);
+    if (!run || path !== "/app") return;
+    const fade = setTimeout(() => setLeaving(true), 160);
+    const done = setTimeout(() => setRun(null), 700);
     return () => {
       clearTimeout(fade);
       clearTimeout(done);
     };
-  }, [boot, path]);
+  }, [run, path]);
 
   return (
     <LaunchContext.Provider value={launch}>
       {children}
-      {boot ? <LaunchOverlay boot={boot} leaving={leaving} onOpen={() => router.push("/app")} /> : null}
+      {run ? <LaunchZoom {...run} leaving={leaving} onOpen={() => router.push("/app")} /> : null}
     </LaunchContext.Provider>
   );
 }
 
-function LaunchOverlay({ boot, leaving, onOpen }: { boot: BootValues; leaving: boolean; onOpen: () => void }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const [step, setStep] = useState(0);
+function LaunchZoom({ boot, origin, sigmaPct, leaving, onOpen }: { boot: BootValues; origin: Origin; sigmaPct: number; leaving: boolean; onOpen: () => void }) {
+  const screen = useRef<HTMLDivElement>(null);
+  const ground = useRef<HTMLDivElement>(null);
+  const [lines, setLines] = useState(false);
   const opened = useRef(false);
   const onOpenRef = useRef(onOpen);
   useEffect(() => {
@@ -70,68 +85,59 @@ function LaunchOverlay({ boot, leaving, onOpen }: { boot: BootValues; leaving: b
 
   useEffect(() => {
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const lines = [setTimeout(() => setStep(1), 120), setTimeout(() => setStep(2), 380), setTimeout(() => setStep(3), 640)];
-    const go = setTimeout(open, reduce ? 300 : ZOOM_MS);
-    const c = ref.current;
-    const g = c?.getContext("2d");
-    let raf = 0;
-    if (c && g && !reduce) {
-      const k = canvasTokens(c);
-      const t0 = performance.now();
-      const draw = (now: number) => {
-        const p = Math.min(1, (now - t0) / ZOOM_MS);
-        const e = p * p * (3 - 2 * p);
-        const dpr = Math.min(2, window.devicePixelRatio || 1);
-        const w = Math.round(c.clientWidth * dpr), h = Math.round(c.clientHeight * dpr);
-        if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
-        g.clearRect(0, 0, w, h);
-        const R = Math.min(w, h) * 0.42 * (1 + 7 * e * e), cx = w * 0.62, cy = h * 0.45;
-        for (const [x, y, r] of stormPositions(PARTICLES, e * 2.4, 1.2)) {
-          const px = cx + x * R, py = cy + y * R;
-          if (px < -8 || py < -8 || px > w + 8 || py > h + 8) continue;
-          const s = (2 + 5 * e * (1 - r)) * dpr;
-          g.fillStyle = r < 0.2 ? k.ember : k.ivory;
-          g.globalAlpha = r < 0.2 ? 0.95 : 0.75 - 0.3 * e;
-          g.fillRect(px, py, s, s);
-        }
-        g.globalAlpha = 1;
-        if (p < 1) raf = requestAnimationFrame(draw);
-      };
-      raf = requestAnimationFrame(draw);
+    const timers = [setTimeout(() => setLines(true), reduce ? 0 : ZOOM_MS * 0.55), setTimeout(open, reduce ? 250 : ZOOM_MS * 0.7)];
+    const anims: Animation[] = [];
+    if (!reduce && screen.current && ground.current) {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const eyeX = origin.left + EYE.x * origin.width, eyeY = origin.top + EYE.y * origin.height;
+      // enough zoom for the eye wall to fill the window
+      const scale = (Math.max(vw, vh) / origin.height) * 2.6;
+      const easing = "cubic-bezier(0.7, 0, 0.25, 1)";
+      anims.push(
+        screen.current.animate(
+          [
+            { transform: "translate(0px, 0px) scale(1)", borderRadius: "8px" },
+            { transform: `translate(${vw / 2 - eyeX}px, ${vh / 2 - eyeY}px) scale(${scale})`, borderRadius: "0px" },
+          ],
+          { duration: ZOOM_MS, easing, fill: "forwards" },
+        ),
+        ground.current.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ZOOM_MS * 0.6, easing: "ease-out", fill: "forwards" }),
+      );
     }
     return () => {
-      lines.forEach(clearTimeout);
-      clearTimeout(go);
-      cancelAnimationFrame(raf);
+      timers.forEach(clearTimeout);
+      anims.forEach((a) => a.cancel());
     };
-  }, [open]);
+  }, [open, origin]);
 
   const fmt = (x: number | undefined, d: number) => (x === undefined ? "…" : x.toFixed(d));
-  const rows = [
-    `Connecting to Ethereum Sepolia${boot.block ? ` · block ${boot.block.toLocaleString("en-US")}` : ""}`,
-    `RiskDesk.state() · report #${boot.seq ?? "…"} · ${boot.sources ?? "…"}/4 venues · σ ${fmt(boot.sigmaPct, 1)} %/yr`,
-    `ClimHook.quoteFee() · ${fmt(boot.feeBp, 2)} bp · ${boot.mode ?? "…"}${boot.simulated ? " · simulated" : ""}`,
-  ];
   return (
     <div
       role="status"
       aria-live="polite"
       onClick={open}
-      className={`fixed inset-0 z-[100] cursor-pointer bg-brass text-surface transition-opacity duration-300 ${leaving ? "opacity-0" : "opacity-100"}`}
+      className={`fixed inset-0 z-[100] cursor-pointer transition-opacity duration-500 ${leaving ? "opacity-0" : "opacity-100"}`}
     >
-      <canvas ref={ref} aria-hidden className="absolute inset-0 h-full w-full" />
-      <div className="absolute bottom-[12vh] left-4 right-4 mx-auto max-w-6xl md:left-8">
-        <p className="font-display text-[40px] leading-none tracking-[-0.03em]">
-          clim<span className="text-ember">°</span>
-        </p>
-        <ol className="mt-6 space-y-1.5 text-[15px] md:text-[17px]">
-          {rows.map((r, i) => (
-            <li key={r} className={`tabular-nums transition-all duration-300 ${step > i ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}>
-              {r}
-            </li>
-          ))}
-        </ol>
+      <div ref={ground} className="absolute inset-0 bg-lcd-bg opacity-0" />
+      <div
+        ref={screen}
+        className="absolute overflow-hidden rounded-sm will-change-transform"
+        style={{ left: origin.left, top: origin.top, width: origin.width, height: origin.height, transformOrigin: `${EYE.x * 100}% ${EYE.y * 100}%` }}
+      >
+        <LcdStorm sigmaPct={sigmaPct} className="block h-full w-full" />
       </div>
+      <ol
+        className={`absolute bottom-[10vh] left-1/2 w-[min(92vw,640px)] -translate-x-1/2 space-y-1 font-lcd text-[15px] font-bold text-lcd-lit transition-opacity duration-500 md:text-[17px] ${lines ? "opacity-100" : "opacity-0"}`}
+      >
+        <li>ENTERING THE DESK{boot.block ? ` · BLOCK ${boot.block.toLocaleString("en-US")}` : ""}</li>
+        <li>
+          REPORT #{boot.seq ?? "…"} · {boot.sources ?? "…"}/4 VENUES · σ {fmt(boot.sigmaPct, 1)} %/YR
+        </li>
+        <li>
+          QUOTEFEE() {fmt(boot.feeBp, 2)} BP · {(boot.mode ?? "…").toUpperCase()}
+          {boot.simulated ? " · SIMULATED" : ""}
+        </li>
+      </ol>
     </div>
   );
 }
