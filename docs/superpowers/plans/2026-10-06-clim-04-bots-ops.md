@@ -4268,7 +4268,7 @@ Prerequisites: `lab/out/replay-window.json` (plan 03), the replay pools, REPLAY-
    curl -s "http://127.0.0.1:8787/venue/kraken/api/v3/klines?symbol=ETHUSDT&interval=1m&limit=20" | python3 -c "import json,sys,time; k=json.load(sys.stdin); print(len(k), int(time.time()) - k[-1][0] // 1000)"
    ```
    Expected: `20` and a number between 0 and 59 (the last kline is the wall-clock minute in progress). Restarting the server restarts the replay at 12:00 UTC; to resume instead, restart it with the anchor it printed: `REPLAY_ANCHOR_SEC=1791342000 bun run replay-server`.
-2. Start the replay desk loop and the replay bots (T6-T8):
+2. Start the replay desk loop and the replay bots (T6-T8). If the live `cre-loop` is starting at the same moment, wait until it has printed its first run: both loops build the WASM into the same `cre/risk-desk/.cre_build_tmp.wasm`, and two builds at once make one fail (`failed to compile workflow: open .../.cre_build_tmp.wasm: no such file or directory`, seen on 2026-10-06; friction log).
    ```bash
    cd bots && ENV_FILE=.env.replay bun run cre-loop --pair replay
    cd bots && bun run arb --pair replay
