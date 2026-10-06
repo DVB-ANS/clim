@@ -7,7 +7,7 @@ The research lab behind clim's parameters and numbers. It decides P\* before the
 ```bash
 cd lab
 uv sync          # Python 3.12, numpy 2.5.3, pytest 9.1.1
-uv run pytest    # 82 tests
+uv run pytest    # 82 tests; the 5 that read lab/data/ (gitignored) skip without it: 77 passed, 5 skipped on a fresh clone
 ```
 
 ## Reproduce the outputs
@@ -28,7 +28,7 @@ uv run python scripts/export_replay.py     # out/replay-2026-02-04.json and out/
 - **Arbitrage.** Fixed 12 s blocks, a myopic arbitrageur who moves the pool to the edge of the no-trade band `g = -ln(1 - fee)`. LVR, ARB (LP loss net of fees) and arbitrage fees are accounted per block.
 - **Competition.** The clim pool against a static 5 bp pool four times deeper. Each block, Poisson retail orders (log-normal sizes) are split by an aggregator to minimise the trader's all-in cost. LP P&L is the sum of trade markouts against the market price (retail markout minus ARB). Retail intensity is calibrated so that a static 5 bp pool breaks even over the year.
 - **The year.** One year of 1-minute closes bridged to 12 s blocks (Brownian bridge with Student-t innovations; on the Feb and Oct 1 s windows it reproduces the real ARB within about 10 %).
-- **Why Chainlink.** The same fee formula fed by the pool's own RV15 captures most of the gain (`inpool.py`): CRE is there for robustness (venues that must agree, a signed report, no manipulation through trades against the pool), not for accuracy.
+- **Why Chainlink.** The same fee formula fed by the pool's own RV15 captures most of the gain (`inpool.py`): CRE is there for robustness (venues that must agree, a report signed by the DON once it runs on one, no manipulation through trades against the pool), not for accuracy.
 - **Validation.** P_trade predicted (Nezlobin-Tassy 2025: `1/(eta + 0.824)`) against observed, with Basel-style zones whose thresholds are simulated from the model, because arbitraged blocks cluster under the model itself.
 
 ## Data

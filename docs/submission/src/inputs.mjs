@@ -125,17 +125,13 @@ export function schemaErrors(obj, expected) {
 
 export const TEAM_SPEC = [{ name: "string", github: "string", role: "string" }];
 
-// Optional: `liveMockData: true` while the deployed dashboard still serves fixture data (the README says so next to the link).
 export const LINKS_SPEC = { repoUrl: "string", liveUrl: "string", deckUrl: "string", videoUrl: "string" };
 
 export function linkErrors(links, { final }) {
   if (!final) return [];
-  return [
-    ...Object.keys(LINKS_SPEC)
-      .filter((k) => typeof links?.[k] !== "string" || !links[k].startsWith("https://"))
-      .map((k) => `links.${k}: must be an https:// URL before submission, got ${JSON.stringify(links?.[k])}`),
-    ...(links?.liveMockData ? ["links.liveMockData: the dashboard still serves mock data; wire it to Sepolia (master Task 14) and remove the flag"] : []),
-  ];
+  return Object.keys(LINKS_SPEC)
+    .filter((k) => typeof links?.[k] !== "string" || !links[k].startsWith("https://"))
+    .map((k) => `links.${k}: must be an https:// URL before submission, got ${JSON.stringify(links?.[k])}`);
 }
 
 export const REPORT_SPEC = {

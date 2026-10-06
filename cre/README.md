@@ -1,6 +1,6 @@
 # clim risk desk (Chainlink CRE workflow)
 
-The risk desk is the CRE half of clim. Every 30 seconds it measures ETH realized volatility on four venues, requires at least three of them to agree, takes the DON median of each field and writes a signed report to `RiskDesk.onReport` on Ethereum Sepolia. The clim Uniswap v4 hook reads `RiskDesk.state()` on every swap and turns sigma into the LP fee. The desk never quotes a price and cannot change the fee formula: it only publishes the volatility the formula uses.
+The risk desk is the CRE half of clim. Every 30 seconds it measures ETH realized volatility on four venues, requires at least three of them to agree, takes the median of each field with the CRE consensus API and writes a report to `RiskDesk.onReport` on Ethereum Sepolia. On a DON that report is the median of the nodes' observations, signed by the DON. Today it runs with `cre workflow simulate --broadcast`: one node, and the operator key sends the report through `MockKeystoneForwarder`, which checks no signature (see [Trust model](#trust-model)). The clim Uniswap v4 hook reads `RiskDesk.state()` on every swap and turns sigma into the LP fee. The desk never quotes a price and cannot change the fee formula: it only publishes the volatility the formula uses.
 
 ## What one execution does
 
@@ -35,6 +35,8 @@ In this version `sigmaE9 == rv15E9`, `kE4 = 10000` (no model-risk multiplier) an
 | Forwarder | `MockKeystoneForwarder` `0x15fC6ae953E024d975e77382eEeC56A9101f9F88`, no signature check | `KeystoneForwarder` `0xF8344CFd5c43616a4366C34E3EEE75af79a74482`, verifies DON signatures |
 | What protects RiskDesk | `tx.origin == simOperator` (the key in `cre/.env`; `cre/.env.replay` for the replay desk), plus the sigma envelope | forwarder address and expected workflow ID |
 
+On the live desk the `simOperator` key is also the owner, so in simulation that one key is trusted: it can post any volatility inside the envelope (×2 up, ×0.8 down per report, 10% to 1000% a year), and the hook still clamps the fee between 5 bp and 150 bp. On a DON the desk accepts only the DON's signed reports; the owner then calls `disableSim()` and renounces ownership ([FAQ](../docs/faq.md#can-the-owner-change-the-fee)).
+
 ## Run it
 
 Prerequisites: bun 1.3.9, CRE CLI v1.37.0 or newer, `cre login`.
@@ -48,7 +50,7 @@ scripts/sim-loop.sh staging-settings --broadcast                   # smoke loop:
 ENV_FILE=.env.replay scripts/sim-loop.sh replay-settings --broadcast   # replay desk, with its own operator key
 ```
 
-Replay mode (`--target replay-settings`, `mode: "replay"`) fetches, for each configured venue, `GET <replayUrl>/venue/<venue>/api/v3/klines?symbol=ETHUSDT&interval=1m&limit=20` from the replay server (`bots/src/replay-server.ts`). The server replays one historical Binance ETHUSDT series (2026-02-04) in Binance kline format, with timestamps shifted to the wall clock. Every venue path returns the same series, so `dispBp = 0`, `dvolE2 = 0` and the reported `nSources` counts venue paths, not independent sources; the replay desk's REPLAY flag discloses this. The report goes to the replay desk.
+Replay mode (`--target replay-settings`, `mode: "replay"`) fetches, for each configured venue, `GET <replayUrl>/venue/<venue>/api/v3/klines?symbol=ETHUSDT&interval=1m&limit=20` from the replay server (`bots/src/replay-server.ts`). The server replays one historical Binance ETHUSDT series (2026-02-04) in Binance kline format, with timestamps shifted to the wall clock. Every venue path returns the same series, so `dispBp = 0`, `dvolE2 = 0` and the reported `nSources` counts venue paths, not independent sources; the replay desk's REPLAY flag discloses this. The report goes to the replay desk. That replay ran once, on 2026-10-06, and is finished ([Evidence](#evidence)).
 
 ## Files
 
@@ -58,7 +60,7 @@ Replay mode (`--target replay-settings`, `mode: "replay"`) fetches, for each con
 | `risk-desk/workflow.yaml` | Workflow name, entry point and config file per target |
 | `risk-desk/main.ts` | Runner entry point |
 | `risk-desk/workflow.ts` | Triggers, node-mode observation, consensus, report, write and confirmation |
-| `risk-desk/venues.ts` | Venue requests, response parsers, concurrent fetch, replay snapshot parser |
+| `risk-desk/venues.ts` | Venue requests, response parsers, concurrent fetch, replay requests (one Binance-format klines path per venue on the replay server) |
 | `risk-desk/estimator.ts` | Pure estimator: normalization, staleness, quorum, per-minute median, RV15, dispersion, tick |
 | `risk-desk/report.ts` | Report ABI, encoder and decoder, RiskDesk read ABI |
 | `risk-desk/fixtures/` | Real responses of the six sources captured on 2026-10-06 (unit-test inputs) |
@@ -78,7 +80,7 @@ Replay mode (`--target replay-settings`, `mode: "replay"`) fetches, for each con
 ## Evidence
 
 - Live RiskDesk: https://sepolia.etherscan.io/address/0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F (reports every 30 s from the simulation loop since 2026-10-06 16:26 UTC).
-- Replay RiskDesk (REPLAY flag, its own operator key): https://sepolia.etherscan.io/address/0x4b843dc3A7ec6202d2337cdeF8C67a0F10f24746 (the 2026-02-04 storm replayed at wall-clock speed from 2026-10-06 16:57 UTC).
+- Replay RiskDesk (REPLAY flag, its own operator key): https://sepolia.etherscan.io/address/0x4b843dc3A7ec6202d2337cdeF8C67a0F10f24746 (the 2026-02-04 storm replayed at wall-clock speed: the loop started at 16:57 UTC on 2026-10-06 and wrote 459 reports, from 17:02 to 20:58 UTC. The replay is finished; since then the replay hook quotes the 30 bp safe fee).
 - First simulated report: https://sepolia.etherscan.io/tx/0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6; forged report that the desk ignored: https://sepolia.etherscan.io/tx/0x34ee46a6947d2831fdb3e5a09f831008589efd9cf099f61dca86dc4cdadc53d9 (and https://sepolia.etherscan.io/tx/0xadc28d17bde52a6b38627ed734783924876454005b6a7c5e7b3fda49f1fa6c02 from `bun run forge-report`).
 - End-to-end latency, observation time (tObs) to block: median 14 s, p90 25 s over 211 reports on the live desk; median 12 s, p90 21 s over 189 reports on the replay desk (`risk-desk/scripts/latency.ts`, last 600 blocks on 2026-10-06 at about 18:40 UTC).
 - DON deployment: not done. Deploy access was requested on 2026-10-06 (`cre account access`) and was still under review; the workflow already uses the consensus API, so it runs unchanged on a DON.

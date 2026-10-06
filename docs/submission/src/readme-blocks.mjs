@@ -23,12 +23,10 @@ export function link(url, text) {
   return url ? `**[${text}](${url})**` : `**${text}** _(added at submission)_`;
 }
 
-// `links.liveMockData: true` says the deployed dashboard still shows fixture data (check:final refuses it).
 // Until docs/evidence/ exists (plan 06 Task 13), "CRE evidence" points to the evidence section of cre/README.md.
 export function renderLinks(links, { evidenceReady = false } = {}) {
-  const dashboard = link(links.liveUrl, "Open the dashboard");
   return [
-    links.liveUrl && links.liveMockData ? `${dashboard} _(mock data until wired to Sepolia)_` : dashboard,
+    link(links.liveUrl, "Open the dashboard"),
     link(links.videoUrl, "Video demo"),
     link(links.deckUrl, "Deck"),
     link(evidenceReady ? "docs/evidence/" : "cre/README.md#evidence", "CRE evidence"),
@@ -43,7 +41,7 @@ const DEPLOYMENT_GROUPS = [
   ["clim", [
     ["riskDesks.live", "`RiskDesk` (live)", "receives the CRE report every 30 s"],
     ["hooks.live", "`ClimHook` (live)", "prices every swap of the live clim pool from the live desk"],
-    ["riskDesks.replay", "`RiskDesk` (replay)", "receives CRE reports on the 4 February 2026 storm, replayed; flagged REPLAY"],
+    ["riskDesks.replay", "`RiskDesk` (replay)", "received the CRE reports of the 4 February 2026 storm, replayed (459 reports, the last at 20:58 UTC on 2026-10-06); flagged REPLAY"],
     ["hooks.replay", "`ClimHook` (replay)", "prices every swap of the replay clim pool from the replay desk"],
     ["riskDesks.don", "`RiskDesk` (DON)", "for reports from a CRE DON through the `KeystoneForwarder`"],
   ]],
@@ -61,7 +59,7 @@ const DEPLOYMENT_GROUPS = [
     ["tokens.tETH.address", "`tETH`", "test ETH with a public faucet"],
     ["tokens.tUSD.address", "`tUSD`", "test USD with a public faucet"],
     ["routers.arb", "`PoolSwapTest` (arbitrage)", "the arbitrage bot's own router, so its swaps can be told apart"],
-    ["deployer", "Operator", "deployer, test-token owner, sender of the live desk's simulated reports"],
+    ["deployer", "Operator", "deployer, owner of both desks, the live desk's `simOperator` (the only accepted sender of its simulated reports), test-token owner"],
   ]],
 ];
 
@@ -73,9 +71,10 @@ const POOL_LABELS = {
 };
 const DYNAMIC_FEE_FLAG = 0x800000;
 
-// clim's own contracts whose source is verified on Sourcify (full match, checked with
-// https://sourcify.dev/server/v2/contract/11155111/<address> on 2026-10-06). The Uniswap and Chainlink contracts are
-// their authors' deployments; the arbitrage router and the operator have no Sourcify link.
+// clim's own contracts whose source is verified on Sourcify, at the level "match" (partial: metadata hash differs),
+// checked with https://sourcify.dev/server/v2/contract/11155111/<address> on 2026-10-06. The Uniswap and Chainlink
+// contracts are their authors' deployments; the arbitrage router (Uniswap's unmodified PoolSwapTest, not verified)
+// and the operator have no Sourcify link.
 const SOURCIFY_VERIFIED = new Set(["riskDesks.live", "hooks.live", "riskDesks.replay", "hooks.replay", "tokens.tETH.address", "tokens.tUSD.address"]);
 
 export function renderDeployments(deployments) {
@@ -95,7 +94,7 @@ export function renderDeployments(deployments) {
   );
   const chain = deployments.chainId ? ` (chain id ${deployments.chainId})` : "";
   const out = [
-    `Everything runs on Ethereum Sepolia${chain}. Each address links to Etherscan; the source of clim's own contracts is verified on Sourcify.`,
+    `Everything runs on Ethereum Sepolia${chain}. Each address links to Etherscan. The source of clim's own contracts (both desks, both hooks, tETH and tUSD) is verified on Sourcify; the arbitrage router is Uniswap's unmodified \`PoolSwapTest\`.`,
     "",
     "| | Contract | Address | Source | Role |",
     "|---|---|---|---|---|",
@@ -170,9 +169,9 @@ export function renderResults(backtest, replay, validation) {
     "",
     `**Replay of the 4 February 2026 storm** (${r.window}): volatility ${r.sigmaMinPct}% → ${r.sigmaMaxPct}%, clim's fee ${r.feeVMinBp} → ${r.feeVMaxBp} bp, LP losses to arbitrage ${signedPct(r.arbChangePct)} against a fixed ${r.feeSBp} bp pool with the same average fee; share of the clim pool's blocks arbitraged, predicted / observed: ${pct(r.pTradePredicted)} / ${pct(r.pTradeObserved)}. ${replayChoiceNote(r, backtest.pStar)}`,
     "",
-    `**What an LP can expect:** ${signedPct2(g.low)} to ${signedPct2(g.high)} of capital per year (${usdPerMillion(g.low)} to ${usdPerMillion(g.high)} a year per $1M of liquidity; ${g.note}). In the main scenario (an aggregator routes retail between clim and a deeper 5 bp pool), ${main === null ? `about ${Math.round(g.top5WeeksSharePct)}% of ETH's gain` : `ETH gains ${signedPct2(main)} a year, about ${Math.round(g.top5WeeksSharePct)}% of it`} earned in the five stormiest weeks of the year; the same scenario on an asset twice as volatile (the same year with every return doubled) gains ${signedPct2(g.volatileAssetHigh)}. It is insurance, not a steady yield.`,
+    `**LP gain in the lab's one-year backtest (not a forecast):** ${signedPct2(g.low)} to ${signedPct2(g.high)} of capital per year (${usdPerMillion(g.low)} to ${usdPerMillion(g.high)} a year per $1M of liquidity; ${g.note}). In the main scenario (an aggregator routes retail between clim and a deeper 5 bp pool), ${main === null ? `about ${Math.round(g.top5WeeksSharePct)}% of ETH's gain` : `ETH gains ${signedPct2(main)} a year, about ${Math.round(g.top5WeeksSharePct)}% of it`} earned in the five stormiest weeks of the year; the same scenario on an asset twice as volatile (the same year with every return doubled) gains ${signedPct2(g.volatileAssetHigh)}. It is insurance, not a steady yield.`,
     "",
-    `**Where the model is weak:** it predicts how often arbitrage happens, not how much it costs: realized losses to arbitrage run ${sev[0].toFixed(2)} to ${sev[1].toFixed(2)} times above the model.${model} A volatility measured inside the pool itself would capture ${Math.round(share.low)}% to ${Math.round(share.high)}% of the same gain (see "Why Chainlink CRE"${share.high > 100 ? "; above 100% means the in-pool estimate did slightly better in one sample" : ""}).`,
+    `**Where the model is weak:** it predicts how often arbitrage happens, not how much it costs: in the lab's backtests, losses to arbitrage run ${sev[0].toFixed(2)} to ${sev[1].toFixed(2)} times the model's estimate.${model} A volatility measured inside the pool itself would capture ${Math.round(share.low)}% to ${Math.round(share.high)}% of the same gain (see "Why Chainlink CRE"${share.high > 100 ? "; above 100% means the in-pool estimate did slightly better in one sample" : ""}).`,
   ].join("\n");
 }
 

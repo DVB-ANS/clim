@@ -16,9 +16,9 @@ test("links: one bold row, empty URLs marked, the CRE documents linked", () => {
   assert.doesNotMatch(out, /mock data/);
 });
 
-test("links: a mock dashboard says so; CRE evidence falls back to cre/README.md until docs/evidence exists", () => {
-  const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example", liveMockData: true });
-  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* _\(mock data until wired to Sepolia\)_ · /);
+test("links: CRE evidence falls back to cre/README.md until docs/evidence exists", () => {
+  const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example" });
+  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* · /);
   assert.match(out, /\*\*\[CRE evidence\]\(cre\/README\.md#evidence\)\*\*/);
   assert.doesNotMatch(out, /docs\/evidence/);
   assert.match(renderAll({ links: fx("links.json"), evidence: fx("evidence.json") }).links, /\[CRE evidence\]\(docs\/evidence\/\)/);
@@ -34,6 +34,7 @@ test("deployments: human labels, grouped, truncated Etherscan links, pools with 
   assert.equal(out.split("\n").filter((l) => l.includes("repo.sourcify.dev")).length, 4);
   assert.match(out, /\| \*\*Uniswap v4\*\* \| `PoolManager` \| \[`0xE03A1074…3543`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0xE03A1074c86CFeDd5C142C4F04F1a1536e203543\) \|/);
   assert.match(out, /\|  \| `StateView` \|/);
+  assert.match(out, /the arbitrage router is Uniswap's unmodified `PoolSwapTest`\./);
   const order = ["**clim**", "**Uniswap v4**", "**Chainlink**", "**Test tokens and bots**"].map((g) => out.indexOf(g));
   assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), `groups out of order: ${order}`);
   assert.equal(out.split("\n").filter((l) => l.includes("etherscan")).length, 8);
@@ -45,13 +46,15 @@ test("deployments: human labels, grouped, truncated Etherscan links, pools with 
 test("deployments: unknown keys still listed, fixed-fee twins show their fee", () => {
   const d = fx("sepolia.json");
   d.deployer = "0x5555555555555555555555555555555555555555";
+  d.riskDesks.replay = "0x7777777777777777777777777777777777777777";
   d.extra = { thing: "0x6666666666666666666666666666666666666666" };
   d.pools.liveS = { key: { ...d.pools.liveV.key, hooks: "0x0000000000000000000000000000000000000000", fee: 511 }, poolId: "0x" + "b".repeat(64) };
   const out = renderDeployments(d);
-  assert.match(out, /\| Operator \| \[`0x55555555…5555`\]/);
+  assert.match(out, /\| Operator \| \[`0x55555555…5555`\]\([^)]+\) \|  \| deployer, owner of both desks, the live desk's `simOperator`/);
   assert.match(out, /\| \*\*Other\*\* \| `extra\.thing` \| \[`0x66666666…6666`\]/);
   assert.ok(out.indexOf("**Other**") > out.indexOf("**Test tokens and bots**"));
   assert.match(out, /\| fixed-fee twin \(live\) \| 5\.11 bp, fixed \| `0xbbbbbbbb…bbbb` \|/);
+  assert.match(out, /`RiskDesk` \(replay\) \| \[`0x77777777…7777`\]\([^)]+\) \| \[Sourcify\]\([^)]+\) \| received the CRE reports of the 4 February 2026 storm, replayed/);
   assert.doesNotMatch(out, /0x0000000000/);
 });
 
@@ -80,7 +83,9 @@ test("results show both comparisons, the replay and the weak spots, rounded", ()
   assert.match(out, /\+0\.10% to \+0\.50% of capital per year \(\$1,000 to \$5,000 a year per \$1M of liquidity; full-range ETH LP\)\. In the main scenario \(an aggregator routes retail between clim and a deeper 5 bp pool\), ETH gains \+0\.39% a year, about 53% of it earned in the five stormiest weeks of the year; the same scenario on an asset twice as volatile \(the same year with every return doubled\) gains \+1\.00%\./);
   const { yearAttribution, ...noAttribution } = fx("backtest-summary.json");
   assert.match(renderResults(noAttribution, fx("replay.json"), fx("validation.json")), /\), about 53% of ETH's gain earned in the five stormiest weeks of the year; the same scenario/);
-  assert.match(out, /1\.29 to 1\.33 times above the model/);
+  assert.match(out, /\*\*LP gain in the lab's one-year backtest \(not a forecast\):\*\* \+0\.10%/);
+  assert.match(out, /in the lab's backtests, losses to arbitrage run 1\.29 to 1\.33 times the model's estimate\./);
+  assert.doesNotMatch(out, /times above|can expect|realized/);
   assert.match(out, /lands within 10% of the prediction, but the gap is statistically significant \(p < 0\.0005/);
   assert.match(out, /capture 54% to 103% of the same gain \(see "Why Chainlink CRE"; above 100% means the in-pool estimate did slightly better in one sample\)/);
   assert.doesNotMatch(out, /\d\.\d{3,}%/);

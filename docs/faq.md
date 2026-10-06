@@ -32,7 +32,7 @@ Nobody, and no transaction does. The fee is recomputed inside each swap:
 4. The PoolManager uses that fee for this swap only. In v4-core `Pool.swap`: `lpFee = params.lpFeeOverride.isOverride() ? params.lpFeeOverride.removeOverrideFlagAndValidate() : slot0Start.lpFee()`. The fee stored in the pool's `slot0` is not written.
 5. The `Swap` event's `fee` field records the fee that swap paid (LP fee plus protocol fee; the protocol fee is zero on our Sepolia pools).
 
-What moves the fee over time is the desk: every 30 s the Chainlink CRE workflow writes a new signed report to `RiskDesk`, and the next swap reads it.
+What moves the fee over time is the desk: every 30 s the Chainlink CRE workflow writes a new report to `RiskDesk`, and the next swap reads it. On a DON that report is signed by the DON; in this build it comes from the one-node CRE simulator, sent by the operator key through `MockKeystoneForwarder` (see "Is the CRE consensus real in your demo?").
 
 ## Can a pool that is already live switch to clim?
 
@@ -49,8 +49,8 @@ What can change on a live clim pool without any migration: the volatility (every
 | Who | On a clim pool | On a static-fee v4 pool |
 |---|---|---|
 | A swapper | Nothing: the fee depends on neither direction, size nor pool state | Nothing |
-| The CRE DON | The volatility and the flags, through signed reports, bounded by the envelope | Not applicable |
-| The `RiskDesk` owner | Which forwarder and workflow are trusted; never the volatility, the fee or the parameters directly | Not applicable |
+| The CRE workflow (signed reports from a DON once deployed; today one simulated node, sent by the operator key) | The volatility and the flags, through its reports, bounded by the envelope | Not applicable |
+| The `RiskDesk` owner | Which forwarder and workflow are trusted; no function sets the volatility, the fee or the parameters. In this build the owner key is also the operator key, the only accepted sender of the live desk's simulated reports, so until `disableSim()` it can post any volatility inside the envelope (see "Can the owner change the fee?") | Not applicable |
 | The `ClimHook` deployer | Nothing after deployment: every parameter is immutable | Not applicable |
 | The PoolManager owner (protocol fee controller) | The protocol fee only (at most 1,000 pips per direction; the controller is `0x0` on Sepolia) | The same |
 
@@ -61,22 +61,22 @@ The protocol fee is a separate dial: it is taken on top of the LP fee and goes t
 It would capture most of the gain: in our lab, a volatility computed from the pool's own prices gets most of the improvement (the exact share is in the README's Results section). We still use a desk because the number must be hard to manipulate and easy to share:
 - a pool-internal estimate can be pushed by trading against the pool itself; four exchanges that must agree cannot;
 - the pool only sees itself, and an untraded pool shows no volatility at all;
-- one signed figure can serve many pools and chains;
+- one figure (signed by the DON once deployed on one) can serve many pools and chains;
 - the model check (predicted against observed arbitrage) runs off-chain, next to the data.
 
 ## Why Chainlink CRE, and not Data Feeds or Data Streams?
 
 - **Data Feeds.** The ETH/USD price feed on Ethereum mainnet updates on a 0.5 % deviation or a one-hour heartbeat: a price, not a volatility, and too coarse to build a 15-minute estimate from. Chainlink also lists ETH realized-volatility feeds, but their shortest window is 24 hours with a one-hour heartbeat, they are not listed on Ethereum mainnet, and the Sepolia ETH-USD 24hr feed (`0x31D04174D0e1643963b38d87f26b0675Bb7dC96e`) last updated on 2024-08-30. A storm that starts and ends within the hour barely moves a 24-hour number.
 - **Data Streams.** Pull-based: the user fetches a signed report off-chain and submits it for verification. For a fee, that would let the swapper choose which fresh report to bring. Its report schemas cover prices and other market data, not a 15-minute multi-venue realized volatility.
-- **CRE** runs our own computation where the data lives (USD normalization, freshness, quorum, RV15, dispersion), lets every node fetch independently, and delivers one signed report on-chain every 30 s that any pool, keeper or chain can read.
+- **CRE** runs our own computation where the data lives (USD normalization, freshness, quorum, RV15, dispersion), lets every node fetch independently, and delivers one report on-chain every 30 s that any pool, keeper or chain can read. On a DON that report is the nodes' median, signed; in this build the one-node CRE simulator writes it through `MockKeystoneForwarder` (next question).
 
 ## Is the CRE consensus real in your demo?
 
-Not in simulation, and we say so. `cre workflow simulate` runs a single node, and on Sepolia the `--broadcast` path goes through `MockKeystoneForwarder`, which does not verify signatures. We compensate in two ways: `RiskDesk` accepts simulated reports only when `tx.origin` is our operator key (the demo shows a forged report being rejected), and the workflow already uses the CRE consensus API (median of each field), so it runs unchanged on a DON. On a DON, reports arrive through the production `KeystoneForwarder`, `RiskDesk` checks the expected workflow id, and the owner calls `disableSim()`.
+Not in simulation, and we say so. `cre workflow simulate` runs a single node, and on Sepolia the `--broadcast` path goes through `MockKeystoneForwarder`, which does not verify signatures. We compensate in two ways: `RiskDesk` accepts simulated reports only when `tx.origin` is our operator key (the demo shows a forged report being rejected; that key is also the desk's owner, so in simulation it is the one trusted sender, see "Can the owner change the fee?"), and the workflow already uses the CRE consensus API (median of each field), so it runs unchanged on a DON. On a DON, reports arrive through the production `KeystoneForwarder`, `RiskDesk` checks the expected workflow id, and the owner calls `disableSim()`.
 
 ## Is it profitable?
 
-For LPs, modestly and unevenly: it is insurance. The README's Results section gives the lab numbers at the deployed parameters (both comparisons, and the expected gain per year of capital). As a business, not as a cut of hook fees: the credible path is a risk desk offered as a service to DEXs.
+For LPs, modestly and unevenly: it is insurance. The README's Results section gives the lab numbers at the deployed parameters (both comparisons, and the backtest gain per year of capital). As a business, not as a cut of hook fees: the credible path is a risk desk offered as a service to DEXs.
 
 ## Why Ethereum Sepolia? Why not Solana?
 
@@ -88,4 +88,16 @@ A venue whose last closed one-minute candle is older than 120 s is dropped. With
 
 ## Can the owner change the fee?
 
-Not directly. `ClimHook` has no owner and no setter, and `RiskDesk` has no function that sets volatility or the fee. `RiskDesk`'s owner (OpenZeppelin `Ownable`, through Chainlink's `ReceiverTemplate`) can choose which forwarder and which workflow to trust (`setForwarderAddress`, `setExpectedWorkflowId`, `setExpectedAuthor`, `setExpectedWorkflowName`), call `disableSim()`, and transfer or renounce ownership. That is a trust assumption: a malicious owner could point the desk at a forwarder it controls, or at address 0, which removes the sender check, and then feed its own volatility. Every such report would still be bounded: volatility moves at most ×2 up and ×0.8 down per report, and the fee stays between the 5 bp floor and the 150 bp cap. In production, after switching to the `KeystoneForwarder`, setting the workflow id and calling `disableSim()`, the owner renounces ownership (or hands it to a timelocked multisig). The hackathon deployment keeps an owner because it must switch forwarders.
+Not through any setter, but in this build the owner key does send the reports. `ClimHook` has no owner and no setter, and `RiskDesk` has no function that sets volatility or the fee. `RiskDesk`'s owner (OpenZeppelin `Ownable`, through Chainlink's `ReceiverTemplate`) can choose which forwarder and which workflow to trust (`setForwarderAddress`, `setExpectedWorkflowId`, `setExpectedAuthor`, `setExpectedWorkflowName`), call `disableSim()`, and transfer or renounce ownership.
+
+In this hackathon deployment the live desk's owner key is also its `simOperator`, the operator key that sends every simulated report. While `simMode` is on, `RiskDesk` accepts a report through `MockKeystoneForwarder` only when `tx.origin` is that key, and the report itself declares the volatility, k, the number of venues and their dispersion. So today that one key can post any volatility it likes, inside the bounds below. (The replay desk has the same owner but its own `simOperator` key.) A malicious owner could also point the desk at a forwarder it controls, or at address 0, which removes the sender check, and then feed its own volatility.
+
+Every report, whoever sends it, stays bounded:
+- volatility moves at most ×2 up and ×0.8 down per report, and always stays between 10% and 1000% a year;
+- reports must be at least 20 s apart (by observation time), at most 30 s in the future, and declare at least 3 venues;
+- k is clamped to [1, 2];
+- the fee stays between the 5 bp floor and the 150 bp cap.
+
+That still leaves room: from a calm 12% a year, 7 reports, a few minutes in all, reach the 1000% ceiling (about 109 bp at k = 1, the 150 bp cap at k = 2), and a report that declares more than 25 bp of dispersion flags the desk as degraded, which lifts the fee to at least the 30 bp safe fee.
+
+On a DON, `RiskDesk` accepts only the DON's signed reports: the owner switches to the `KeystoneForwarder`, sets the expected workflow id, calls `disableSim()` (irreversible), then renounces ownership (or hands it to a timelocked multisig). The hackathon deployment keeps an owner because it must switch forwarders.
