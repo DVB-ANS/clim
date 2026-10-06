@@ -2796,7 +2796,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/script/export-
 **Files:**
 - Modify: `docs/sessions/2026-10-06.md` (outputs go to gitignored paths)
 
-- [ ] **Step 1: Start a fork with chain id 31337**
+- [x] **Step 1: Start a fork with chain id 31337**
 
 With chain id 31337, outputs go to `deployments/31337/` and `shared/deployments/anvil.json`, and the params guard stays off. Start the fork with `run_in_background: true`:
 ```bash
@@ -2808,7 +2808,7 @@ until cast chain-id --rpc-url http://127.0.0.1:8545 >/dev/null 2>&1; do sleep 1;
 ```
 Expected: `31337`.
 
-- [ ] **Step 2: Deploy the live, replay and DON suites with anvil's first key and the fixture params**
+- [x] **Step 2: Deploy the live, replay and DON suites with anvil's first key and the fixture params**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && export PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 PARAMS_PATH=test/fixtures/params.p30.json && \
@@ -2825,7 +2825,7 @@ ok forge script script/05_WriteDeployments.s.sol --rpc-url anvil
 ```
 Expected: ten lines `ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.`, then `Error: script failed: SUITE=don has no hook and no pools` (the guard working), then `Script ran successfully.` Any other `Error` line stops the chain at that script.
 
-- [ ] **Step 3: Check the merged file against plan 04's rules**
+- [x] **Step 3: Check the merged file against plan 04's rules**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && D=shared/deployments/anvil.json && for p in liveV liveS replayV replayS; do id=$(cast keccak $(cast abi-encode "f(address,address,uint24,int24,address)" $(jq -r ".pools.$p.key.currency0" $D) $(jq -r ".pools.$p.key.currency1" $D) $(jq -r ".pools.$p.key.fee" $D) $(jq -r ".pools.$p.key.tickSpacing" $D) $(jq -r ".pools.$p.key.hooks" $D))); [ "$id" = "$(jq -r .pools.$p.poolId $D)" ] && echo "$p poolId OK" || echo "$p MISMATCH"; done && jq -c '{dyn: [.pools.liveV.key.fee, .pools.replayV.key.fee], hooksMatch: (.pools.liveV.key.hooks == .hooks.live and .pools.replayV.key.hooks == .hooks.replay), sStatic: [.pools.liveS.key.fee, .pools.replayS.key.fee], sorted: (.pools.liveV.key.currency0 < .pools.liveV.key.currency1), liq: .liquidity, arb: (.routers.arb != null)}' $D && cast call $(jq -r .riskDesks.don $D) "simMode()(bool)" --rpc-url http://127.0.0.1:8545 && cast call $(jq -r .routers.arb $D) "manager()(address)" --rpc-url http://127.0.0.1:8545
@@ -2834,7 +2834,7 @@ Expected: four `poolId OK` lines, then `{"dyn":[8388608,8388608],"hooksMatch":tr
 
 `sorted` compares checksummed hex strings. It is a quick check; plan 04's parser compares them as numbers.
 
-- [ ] **Step 4: Smoke test: a report through the real mock forwarder, then swaps on V and S**
+- [x] **Step 4: Smoke test: a report through the real mock forwarder, then swaps on V and S**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 PUSH_REPORT=1 ./script/smoke.sh http://127.0.0.1:8545 ../shared/deployments/anvil.json live
@@ -2848,14 +2848,14 @@ V swap fee (pips): 526
 S swap fee (pips): 600
 ```
 
-- [ ] **Step 5: Stop the fork and remove the dry-run outputs**
+- [x] **Step 5: Stop the fork and remove the dry-run outputs**
 
 ```bash
 pkill -f "anvil --fork-url"; rm -rf /Users/fianso/Development/hackathons/clim/contracts/deployments/31337 /Users/fianso/Development/hackathons/clim/shared/deployments/anvil.json; cd /Users/fianso/Development/hackathons/clim && git status --short
 ```
 Expected: `git status --short` shows no file under `contracts/deployments/`, `contracts/broadcast/`, or `shared/deployments/anvil.json`. Broadcasts on chain 31337 are gitignored.
 
-- [ ] **Step 6: Log and commit**
+- [x] **Step 6: Log and commit**
 
 Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
 ```markdown
