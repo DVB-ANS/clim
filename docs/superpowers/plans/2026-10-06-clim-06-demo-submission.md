@@ -186,12 +186,11 @@ exit=1
 }
 ```
 
-`docs/submission/links.json` (the empty URLs are filled in Tasks 12 and 18; `npm run check:final` refuses empty ones; `liveUrl` is the deployed dashboard, and `liveMockData: true` makes the README say "mock data until wired to Sepolia" next to it until master Task 14 wires it, after which Task 12 deletes the flag, which `npm run check:final` refuses):
+`docs/submission/links.json` (the empty URLs are filled in Tasks 12 and 18; `npm run check:final` refuses empty ones; `liveUrl` is the deployed dashboard, wired to Sepolia since 2026-10-07. Until then a `liveMockData: true` flag made the README say "mock data until wired to Sepolia" next to it; Task 12 deleted the flag, and the code that read it was removed on 2026-10-07):
 ```json
 {
   "repoUrl": "https://github.com/DVB-ANS/clim",
   "liveUrl": "https://clim-zeta.vercel.app",
-  "liveMockData": true,
   "deckUrl": "",
   "videoUrl": ""
 }
@@ -448,13 +447,11 @@ test("schemaErrors names the expected schema", () => {
   assert.deepEqual(schemaErrors({ schema: "x" }, REPLAY_SCHEMA), ['schema must be "clim.lab.replay/1", got "x"']);
 });
 
-test("final link check requires https URLs and a dashboard wired to Sepolia", () => {
+test("final link check requires https URLs", () => {
   assert.deepEqual(linkErrors(fx("links.json"), { final: false }), []);
   assert.equal(linkErrors(fx("links.json"), { final: true }).length, 3);
   const live = { ...fx("links.json"), liveUrl: "https://a.example", deckUrl: "https://b.example", videoUrl: "https://c.example" };
   assert.deepEqual(linkErrors(live, { final: true }), []);
-  assert.deepEqual(linkErrors({ ...live, liveMockData: true }, { final: true }), ["links.liveMockData: the dashboard still serves mock data; wire it to Sepolia (master Task 14) and remove the flag"]);
-  assert.deepEqual(linkErrors({ ...live, liveMockData: true }, { final: false }), []);
 });
 
 test("collectAddresses walks any shape, dedupes addresses, finds pool ids", () => {
@@ -708,17 +705,13 @@ export function schemaErrors(obj, expected) {
 
 export const TEAM_SPEC = [{ name: "string", github: "string", role: "string" }];
 
-// Optional: `liveMockData: true` while the deployed dashboard still serves fixture data (the README says so next to the link).
 export const LINKS_SPEC = { repoUrl: "string", liveUrl: "string", deckUrl: "string", videoUrl: "string" };
 
 export function linkErrors(links, { final }) {
   if (!final) return [];
-  return [
-    ...Object.keys(LINKS_SPEC)
-      .filter((k) => typeof links?.[k] !== "string" || !links[k].startsWith("https://"))
-      .map((k) => `links.${k}: must be an https:// URL before submission, got ${JSON.stringify(links?.[k])}`),
-    ...(links?.liveMockData ? ["links.liveMockData: the dashboard still serves mock data; wire it to Sepolia (master Task 14) and remove the flag"] : []),
-  ];
+  return Object.keys(LINKS_SPEC)
+    .filter((k) => typeof links?.[k] !== "string" || !links[k].startsWith("https://"))
+    .map((k) => `links.${k}: must be an https:// URL before submission, got ${JSON.stringify(links?.[k])}`);
 }
 
 export const REPORT_SPEC = {
@@ -990,9 +983,9 @@ test("links: one bold row, empty URLs marked, the CRE documents linked", () => {
   assert.doesNotMatch(out, /mock data/);
 });
 
-test("links: a mock dashboard says so; CRE evidence falls back to cre/README.md until docs/evidence exists", () => {
-  const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example", liveMockData: true });
-  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* _\(mock data until wired to Sepolia\)_ · /);
+test("links: CRE evidence falls back to cre/README.md until docs/evidence exists", () => {
+  const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example" });
+  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* · /);
   assert.match(out, /\*\*\[CRE evidence\]\(cre\/README\.md#evidence\)\*\*/);
   assert.doesNotMatch(out, /docs\/evidence/);
   assert.match(renderAll({ links: fx("links.json"), evidence: fx("evidence.json") }).links, /\[CRE evidence\]\(docs\/evidence\/\)/);
@@ -1008,6 +1001,7 @@ test("deployments: human labels, grouped, truncated Etherscan links, pools with 
   assert.equal(out.split("\n").filter((l) => l.includes("repo.sourcify.dev")).length, 4);
   assert.match(out, /\| \*\*Uniswap v4\*\* \| `PoolManager` \| \[`0xE03A1074…3543`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0xE03A1074c86CFeDd5C142C4F04F1a1536e203543\) \|/);
   assert.match(out, /\|  \| `StateView` \|/);
+  assert.match(out, /the arbitrage router is Uniswap's unmodified `PoolSwapTest`\./);
   const order = ["**clim**", "**Uniswap v4**", "**Chainlink**", "**Test tokens and bots**"].map((g) => out.indexOf(g));
   assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), `groups out of order: ${order}`);
   assert.equal(out.split("\n").filter((l) => l.includes("etherscan")).length, 8);
@@ -1019,13 +1013,15 @@ test("deployments: human labels, grouped, truncated Etherscan links, pools with 
 test("deployments: unknown keys still listed, fixed-fee twins show their fee", () => {
   const d = fx("sepolia.json");
   d.deployer = "0x5555555555555555555555555555555555555555";
+  d.riskDesks.replay = "0x7777777777777777777777777777777777777777";
   d.extra = { thing: "0x6666666666666666666666666666666666666666" };
   d.pools.liveS = { key: { ...d.pools.liveV.key, hooks: "0x0000000000000000000000000000000000000000", fee: 511 }, poolId: "0x" + "b".repeat(64) };
   const out = renderDeployments(d);
-  assert.match(out, /\| Operator \| \[`0x55555555…5555`\]/);
+  assert.match(out, /\| Operator \| \[`0x55555555…5555`\]\([^)]+\) \|  \| deployer, owner of both desks, the live desk's `simOperator`/);
   assert.match(out, /\| \*\*Other\*\* \| `extra\.thing` \| \[`0x66666666…6666`\]/);
   assert.ok(out.indexOf("**Other**") > out.indexOf("**Test tokens and bots**"));
   assert.match(out, /\| fixed-fee twin \(live\) \| 5\.11 bp, fixed \| `0xbbbbbbbb…bbbb` \|/);
+  assert.match(out, /`RiskDesk` \(replay\) \| \[`0x77777777…7777`\]\([^)]+\) \| \[Sourcify\]\([^)]+\) \| received the CRE reports of the 4 February 2026 storm, replayed/);
   assert.doesNotMatch(out, /0x0000000000/);
 });
 
@@ -1054,7 +1050,9 @@ test("results show both comparisons, the replay and the weak spots, rounded", ()
   assert.match(out, /\+0\.10% to \+0\.50% of capital per year \(\$1,000 to \$5,000 a year per \$1M of liquidity; full-range ETH LP\)\. In the main scenario \(an aggregator routes retail between clim and a deeper 5 bp pool\), ETH gains \+0\.39% a year, about 53% of it earned in the five stormiest weeks of the year; the same scenario on an asset twice as volatile \(the same year with every return doubled\) gains \+1\.00%\./);
   const { yearAttribution, ...noAttribution } = fx("backtest-summary.json");
   assert.match(renderResults(noAttribution, fx("replay.json"), fx("validation.json")), /\), about 53% of ETH's gain earned in the five stormiest weeks of the year; the same scenario/);
-  assert.match(out, /1\.29 to 1\.33 times above the model/);
+  assert.match(out, /\*\*LP gain in the lab's one-year backtest \(not a forecast\):\*\* \+0\.10%/);
+  assert.match(out, /in the lab's backtests, losses to arbitrage run 1\.29 to 1\.33 times the model's estimate\./);
+  assert.doesNotMatch(out, /times above|can expect|realized/);
   assert.match(out, /lands within 10% of the prediction, but the gap is statistically significant \(p < 0\.0005/);
   assert.match(out, /capture 54% to 103% of the same gain \(see "Why Chainlink CRE"; above 100% means the in-pool estimate did slightly better in one sample\)/);
   assert.doesNotMatch(out, /\d\.\d{3,}%/);
@@ -1127,12 +1125,10 @@ export function link(url, text) {
   return url ? `**[${text}](${url})**` : `**${text}** _(added at submission)_`;
 }
 
-// `links.liveMockData: true` says the deployed dashboard still shows fixture data (check:final refuses it).
 // Until docs/evidence/ exists (plan 06 Task 13), "CRE evidence" points to the evidence section of cre/README.md.
 export function renderLinks(links, { evidenceReady = false } = {}) {
-  const dashboard = link(links.liveUrl, "Open the dashboard");
   return [
-    links.liveUrl && links.liveMockData ? `${dashboard} _(mock data until wired to Sepolia)_` : dashboard,
+    link(links.liveUrl, "Open the dashboard"),
     link(links.videoUrl, "Video demo"),
     link(links.deckUrl, "Deck"),
     link(evidenceReady ? "docs/evidence/" : "cre/README.md#evidence", "CRE evidence"),
@@ -1147,7 +1143,7 @@ const DEPLOYMENT_GROUPS = [
   ["clim", [
     ["riskDesks.live", "`RiskDesk` (live)", "receives the CRE report every 30 s"],
     ["hooks.live", "`ClimHook` (live)", "prices every swap of the live clim pool from the live desk"],
-    ["riskDesks.replay", "`RiskDesk` (replay)", "receives CRE reports on the 4 February 2026 storm, replayed; flagged REPLAY"],
+    ["riskDesks.replay", "`RiskDesk` (replay)", "received the CRE reports of the 4 February 2026 storm, replayed (459 reports, the last at 20:58 UTC on 2026-10-06); flagged REPLAY"],
     ["hooks.replay", "`ClimHook` (replay)", "prices every swap of the replay clim pool from the replay desk"],
     ["riskDesks.don", "`RiskDesk` (DON)", "for reports from a CRE DON through the `KeystoneForwarder`"],
   ]],
@@ -1165,7 +1161,7 @@ const DEPLOYMENT_GROUPS = [
     ["tokens.tETH.address", "`tETH`", "test ETH with a public faucet"],
     ["tokens.tUSD.address", "`tUSD`", "test USD with a public faucet"],
     ["routers.arb", "`PoolSwapTest` (arbitrage)", "the arbitrage bot's own router, so its swaps can be told apart"],
-    ["deployer", "Operator", "deployer, test-token owner, sender of the live desk's simulated reports"],
+    ["deployer", "Operator", "deployer, owner of both desks, the live desk's `simOperator` (the only accepted sender of its simulated reports), test-token owner"],
   ]],
 ];
 
@@ -1177,9 +1173,10 @@ const POOL_LABELS = {
 };
 const DYNAMIC_FEE_FLAG = 0x800000;
 
-// clim's own contracts whose source is verified on Sourcify (full match, checked with
-// https://sourcify.dev/server/v2/contract/11155111/<address> on 2026-10-06). The Uniswap and Chainlink contracts are
-// their authors' deployments; the arbitrage router and the operator have no Sourcify link.
+// clim's own contracts whose source is verified on Sourcify, at the level "match" (partial: metadata hash differs),
+// checked with https://sourcify.dev/server/v2/contract/11155111/<address> on 2026-10-06. The Uniswap and Chainlink
+// contracts are their authors' deployments; the arbitrage router (Uniswap's unmodified PoolSwapTest, not verified)
+// and the operator have no Sourcify link.
 const SOURCIFY_VERIFIED = new Set(["riskDesks.live", "hooks.live", "riskDesks.replay", "hooks.replay", "tokens.tETH.address", "tokens.tUSD.address"]);
 
 export function renderDeployments(deployments) {
@@ -1199,7 +1196,7 @@ export function renderDeployments(deployments) {
   );
   const chain = deployments.chainId ? ` (chain id ${deployments.chainId})` : "";
   const out = [
-    `Everything runs on Ethereum Sepolia${chain}. Each address links to Etherscan; the source of clim's own contracts is verified on Sourcify.`,
+    `Everything runs on Ethereum Sepolia${chain}. Each address links to Etherscan. The source of clim's own contracts (both desks, both hooks, tETH and tUSD) is verified on Sourcify; the arbitrage router is Uniswap's unmodified \`PoolSwapTest\`.`,
     "",
     "| | Contract | Address | Source | Role |",
     "|---|---|---|---|---|",
@@ -1274,9 +1271,9 @@ export function renderResults(backtest, replay, validation) {
     "",
     `**Replay of the 4 February 2026 storm** (${r.window}): volatility ${r.sigmaMinPct}% → ${r.sigmaMaxPct}%, clim's fee ${r.feeVMinBp} → ${r.feeVMaxBp} bp, LP losses to arbitrage ${signedPct(r.arbChangePct)} against a fixed ${r.feeSBp} bp pool with the same average fee; share of the clim pool's blocks arbitraged, predicted / observed: ${pct(r.pTradePredicted)} / ${pct(r.pTradeObserved)}. ${replayChoiceNote(r, backtest.pStar)}`,
     "",
-    `**What an LP can expect:** ${signedPct2(g.low)} to ${signedPct2(g.high)} of capital per year (${usdPerMillion(g.low)} to ${usdPerMillion(g.high)} a year per $1M of liquidity; ${g.note}). In the main scenario (an aggregator routes retail between clim and a deeper 5 bp pool), ${main === null ? `about ${Math.round(g.top5WeeksSharePct)}% of ETH's gain` : `ETH gains ${signedPct2(main)} a year, about ${Math.round(g.top5WeeksSharePct)}% of it`} earned in the five stormiest weeks of the year; the same scenario on an asset twice as volatile (the same year with every return doubled) gains ${signedPct2(g.volatileAssetHigh)}. It is insurance, not a steady yield.`,
+    `**LP gain in the lab's one-year backtest (not a forecast):** ${signedPct2(g.low)} to ${signedPct2(g.high)} of capital per year (${usdPerMillion(g.low)} to ${usdPerMillion(g.high)} a year per $1M of liquidity; ${g.note}). In the main scenario (an aggregator routes retail between clim and a deeper 5 bp pool), ${main === null ? `about ${Math.round(g.top5WeeksSharePct)}% of ETH's gain` : `ETH gains ${signedPct2(main)} a year, about ${Math.round(g.top5WeeksSharePct)}% of it`} earned in the five stormiest weeks of the year; the same scenario on an asset twice as volatile (the same year with every return doubled) gains ${signedPct2(g.volatileAssetHigh)}. It is insurance, not a steady yield.`,
     "",
-    `**Where the model is weak:** it predicts how often arbitrage happens, not how much it costs: realized losses to arbitrage run ${sev[0].toFixed(2)} to ${sev[1].toFixed(2)} times above the model.${model} A volatility measured inside the pool itself would capture ${Math.round(share.low)}% to ${Math.round(share.high)}% of the same gain (see "Why Chainlink CRE"${share.high > 100 ? "; above 100% means the in-pool estimate did slightly better in one sample" : ""}).`,
+    `**Where the model is weak:** it predicts how often arbitrage happens, not how much it costs: in the lab's backtests, losses to arbitrage run ${sev[0].toFixed(2)} to ${sev[1].toFixed(2)} times the model's estimate.${model} A volatility measured inside the pool itself would capture ${Math.round(share.low)}% to ${Math.round(share.high)}% of the same gain (see "Why Chainlink CRE"${share.high > 100 ? "; above 100% means the in-pool estimate did slightly better in one sample" : ""}).`,
   ].join("\n");
 }
 
@@ -1480,12 +1477,11 @@ exit=1
 - [x] **Step 3: Check the final mode**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run check:final | grep -A3 links.json`
-Expected (with `links.json` as of 2026-10-07: dashboard URL set, still on mock data):
+Expected (with `links.json` as of 2026-10-07: dashboard URL set and wired to Sepolia; the `liveMockData` check that printed a third line here was removed with the flag):
 ```
 INVALID docs/submission/links.json
   - links.deckUrl: must be an https:// URL before submission, got ""
   - links.videoUrl: must be an https:// URL before submission, got ""
-  - links.liveMockData: the dashboard still serves mock data; wire it to Sepolia (master Task 14) and remove the flag
 ```
 
 - [x] **Step 4: Commit**
@@ -2989,12 +2985,12 @@ flowchart LR
   DV["Deribit DVOL<br/>(diagnostic)"]
   subgraph cre["Chainlink CRE risk desk, every 30 s"]
     NODE["Each node: 1-min candles to USD,<br/>drop stale venues, quorum of 3,<br/>15-min realized volatility, dispersion"]
-    DON["DON consensus:<br/>median of each field"]
+    DON["DON consensus: median of each field<br/>(today: CRE simulator, one node)"]
   end
   stations --> NODE
   DV --> NODE
   NODE --> DON
-  DON -->|"signed report via forwarder"| RD["RiskDesk.sol<br/>sanity checks, volatility envelope,<br/>no setter for sigma or the fee"]
+  DON -->|"signed report on a DON,<br/>today sent by the operator key<br/>via MockKeystoneForwarder"| RD["RiskDesk.sol<br/>sanity checks, volatility envelope,<br/>no setter for sigma or the fee"]
   T["Trader"] -->|"swap"| PM["Uniswap v4 PoolManager"]
   PM -->|"beforeSwap"| HK["ClimHook<br/>fee from volatility,<br/>safe fee if blind or degraded"]
   HK -->|"reads state()"| RD
@@ -3006,22 +3002,28 @@ flowchart LR
 1. **Risk desk (Chainlink CRE, every 30 s).** Each node converts the venues' one-minute ETH candles
    to USD, drops any venue whose last closed candle is older than 120 s, requires 3 of the 4, and
    computes the 15-minute realized volatility of the median price and the dispersion between venues.
-   The nodes agree on the median of each field and sign one report; Deribit's DVOL is a diagnostic
-   only. In this build the workflow runs in the CRE simulator, on one node.
+   On a DON, the nodes agree on the median of each field and sign one report. In this build the
+   workflow runs in the CRE simulator, on one node, and the operator key sends each report through
+   `MockKeystoneForwarder`, which checks no signature. Deribit's DVOL is a diagnostic only.
 2. **`RiskDesk.sol`** receives the report through `onReport` from the Chainlink forwarder. It
    rejects reports that come less than 20 s after the previous one, from more than 30 s in the
    future, or from fewer than 3 venues, and it limits how far volatility can move between two
-   reports (at most ×2 up, ×0.8 down). It has no function that sets volatility or the fee: its owner
-   only picks the forwarder and workflow to trust, and even a malicious forwarder's reports stay
-   inside the envelope and the fee clamp ([FAQ](docs/faq.md#can-the-owner-change-the-fee)).
+   reports (at most ×2 up, ×0.8 down, always between 10% and 1000% a year). It has no function that
+   sets volatility or the fee: its owner picks the forwarder and workflow to trust. In this build the
+   owner key is also the operator key (`simOperator`), the only sender whose simulated reports the
+   live desk accepts, so that key can post any volatility inside the envelope, and the fee stays
+   within the clamp (5 bp floor, 150 bp cap). On a DON only the DON's signed reports are accepted,
+   and the owner calls `disableSim()`, then renounces ownership
+   ([FAQ](docs/faq.md#can-the-owner-change-the-fee)).
 3. **`ClimHook.sol`** (Uniswap v4, built on OpenZeppelin's `BaseOverrideFee`). On every swap the
    PoolManager calls `beforeSwap`; the hook reads `RiskDesk.state()` and returns the fee with
    `OVERRIDE_FEE_FLAG`. If the desk has been silent for longer than the kill delay (blind) or the
    venues disagree (degraded), the hook quotes at least the safe fee.
-4. **Dashboard** (https://clim-zeta.vercel.app: deployed; mock data until it is wired to Sepolia).
-   Built to show, from `RiskReported` and `Swap` events, the desk, the clim pool's fee next to a
-   fixed-fee twin pool and how often each one gets arbitraged, plus the test-token faucet, the fee
-   before a swap (`/swap`) and liquidity for either pool (`/lp`).
+4. **Dashboard** ([clim-zeta.vercel.app](https://clim-zeta.vercel.app), reading Sepolia). From
+   `RiskReported` and `Swap` events it shows the desk, the clim pool's fee next to a fixed-fee twin
+   pool and how often each one gets arbitraged (`/app`), plus the test-token faucet, the fee before
+   a swap (`/swap`), liquidity for either pool (`/lp`) and every contract with its Etherscan and
+   Sourcify links.
 
 ## How the fee is computed
 
@@ -3098,9 +3100,10 @@ gain (see Results). CRE is not what makes the number possible. It is what makes 
 
 - **Four exchanges must agree.** Nobody can push the fee around with fake trades on the pool, and a
   venue that freezes or diverges is dropped or flags the desk as degraded.
-- **One signed report, no keeper key.** On a DON, reports come through Chainlink's
-  `KeystoneForwarder`, which checks the DON's signatures; today, in simulation, the operator key
-  submits them through `MockKeystoneForwarder`.
+- **On a DON: one signed report, no keeper key.** Reports come through Chainlink's
+  `KeystoneForwarder`, which checks the DON's signatures. Today, in simulation, the operator key
+  submits them through `MockKeystoneForwarder`, so that key plays the keeper, inside the envelope
+  (see [How it works](#how-it-works)).
 - **One figure for many pools and chains.** CRE can write the same report to other EVM chains and
   to Solana.
 - **Room for model control.** The desk could compare its own prediction with what happens on-chain
@@ -3116,7 +3119,7 @@ last updated on 2024-08-30): a storm that lasts an hour barely moves them ([FAQ]
 |---|---|---|
 | A CRE workflow that is the orchestration layer, core to the product | The fee is computed from the desk's report on every swap; without a fresh report the hook falls back to the safe fee | ✅ |
 | A blockchain integrated with an external API | Six HTTP sources per node (Coinbase, Kraken, Binance, Hyperliquid, Deribit DVOL, Kraken USDT/USD), one report written to `RiskDesk` on Ethereum Sepolia | ✅ |
-| A successful simulation with the CRE CLI, or a deployment | `cre workflow simulate --broadcast` every 30 s on Sepolia: to the live desk since 2026-10-06 16:26 UTC, to the replay desk from 16:57 to about 21:00 UTC | ✅ simulation |
+| A successful simulation with the CRE CLI, or a deployment | `cre workflow simulate --broadcast` every 30 s on Sepolia: to the live desk since 2026-10-06 16:26 UTC; to the replay desk, 459 reports from 17:02 to 20:58 UTC (its loop started at 16:57) | ✅ simulation |
 | Beyond the requirement: deployment on a CRE DON | Deploy access requested on 2026-10-06, still under review; the workflow already uses the consensus API | 🛣️ requested |
 
 ## Files that use Chainlink
@@ -3127,7 +3130,7 @@ last updated on 2024-08-30): a storm that lasts an hour barely moves them ([FAQ]
 | [`cre/risk-desk/workflow.yaml`](cre/risk-desk/workflow.yaml) | Workflow name, entry point and config file per target |
 | [`cre/risk-desk/main.ts`](cre/risk-desk/main.ts) | The runner entry point |
 | [`cre/risk-desk/workflow.ts`](cre/risk-desk/workflow.ts) | Cron and HTTP triggers, node-mode observation, consensus by median, `runtime.report`, `EVMClient.writeReport` and the read-back of `RiskDesk.state()` |
-| [`cre/risk-desk/venues.ts`](cre/risk-desk/venues.ts) | Venue requests, response parsers, concurrent fetch, replay parser |
+| [`cre/risk-desk/venues.ts`](cre/risk-desk/venues.ts) | Venue requests, response parsers, concurrent fetch, replay requests |
 | [`cre/risk-desk/estimator.ts`](cre/risk-desk/estimator.ts) | Normalization, staleness, quorum, per-minute median, 15-minute realized volatility, dispersion, tick |
 | [`cre/risk-desk/report.ts`](cre/risk-desk/report.ts) | The report ABI, encoder and decoder |
 | [`contracts/src/RiskDesk.sol`](contracts/src/RiskDesk.sol) | The CRE consumer: `onReport` through the forwarder, on-chain checks, `state()` for the hook |
@@ -3138,8 +3141,9 @@ last updated on 2024-08-30): a storm that lasts an hour barely moves them ([FAQ]
 
 ## What building it made visible
 
-We logged every CRE friction as it happened: 25 rows in the
-[friction log](docs/feedback/cre-friction-log.md), summarized for the Chainlink team in the
+We logged CRE frictions as we built: 25 rows in the
+[friction log](docs/feedback/cre-friction-log.md), 23 of them hit while building and 2 from reading
+the docs only, summarized for the Chainlink team in the
 [DevEx report](docs/feedback/cre-devex-report.md). The three most useful to Chainlink:
 
 - **The sports-resolution starter's receiver template rejects every report once identity checks
@@ -3170,10 +3174,10 @@ We logged every CRE friction as it happened: 25 rows in the
 | A CRE report every 30 s | ✅ live, from simulation | `cre workflow simulate --broadcast` in a loop since 2026-10-06 16:26 UTC: 444 reports on the live desk (`state().seq`, read 2026-10-06 20:29 UTC). Observation time (tObs) to block: median 14 s, p90 25 s over 211 reports (last 600 blocks to about 18:40 UTC on 2026-10-06) |
 | DON consensus and signature checks | 🛣️ pending | The simulator runs one node and `MockKeystoneForwarder` checks no signature. Deploy access was requested on 2026-10-06 at 22:56 SGT and is still under review (friction log row 6); the workflow already uses the consensus API, so it runs unchanged on a DON |
 | Model-risk multiplier k | 🛣️ off (k = 1) | The model check runs in the lab (`lab/out/validation.json`); `RiskDesk` already clamps k to [1, 2], so turning it on is a workflow change |
-| The 4 February 2026 storm | ✅ replayed on Sepolia | Historical Binance prices, served at wall-clock speed by `bots/src/replay-server.ts` to a second CRE loop that writes to the replay desk (its REPLAY flag discloses it). It ran from 2026-10-06 16:57 UTC to about 21:00 UTC; after that the replay desk is silent and its hook quotes the 30 bp safe fee |
-| The market | simulated | Our own arbitrage and retail bots trade the clim pool and its fixed-fee twin. No mainnet pool; volume moving to cheaper pools is only approximated; just-in-time liquidity is not modeled |
+| The 4 February 2026 storm | ✅ replayed on Sepolia | Historical Binance prices, served at wall-clock speed by `bots/src/replay-server.ts` to a second CRE loop that writes to the replay desk (its REPLAY flag discloses it). Its loop started at 16:57 UTC on 2026-10-06 and wrote 459 reports, from 17:02 to 20:58 UTC; since then the replay desk is silent and its hook quotes the 30 bp safe fee |
+| The market | simulated | Our own arbitrage and retail bots trade the clim pool and its fixed-fee twin. No mainnet pool; volume moving to cheaper pools is only approximated; just-in-time liquidity is not modeled. The arbitrage bot keeps one transaction in flight per pool, so on chain it lands fewer arbitrages than the model's arbitrageur would: on the replay it arbitraged 21.5% of the clim pool's blocks against 29.6% predicted, but counting the 90 blocks it skipped while a trade was pending, it saw the pool outside its no-arbitrage band in 349 of 1,186 blocks (29.4%) |
 | Results | simulated | Lab backtests on historical Binance ETHUSDT data (`lab/out/`), not live P&L |
-| Dashboard | 🛣️ deployed; mock data until it is wired to Sepolia | https://clim-zeta.vercel.app |
+| Dashboard | ✅ live, reads Sepolia | https://clim-zeta.vercel.app: the desk and both pools at `/app`, real Sepolia swaps and liquidity at `/swap` and `/lp` (test tokens from the faucet), the finished replay at `/replay`; numbers checked against `cast` reads |
 
 ## Can a pool that is already live use clim?
 
@@ -3230,16 +3234,17 @@ and, for anything that writes on-chain, a Sepolia RPC URL and funded testnet key
 git clone --recurse-submodules https://github.com/DVB-ANS/clim && cd clim
 bun install                             # root workspace: shared and bots
 
-(cd contracts && forge test)            # contracts: unit and fuzz tests
-(cd lab && uv sync && uv run pytest)    # lab: backtests and model checks
+(cd contracts && forge test)            # contracts: unit and fuzz tests; the 3 Sepolia fork tests
+                                        # skip unless SEPOLIA_RPC_URL is set in contracts/.env (see .env.example)
+(cd lab && uv sync && uv run pytest)    # lab: backtests and model checks; a fresh clone has no lab/data/
+                                        # (gitignored), so 77 tests run and the 5 that read it skip
 
 # CRE risk desk: one simulated run without a transaction (needs `cre login`)
 (cd cre/risk-desk && bun install)
 (cd cre && cre workflow simulate risk-desk --non-interactive --trigger-index 0 --target staging-settings)
 
-# Dashboard, a standalone npm project: being imported into app/ from its own repository,
-# so this has nothing to run until it lands
-(cd app && npm ci && npm run dev)
+# Dashboard, a standalone npm project (Next.js): copy shared/, lab/out and the FAQ in, then run
+(cd app && npm ci && npm run sync && npm run dev)
 ```
 
 To run the live loop yourself (a CRE report every 30 s with `--broadcast`, plus the arbitrage and
@@ -3278,8 +3283,11 @@ cre/                         the CRE project (project.yaml) and the simulation l
 bots/                        Bun and viem: arbitrage bot, retail bot, CRE loop with receipts, replay server
 lab/                         Python: backtests, the P* decision, model validation; out/ holds the JSON results
 shared/                      read by every part: deployments/sepolia.json, params.json, abis/
+app/                         Next.js dashboard (https://clim-zeta.vercel.app): landing, /app, /swap, /lp,
+                             /replay, /lab, /how, /credits; reads the desks' and pools' events on Sepolia
 docs/                        faq.md, runbook.md, the CRE feedback (feedback/), the day-by-day sessions,
                              the design spec and plans (superpowers/), the submission tooling (submission/)
+  submission/deck/v2/        the deck from Figma: slide images (png/), texts and speaker notes (slides.json)
 ```
 
 ## What we tested and rejected
@@ -3328,9 +3336,22 @@ Built solo by a member of **DeVinci Blockchain** (DVB), Paris.
 
 ## License
 
-[MIT](LICENSE) © 2026 Sofiane Ben Taleb. `contracts/src/receiver/`, copied from
-[smartcontractkit/cre-templates](https://github.com/smartcontractkit/cre-templates) (MIT), and the
-`contracts/lib/` submodules (forge-std, uniswap-hooks) keep their own licenses.
+[MIT](LICENSE) © 2026 Sofiane Ben Taleb, for clim's own code. Third-party code in this repo keeps its
+own license:
+
+- `contracts/src/receiver/` and `contracts/test/fixtures/sports-resolution/`: copied unmodified from
+  [smartcontractkit/cre-templates](https://github.com/smartcontractkit/cre-templates) `d0223f3`. MIT,
+  © 2025 SmartContract (each folder has its `LICENSE`).
+- The `contracts/lib/` submodules keep their own licenses: forge-std is MIT or Apache-2.0,
+  OpenZeppelin's code and Uniswap v4-periphery are MIT, and Uniswap v4-core is MIT for the
+  interfaces and libraries clim's contracts import but BUSL-1.1 for `PoolManager` and its internal
+  libraries, which only the local tests deploy.
+- `app/` includes third-party components and npm dependencies with their own licenses, listed in
+  [`app/THIRD_PARTY_NOTICES.md`](app/THIRD_PARTY_NOTICES.md) (also at
+  [/credits](https://clim-zeta.vercel.app/credits)). Some are not permissive: two React Bits
+  components are MIT + Commons Clause, the MetaMask SDK (through wagmi and RainbowKit) is under
+  ConsenSys' license, and `ua-parser-js` 2 (through RainbowKit) is AGPL-3.0.
+- Other npm dependencies keep their own licenses, including `@chainlink/cre-sdk` (BUSL-1.1).
 
 <div align="center">
 <sub>Built for TOKEN2049 Origins · Singapore, October 2026 · Main track and Chainlink "Best workflow with CRE"</sub>
@@ -3408,7 +3429,7 @@ Nobody, and no transaction does. The fee is recomputed inside each swap:
 4. The PoolManager uses that fee for this swap only. In v4-core `Pool.swap`: `lpFee = params.lpFeeOverride.isOverride() ? params.lpFeeOverride.removeOverrideFlagAndValidate() : slot0Start.lpFee()`. The fee stored in the pool's `slot0` is not written.
 5. The `Swap` event's `fee` field records the fee that swap paid (LP fee plus protocol fee; the protocol fee is zero on our Sepolia pools).
 
-What moves the fee over time is the desk: every 30 s the Chainlink CRE workflow writes a new signed report to `RiskDesk`, and the next swap reads it.
+What moves the fee over time is the desk: every 30 s the Chainlink CRE workflow writes a new report to `RiskDesk`, and the next swap reads it. On a DON that report is signed by the DON; in this build it comes from the one-node CRE simulator, sent by the operator key through `MockKeystoneForwarder` (see "Is the CRE consensus real in your demo?").
 
 ## Can a pool that is already live switch to clim?
 
@@ -3425,8 +3446,8 @@ What can change on a live clim pool without any migration: the volatility (every
 | Who | On a clim pool | On a static-fee v4 pool |
 |---|---|---|
 | A swapper | Nothing: the fee depends on neither direction, size nor pool state | Nothing |
-| The CRE DON | The volatility and the flags, through signed reports, bounded by the envelope | Not applicable |
-| The `RiskDesk` owner | Which forwarder and workflow are trusted; never the volatility, the fee or the parameters directly | Not applicable |
+| The CRE workflow (signed reports from a DON once deployed; today one simulated node, sent by the operator key) | The volatility and the flags, through its reports, bounded by the envelope | Not applicable |
+| The `RiskDesk` owner | Which forwarder and workflow are trusted; no function sets the volatility, the fee or the parameters. In this build the owner key is also the operator key, the only accepted sender of the live desk's simulated reports, so until `disableSim()` it can post any volatility inside the envelope (see "Can the owner change the fee?") | Not applicable |
 | The `ClimHook` deployer | Nothing after deployment: every parameter is immutable | Not applicable |
 | The PoolManager owner (protocol fee controller) | The protocol fee only (at most 1,000 pips per direction; the controller is `0x0` on Sepolia) | The same |
 
@@ -3437,22 +3458,22 @@ The protocol fee is a separate dial: it is taken on top of the LP fee and goes t
 It would capture most of the gain: in our lab, a volatility computed from the pool's own prices gets most of the improvement (the exact share is in the README's Results section). We still use a desk because the number must be hard to manipulate and easy to share:
 - a pool-internal estimate can be pushed by trading against the pool itself; four exchanges that must agree cannot;
 - the pool only sees itself, and an untraded pool shows no volatility at all;
-- one signed figure can serve many pools and chains;
+- one figure (signed by the DON once deployed on one) can serve many pools and chains;
 - the model check (predicted against observed arbitrage) runs off-chain, next to the data.
 
 ## Why Chainlink CRE, and not Data Feeds or Data Streams?
 
 - **Data Feeds.** The ETH/USD price feed on Ethereum mainnet updates on a 0.5 % deviation or a one-hour heartbeat: a price, not a volatility, and too coarse to build a 15-minute estimate from. Chainlink also lists ETH realized-volatility feeds, but their shortest window is 24 hours with a one-hour heartbeat, they are not listed on Ethereum mainnet, and the Sepolia ETH-USD 24hr feed (`0x31D04174D0e1643963b38d87f26b0675Bb7dC96e`) last updated on 2024-08-30. A storm that starts and ends within the hour barely moves a 24-hour number.
 - **Data Streams.** Pull-based: the user fetches a signed report off-chain and submits it for verification. For a fee, that would let the swapper choose which fresh report to bring. Its report schemas cover prices and other market data, not a 15-minute multi-venue realized volatility.
-- **CRE** runs our own computation where the data lives (USD normalization, freshness, quorum, RV15, dispersion), lets every node fetch independently, and delivers one signed report on-chain every 30 s that any pool, keeper or chain can read.
+- **CRE** runs our own computation where the data lives (USD normalization, freshness, quorum, RV15, dispersion), lets every node fetch independently, and delivers one report on-chain every 30 s that any pool, keeper or chain can read. On a DON that report is the nodes' median, signed; in this build the one-node CRE simulator writes it through `MockKeystoneForwarder` (next question).
 
 ## Is the CRE consensus real in your demo?
 
-Not in simulation, and we say so. `cre workflow simulate` runs a single node, and on Sepolia the `--broadcast` path goes through `MockKeystoneForwarder`, which does not verify signatures. We compensate in two ways: `RiskDesk` accepts simulated reports only when `tx.origin` is our operator key (the demo shows a forged report being rejected), and the workflow already uses the CRE consensus API (median of each field), so it runs unchanged on a DON. On a DON, reports arrive through the production `KeystoneForwarder`, `RiskDesk` checks the expected workflow id, and the owner calls `disableSim()`.
+Not in simulation, and we say so. `cre workflow simulate` runs a single node, and on Sepolia the `--broadcast` path goes through `MockKeystoneForwarder`, which does not verify signatures. We compensate in two ways: `RiskDesk` accepts simulated reports only when `tx.origin` is our operator key (the demo shows a forged report being rejected; that key is also the desk's owner, so in simulation it is the one trusted sender, see "Can the owner change the fee?"), and the workflow already uses the CRE consensus API (median of each field), so it runs unchanged on a DON. On a DON, reports arrive through the production `KeystoneForwarder`, `RiskDesk` checks the expected workflow id, and the owner calls `disableSim()`.
 
 ## Is it profitable?
 
-For LPs, modestly and unevenly: it is insurance. The README's Results section gives the lab numbers at the deployed parameters (both comparisons, and the expected gain per year of capital). As a business, not as a cut of hook fees: the credible path is a risk desk offered as a service to DEXs.
+For LPs, modestly and unevenly: it is insurance. The README's Results section gives the lab numbers at the deployed parameters (both comparisons, and the backtest gain per year of capital). As a business, not as a cut of hook fees: the credible path is a risk desk offered as a service to DEXs.
 
 ## Why Ethereum Sepolia? Why not Solana?
 
@@ -3464,7 +3485,19 @@ A venue whose last closed one-minute candle is older than 120 s is dropped. With
 
 ## Can the owner change the fee?
 
-Not directly. `ClimHook` has no owner and no setter, and `RiskDesk` has no function that sets volatility or the fee. `RiskDesk`'s owner (OpenZeppelin `Ownable`, through Chainlink's `ReceiverTemplate`) can choose which forwarder and which workflow to trust (`setForwarderAddress`, `setExpectedWorkflowId`, `setExpectedAuthor`, `setExpectedWorkflowName`), call `disableSim()`, and transfer or renounce ownership. That is a trust assumption: a malicious owner could point the desk at a forwarder it controls, or at address 0, which removes the sender check, and then feed its own volatility. Every such report would still be bounded: volatility moves at most ×2 up and ×0.8 down per report, and the fee stays between the 5 bp floor and the 150 bp cap. In production, after switching to the `KeystoneForwarder`, setting the workflow id and calling `disableSim()`, the owner renounces ownership (or hands it to a timelocked multisig). The hackathon deployment keeps an owner because it must switch forwarders.
+Not through any setter, but in this build the owner key does send the reports. `ClimHook` has no owner and no setter, and `RiskDesk` has no function that sets volatility or the fee. `RiskDesk`'s owner (OpenZeppelin `Ownable`, through Chainlink's `ReceiverTemplate`) can choose which forwarder and which workflow to trust (`setForwarderAddress`, `setExpectedWorkflowId`, `setExpectedAuthor`, `setExpectedWorkflowName`), call `disableSim()`, and transfer or renounce ownership.
+
+In this hackathon deployment the live desk's owner key is also its `simOperator`, the operator key that sends every simulated report. While `simMode` is on, `RiskDesk` accepts a report through `MockKeystoneForwarder` only when `tx.origin` is that key, and the report itself declares the volatility, k, the number of venues and their dispersion. So today that one key can post any volatility it likes, inside the bounds below. (The replay desk has the same owner but its own `simOperator` key.) A malicious owner could also point the desk at a forwarder it controls, or at address 0, which removes the sender check, and then feed its own volatility.
+
+Every report, whoever sends it, stays bounded:
+- volatility moves at most ×2 up and ×0.8 down per report, and always stays between 10% and 1000% a year;
+- reports must be at least 20 s apart (by observation time), at most 30 s in the future, and declare at least 3 venues;
+- k is clamped to [1, 2];
+- the fee stays between the 5 bp floor and the 150 bp cap.
+
+That still leaves room: from a calm 12% a year, 7 reports, a few minutes in all, reach the 1000% ceiling (about 109 bp at k = 1, the 150 bp cap at k = 2), and a report that declares more than 25 bp of dispersion flags the desk as degraded, which lifts the fee to at least the 30 bp safe fee.
+
+On a DON, `RiskDesk` accepts only the DON's signed reports: the owner switches to the `KeystoneForwarder`, sets the expected workflow id, calls `disableSim()` (irreversible), then renounces ownership (or hands it to a timelocked multisig). The hackathon deployment keeps an owner because it must switch forwarders.
 ````
 
 - [x] **Step 2: Check the anchors the README and the mentor message use**
@@ -3503,9 +3536,11 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/faq.md docs/session
 ```
 If `.pptx` is refused, Task 17 Step 6 (Keynote) becomes mandatory.
 
-- [ ] **Step 2: Set the live URL**
+- [x] **Step 2: Set the live URL**
 
-`docs/submission/links.json` already has `liveUrl` = https://clim-zeta.vercel.app with `liveMockData: true`, so the README says "mock data until wired to Sepolia" next to the link. Once master Task 14 Step 8 has wired the dashboard to Sepolia, open it in a private browser window, check that it loads and shows live desk data (no "Mock data" banner, no "Simulated faucet"), then delete `liveMockData` (`npm run check:final` refuses it) and run `npm run readme`.
+`docs/submission/links.json` already had `liveUrl` = https://clim-zeta.vercel.app with `liveMockData: true`, so the README said "mock data until wired to Sepolia" next to the link. Once master Task 14 Step 8 had wired the dashboard to Sepolia, the step was: open it in a private browser window, check that it loads and shows live desk data (no "Mock data" banner, no "Simulated faucet"), then delete `liveMockData` and run `npm run readme`.
+
+Done 2026-10-07: `liveMockData` removed, README regenerated (commit `4060cfc`); the flag's code in `src/inputs.mjs` and `src/readme-blocks.mjs` was removed afterwards as dead code (commit `1cd64cf`).
 
 - [ ] **Step 3: Check every input**
 
@@ -4085,7 +4120,7 @@ Read the numbers in brackets from `lab/out/backtest-summary.json` and `shared/pa
 "That was our first calibration, and our own audit caught it. Before deploying, we set the floor to the pair's market tier, 5 bp, and raised P* to [pStar]. So clim charges exactly 5 bp up to about [floor crossover, README fee schedule] annual volatility, which is most of the year. The premium only appears in storms, when the LP really needs it."
 
 **"Why not compute volatility on-chain, from the pool itself?"**
-"Honestly, it would capture most of the gain: [inPoolVolGainSharePct.low to high, rounded to whole percent] in our lab. But a pool-internal number can be pushed by trading against the pool, it sees one venue only, and it goes blind when the pool is not traded. CRE gives four exchanges that must agree, a signed report, one figure for many pools and chains, and a model check off-chain."
+"Honestly, it would capture most of the gain: [inPoolVolGainSharePct.low to high, rounded to whole percent] in our lab. But a pool-internal number can be pushed by trading against the pool, it sees one venue only, and it goes blind when the pool is not traded. CRE gives four exchanges that must agree, a report the DON signs once deployed, one figure for many pools and chains, and a model check off-chain."
 
 **"Is the consensus real in your simulation?"**
 "No, and we say it on the limits slide. `cre workflow simulate` runs one node, and the Sepolia mock forwarder does not check signatures. So RiskDesk only accepts simulated reports from our operator key, and the demo shows a forged report being rejected. The workflow already uses CRE's consensus API, median per field, so it runs unchanged on a DON."
@@ -4106,7 +4141,7 @@ Read the numbers in brackets from `lab/out/backtest-summary.json` and `shared/pa
 "With very short blocks the formula falls to the floor, because the half-block noise is tiny. On those chains the right time scale is the arbitrageurs' real reaction time, which has to be measured first. That is on the list after the hackathon."
 
 **"What stops the owner from changing the fee?"**
-"The hook has no owner and no setter; its parameters are immutable. The desk has no setter for volatility or the fee either. Its owner chooses which forwarder to trust, so in theory it could feed its own reports, but each one is capped at ×2 up and ×0.8 down and the fee stays between 5 and 150 bp. In production the owner renounces ownership once the production forwarder is set."
+"The hook has no owner and no setter; its parameters are immutable. The desk has no setter for volatility or the fee either. But in this build the owner key is also the simulation operator, the only key whose reports the live desk accepts, so today that key does decide the volatility, inside the limits: at most ×2 up and ×0.8 down per report, and the fee stays between 5 and 150 bp. On a DON, the desk switches to the signed forwarder, simulation is disabled, and the owner renounces ownership."
 
 ---
 
@@ -4116,10 +4151,10 @@ Read the numbers in brackets from `lab/out/backtest-summary.json` and `shared/pa
 
 **Tagline:** Storm insurance for Uniswap v4 LPs: a fee that follows the market's weather, measured by a Chainlink CRE risk desk.
 
-**Short description:** A liquidity provider is an insurer: arbitrage bots make it pay every time the market moves. clim gives it a premium that follows the market's weather: four exchanges, read every 30 seconds by a Chainlink CRE workflow and required to agree, publish one signed volatility figure, and a Uniswap v4 hook turns it into the fee of every swap, at the market price when it is calm and rising in a storm.
+**Short description:** A liquidity provider is an insurer: arbitrage bots make it pay every time the market moves. clim gives it a premium that follows the market's weather: four exchanges, read every 30 seconds by a Chainlink CRE workflow and required to agree, publish one volatility figure on-chain, and a Uniswap v4 hook turns it into the fee of every swap, at the market price when it is calm and rising in a storm.
 
 **Long description:**
-clim is a volatility-indexed LP fee with a prediction you can check. A Chainlink CRE workflow (the "risk desk") fetches one-minute ETH prices from Coinbase, Kraken, Binance and Hyperliquid on every node, drops stale venues, requires a quorum of three, computes 15-minute realized volatility and venue dispersion, and has the DON agree on the median before writing a signed report to `RiskDesk.sol` every 30 seconds. A Uniswap v4 hook built on OpenZeppelin's `BaseOverrideFee` reads the desk inside every swap and returns the fee: the pair's market tier when it is calm, η standard deviations of the half-block price move in a storm, and a safe fee if the desk goes silent or the venues disagree. η is chosen so that a known share of blocks gets arbitraged (Milionis, Moallemi and Roughgarden 2023; Nezlobin and Tassy 2025), which we check against what happens on-chain and on historical data. Live on Sepolia with twin pools (clim and a fixed fee at the same average), our own arbitrage and retail bots, an on-chain replay of the 4 February 2026 storm, and a dashboard. Numbers, limits and evidence are in the README.
+clim is a volatility-indexed LP fee with a prediction you can check. A Chainlink CRE workflow (the "risk desk") fetches one-minute ETH prices from Coinbase, Kraken, Binance and Hyperliquid, drops stale venues, requires a quorum of three, computes 15-minute realized volatility and venue dispersion, takes the median of each field with CRE's consensus API, and writes one report to `RiskDesk.sol` every 30 seconds. During the hackathon it runs in the CRE simulator (`cre workflow simulate --broadcast`, one node) through Chainlink's MockKeystoneForwarder on Sepolia, because DON deploy access was not enabled in time; built on the consensus API, the same workflow runs unchanged on a DON, where the nodes sign the report. A Uniswap v4 hook built on OpenZeppelin's `BaseOverrideFee` reads the desk inside every swap and returns the fee: the pair's market tier when it is calm, η standard deviations of the half-block price move in a storm, and a safe fee if the desk goes silent or the venues disagree. η is chosen so that a known share of blocks gets arbitraged (Milionis, Moallemi and Roughgarden 2023; Nezlobin and Tassy 2025), which we check against what happens on-chain and on historical data. Live on Sepolia with twin pools (clim and a fixed fee at the same average), our own arbitrage and retail bots, an on-chain replay of the 4 February 2026 storm, and a dashboard. Numbers, limits and evidence are in the README.
 
 **Built with:** Chainlink CRE (TypeScript SDK, cron trigger, HTTP capability, consensus by median, EVM write), Uniswap v4 hooks, OpenZeppelin uniswap-hooks, Solidity and Foundry, TypeScript, viem and Bun bots, Next.js, Python. Network: Ethereum Sepolia.
 
