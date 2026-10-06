@@ -2424,7 +2424,7 @@ git commit -m "feat(cre): local simulation loop for the risk desk"
 - Create (not committed): `cre/.env`
 - Modify: `cre/risk-desk/config.staging.json` (through the script), today's session log, `docs/feedback/cre-friction-log.md`
 
-- [ ] **Step 1: Create `cre/risk-desk/scripts/sync-config.ts` and run it**
+- [x] **Step 1: Create `cre/risk-desk/scripts/sync-config.ts` and run it**
 
 ```ts
 // Copies the RiskDesk addresses and the pool token order from shared/deployments/sepolia.json
@@ -2476,7 +2476,7 @@ Expected: `config.staging.json: deskAddress=0x<live desk> token0IsEth=<true|fals
 
 If it throws `missing tokens.tETH.address or tokens.tUSD.address`, the deployments file has another shape: edit `KEYS` in the script and add a session-log bullet that names the keys.
 
-- [ ] **Step 2: Check the desk on chain**
+- [x] **Step 2: Check the desk on chain**
 
 Shell variables do not persist between tool calls, so every block below starts by defining the ones it uses.
 
@@ -2492,7 +2492,7 @@ Expected:
 - the forwarder is `0x15fC6ae953E024d975e77382eEeC56A9101f9F88`;
 - `simOperator()` returns the operator address.
 
-- [ ] **Step 3: Create `cre/.env` with the simOperator key and check it**
+- [x] **Step 3: Create `cre/.env` with the simOperator key and check it**
 
 ```bash
 cp cre/.env.example cre/.env
@@ -2510,7 +2510,7 @@ Expected:
 - the address equals `simOperator()` from Step 2;
 - the balance is at least 0.05 ETH (one hour of reports costs about 0.02 ETH at 1 gwei; Step 5 measures the real cost). If it is lower, top it up from https://faucets.chain.link.
 
-- [ ] **Step 4: One broadcast run**
+- [x] **Step 4: One broadcast run**
 
 ```bash
 (cd cre && cre workflow simulate risk-desk --non-interactive --trigger-index 0 --target staging-settings --broadcast)
@@ -2531,7 +2531,7 @@ Workflow Simulation Result:
 
 On a first report, `sigmaApplied` equals `sigmaReported` unless sigma is below 10 %/yr (the floor). If `disp` is above 25 bp, flags is 1 (DEGRADED). `SENT 0x<tx>` means the transaction went out but the desk state could not be read back: check `state()` by hand in Step 5.
 
-- [ ] **Step 5: Verify on chain and measure the gas**
+- [x] **Step 5: Verify on chain and measure the gas**
 
 ```bash
 RPC=https://ethereum-sepolia-rpc.publicnode.com; DESK=$(jq -r .deskAddress cre/risk-desk/config.staging.json); KEY=$(grep '^CRE_ETH_PRIVATE_KEY=' cre/.env | cut -d= -f2)
@@ -2550,7 +2550,7 @@ If the result is `NOT_APPLIED 0x<tx>` instead, RiskDesk rejected the report insi
 2. The usual causes are a `simOperator` that is not the `.env` key (Step 3) or a `tObs` gap under 20 s.
 3. Set friction row 9 to `confirmed <date> with tx 0x<tx>`, fix the cause and re-run Step 4.
 
-- [ ] **Step 6: Prove that a forged report is not applied (SIM guard + friction row 9)**
+- [x] **Step 6: Prove that a forged report is not applied (SIM guard + friction row 9)**
 
 The mock forwarder is permissionless, so anyone can call it. RiskDesk must ignore reports whose `tx.origin` is not `simOperator`.
 
@@ -2605,7 +2605,7 @@ cast call $DESK "state()(uint40,uint32,uint16,uint8,uint32)" --rpc-url $RPC
 
 Expected: `seq` and the count have both grown by about 2 per minute.
 
-- [ ] **Step 8: Create `cre/risk-desk/scripts/latency.ts` and measure the end-to-end latency**
+- [x] **Step 8: Create `cre/risk-desk/scripts/latency.ts` and measure the end-to-end latency**
 
 ```ts
 // End-to-end latency of the risk desk: for each RiskReported event, block.timestamp - tObs
@@ -2664,7 +2664,7 @@ Session log:
 
 In friction row 5, set the Status to `quotas confirmed; measured in simulation: median <b> s, p90 <c> s (tObs → block)`.
 
-- [ ] **Step 9: Commit** (never `cre/.env`)
+- [x] **Step 9: Commit** (never `cre/.env`)
 
 ```bash
 git add cre/risk-desk/scripts/sync-config.ts cre/risk-desk/scripts/latency.ts cre/risk-desk/config.staging.json docs/sessions/ docs/feedback/cre-friction-log.md

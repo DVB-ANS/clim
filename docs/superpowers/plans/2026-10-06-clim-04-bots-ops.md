@@ -4277,22 +4277,22 @@ git commit -m "docs(ops): run-book and bots environment template"
 **Files:**
 - Modify: today's session log (the run logs stay in `bots/out/`, ignored by git; plan 06 collects the evidence)
 
-- [ ] **Step 1: Validate the deployment files**
+- [x] **Step 1: Validate the deployment files**
 
 Run: `bun run --cwd shared test`
 Expected: ` 0 fail` and ` 0 skip` (ABIs exported, so the drift checks run). A failure names the wrong field of `sepolia.json` or `params.json`: fix the file (or plan 01's deploy script), not the validator.
 
-- [ ] **Step 2: Fund and check**
+- [x] **Step 2: Fund and check**
 
 Run (CRE loop stopped, since the deployer is also the operator): `cd bots && bun run fund && bun run status --pair live`
 Expected: the outputs of run-book sections 2 and 1; exit code 0; no `PROBLEM` line. If `arb` later warns that `routers.arb` is not deployed, ask plan 01 for it (contract 1) before relying on the app's arbitrage attribution.
 
-- [ ] **Step 3: One recorded CRE run**
+- [x] **Step 3: One recorded CRE run**
 
 Run: `cd bots && bun run cre-loop --pair live --once`
 Expected: plan 02's loop output, then `[sim-loop live] run <time>: applied tx 0x... block N seq S sigmaApplied X forwarderResult true` and one file in `bots/out/cre-sim/`, where X is the `sigmaE9` of the workflow's `consensus:` line (or the enveloped value if the desk clamped it). `not-applied`, `rejected` or `forwarderResult false`: run-book section 7.
 
-- [ ] **Step 4: Ten minutes of the full stack**
+- [x] **Step 4: Ten minutes of the full stack**
 
 Start the four terminals of run-book section 3, wait ten minutes, stop them (Ctrl-C), then run:
 ```bash
@@ -4307,12 +4307,12 @@ grep -c txHash out/noise-live.jsonl
 ```
 Expected: about 20 `applied` runs and few others; arbitrage decisions on both pools, swaps whose receipts are `success`, few `stale`; retail swaps in pairs (V then S); the status watch never showing `PROBLEM`.
 
-- [ ] **Step 5: Security demos**
+- [x] **Step 5: Security demos**
 
 Run: `cd bots && bun run forge-report --pair live`
 Expected: `SIM guard held: forged report rejected` (exit 0). Then follow run-book section 5 "Circuit breaker" and note the times: loop stopped, `blind` seen, `normal` again.
 
-- [ ] **Step 6: Log the results**
+- [x] **Step 6: Log the results**
 
 Append under `## Build notes` in today's session log, with the numbers from Steps 4 and 5:
 
@@ -4320,7 +4320,7 @@ Append under `## Build notes` in today's session log, with the numbers from Step
 - (ops) Live smoke test (plan 04 Task 23): <n> applied CRE reports in 10 min, first tx <0x...>; arbitrage swaps <n>, stale <n>; retail swaps <n>; forged report rejected (tx <0x...>); blind <t> s after the last report, normal again <t> s after restarting the loop.
 ```
 
-- [ ] **Step 7: Commit the results**
+- [x] **Step 7: Commit the results**
 
 ```bash
 git add docs/sessions/
