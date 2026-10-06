@@ -45,3 +45,6 @@ CLAUDE.local.md
 # Foundry dry runs on a local anvil fork
 contracts/deployments/31337/
 shared/deployments/anvil.json
+
+# Vercel CLI link (deploys from the repo root, Root Directory app/)
+.vercel
