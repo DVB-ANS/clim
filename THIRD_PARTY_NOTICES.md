@@ -72,9 +72,10 @@ SOFTWARE.
 
 ## Rare UI
 
-[Rare UI](https://rareui.com), github.com/swamimalode07/rare-ui, at commit f64e58332a8cb138ed974007575b5a76fe5e6c6f, the last
-commit under plain MIT (Rare UI's later licence, MIT + Commons Clause + Attribution, does not apply to these copies). Licence in
-force at that commit:
+[Rare UI](https://rareui.com), github.com/swamimalode07/rare-ui, at commit 539567414bac024260ed696c9647c737380514a7 (2026-09-21), the
+last commit before Rare UI's 2026-09-22 terms: f64e5833 added non-commercial usage rules to the site and 32b7b52a changed the
+LICENSE to MIT + Commons Clause + Attribution; neither applies to these copies, and the three files are byte-identical at all
+three commits and on main. Licence in force at that commit:
 
 ```
 MIT License
@@ -102,17 +103,17 @@ SOFTWARE.
 
 ### Animated Counter
 
-- Source: [Rare UI](https://rareui.com) "Animated Counter", https://github.com/swamimalode07/rare-ui/blob/f64e58332a8cb138ed974007575b5a76fe5e6c6f/components/ui/animated-counter.tsx (commit f64e5833, 2026-09-22, the last commit under plain MIT; this file is byte-identical on main).
+- Source: [Rare UI](https://rareui.com) "Animated Counter", https://github.com/swamimalode07/rare-ui/blob/539567414bac024260ed696c9647c737380514a7/components/ui/animated-counter.tsx (commit 53956741, 2026-09-21, before Rare UI's 2026-09-22 terms; this file is byte-identical on main).
 - Adapted in: `src/components/AnimatedCounter.tsx`.
 - Changes:
   - The `cn` import now points to `@/lib/cn`.
   - The two `#000` stops in the mask gradient are now `rgba(0,0,0,1)`, which is the same alpha.
   - Added a licence header and doc comments on the exports.
-- Licence: MIT License, Copyright (c) 2026 Swami Malode. This is the licence in force at commit f64e5833. Rare UI's later licence (MIT + Commons Clause + Attribution, from commit 32b7b52a) does not apply to this copy. The rareui.com credit is kept as a courtesy.
+- Licence: MIT License, Copyright (c) 2026 Swami Malode. This is the licence in force at commit 53956741. Rare UI's later licence (MIT + Commons Clause + Attribution, from commit 32b7b52a) does not apply to this copy. The rareui.com credit is kept as a courtesy.
 
 ### Gooey Nav
 
-- Source: [Rare UI](https://rareui.com), [github.com/swamimalode07/rare-ui](https://github.com/swamimalode07/rare-ui), file `components/ui/gooey-nav.tsx` at commit [`f64e58332a8cb138ed974007575b5a76fe5e6c6f`](https://github.com/swamimalode07/rare-ui/blob/f64e58332a8cb138ed974007575b5a76fe5e6c6f/components/ui/gooey-nav.tsx). This is the last commit under plain MIT, before the 2026-09-22 licence change; the file is byte-identical on main.
+- Source: [Rare UI](https://rareui.com), [github.com/swamimalode07/rare-ui](https://github.com/swamimalode07/rare-ui), file `components/ui/gooey-nav.tsx` at commit [`539567414bac024260ed696c9647c737380514a7`](https://github.com/swamimalode07/rare-ui/blob/539567414bac024260ed696c9647c737380514a7/components/ui/gooey-nav.tsx). This is the last commit before Rare UI's 2026-09-22 terms; the file is byte-identical on main.
 - Licence: MIT License, Copyright (c) 2026 Swami Malode (the LICENSE file in force at that commit).
 - Adapted in `src/components/GooeyNav.tsx`, used by `src/components/AppHeader.tsx`. Changes:
   - The hard-coded hex colours became clim tokens: the bar is surface-2, and the neck currentColor (BAR_TEXT) matches it. Inactive labels use fg-muted. Active is `var(--clim-accent)` with a `var(--clim-accent-fg)` label.
@@ -128,8 +129,8 @@ SOFTWARE.
 
 ### Scroll Progress
 
-- Source: [Rare UI](https://rareui.com) "Scroll Progress", https://github.com/swamimalode07/rare-ui/blob/f64e58332a8cb138ed974007575b5a76fe5e6c6f/components/ui/scroll-progress.tsx
-- Commit: f64e58332a8cb138ed974007575b5a76fe5e6c6f (2026-09-22), the last commit before Rare UI's licence changed to MIT + Commons Clause + Attribution. The file is byte-identical at that commit and on main.
+- Source: [Rare UI](https://rareui.com) "Scroll Progress", https://github.com/swamimalode07/rare-ui/blob/539567414bac024260ed696c9647c737380514a7/components/ui/scroll-progress.tsx
+- Commit: 539567414bac024260ed696c9647c737380514a7 (2026-09-21), the last commit before Rare UI's 2026-09-22 terms. The file is byte-identical at that commit and on main.
 - Licence: MIT License, Copyright (c) 2026 Swami Malode (the LICENSE in force at that commit).
 - Adapted in: `src/components/site/ScrollRing.tsx`.
 - What was adapted:
@@ -175,7 +176,7 @@ SOFTWARE.
 - Adapted in `src/components/site/LaunchButton.tsx`, which keeps a header naming the source:
   - The 84-line CSS file became Tailwind utilities using clim tokens, and the four `--obsidian-discover-*` variables became the `onWhite` / `onBlue` tones.
   - Added a separate pink icon disc (`data-launch-dot`) and a second, `sm` size.
-  - lucide's ArrowRight became an inline SVG, and `clsx` / `tailwind-merge` became `@/lib/cn`.
+  - lucide's ArrowRight was replaced by an arrow drawn for clim (inline SVG), and `clsx` / `tailwind-merge` became `@/lib/cn`.
   - Removed the glass border, the backdrop blur and the scale-in entrance. Font weight is 500 instead of 600.
   - The focus outline uses the clim accent (upstream's `var(--ring)` does not exist in clim).
   - The plain `<a>` / `<button>` became `LaunchLink` (next/link with the "launch" view transition), with a `useLinkStatus` pending spinner.
@@ -239,8 +240,35 @@ SOFTWARE.
 
 ## @web3icons/core
 
-- The stack's logos in `src/components/site/logos.ts`, generated by `scripts/make-logos.mjs` from [`@web3icons/core`](https://www.npmjs.com/package/@web3icons/core) (a dev dependency) and recoloured to `currentColor`.
-- Licence: MIT (package.json).
+- The stack's logos in `src/components/site/logos.ts`, generated by `scripts/make-logos.mjs` from [`@web3icons/core`](https://www.npmjs.com/package/@web3icons/core) (a dev dependency): whole icon paths, recoloured to `currentColor`.
+- Licence: MIT License, Copyright (c) 2024 0xa3k5 (github.com/0xa3k5/web3icons, LICENCE; the npm package ships no licence file):
+
+```
+MIT License
+
+Copyright (c) 2024 0xa3k5
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+The marks themselves belong to their projects (Coinbase, Kraken, Binance, Chainlink, Ethereum, Uniswap); clim shows them to say
+what it is built on, not as an endorsement.
 
 ## dotted-map
 

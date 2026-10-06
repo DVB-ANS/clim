@@ -14,13 +14,13 @@ const FOOT = [
   },
 ];
 
-const CREDITS = [
+const ADAPTED = [
   { href: "https://reactbits.dev", label: "React Bits" },
-  { href: "https://ui.aceternity.com", label: "Aceternity UI" },
   { href: "https://rareui.com", label: "Rare UI (rareui.com)" },
   { href: "https://www.obsidianui.dev", label: "ObsidianUI" },
-  { href: "https://ditheritv3.netlify.app", label: "Dither it!" },
 ];
+
+const credit = "underline decoration-line underline-offset-2 hover:text-fg";
 
 function FootLink({ href, children, className = "" }: { href: string; children: string; className?: string }) {
   return href.startsWith("http") ? (
@@ -63,22 +63,30 @@ export function SiteFooter({ simulated }: { simulated: boolean }) {
       </div>
       <p className="relative mt-14 max-w-2xl text-[13px] leading-relaxed text-fg-muted">
         Components adapted from{" "}
-        {CREDITS.map((c, i) => (
+        {ADAPTED.map((c, i) => (
           <span key={c.href}>
-            <FootLink href={c.href} className="underline decoration-line underline-offset-2 hover:text-fg">
+            <FootLink href={c.href} className={credit}>
               {c.label}
             </FootLink>
-            {i < CREDITS.length - 2 ? ", " : i === CREDITS.length - 2 ? " and " : ""}
+            {i < ADAPTED.length - 2 ? ", " : i === ADAPTED.length - 2 ? " and " : ""}
           </span>
-        ))}
-        .{" "}
-        <FootLink href="https://github.com/DVB-ANS/clim-front/blob/main/THIRD_PARTY_NOTICES.md" className="underline decoration-line underline-offset-2 hover:text-fg">
+        ))}{" "}
+        · patterns after{" "}
+        <FootLink href="https://ui.aceternity.com" className={credit}>
+          Aceternity UI
+        </FootLink>{" "}
+        · dithering after{" "}
+        <FootLink href="https://ditheritv3.netlify.app" className={credit}>
+          Dither it!
+        </FootLink>{" "}
+        ·{" "}
+        <FootLink href="/credits" className={`${credit} whitespace-nowrap`}>
           Third-party notices
         </FootLink>
       </p>
       <div className="relative mt-6 flex flex-wrap gap-x-8 gap-y-2 text-[13px] text-fg-muted">
         <span>© clim 2026 · TOKEN2049 Origins</span>
-        {simulated ? <span>Simulated data until the contracts are on Sepolia</span> : null}
+        {simulated ? <span>Simulated data</span> : null}
       </div>
     </footer>
   );
