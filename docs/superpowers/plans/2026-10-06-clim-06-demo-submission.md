@@ -3243,7 +3243,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/evidence README.md 
 - Create: `docs/media/fee-follows-weather.png`
 - Modify: `README.md` (generated blocks)
 
-- [ ] **Step 1: Draw it**
+- [x] **Step 1: Draw it**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && mkdir -p docs/media && uv run --no-project --with "matplotlib>=3.9,<3.11" python docs/submission/figures/fee_figure.py lab/out/replay-2026-02-04.json docs/media/fee-follows-weather.png
