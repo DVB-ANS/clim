@@ -4,13 +4,34 @@ import type { PositionView } from "@/lib/liquidity";
 import type { PoolName } from "@/lib/swap";
 import { utcTime } from "@/lib/theme";
 import { formatAmount, formatUsdCents } from "@/lib/units";
+import { TokenIcon } from "./dex";
 import { ActionButton, type TxMode } from "./TxModeSwitch";
-import { Panel, Stat } from "./ui";
 
 const POOL_LABEL: Record<PoolName, string> = { V: "Pool V · clim", S: "Pool S · fixed fee" };
-const DOT: Record<PoolName, string> = { V: "bg-v", S: "bg-s" };
 
-/** "Your position": value, fees, and the P&L of the same liquidity in the twin pool. */
+const BAR: Record<PoolName, string> = { V: "bg-v", S: "bg-s" };
+
+/** Two bars on one scale, each in its pool's colour: this position's P&L and the same liquidity's in the twin pool. */
+function Compare({ mine, other, pool, otherPool }: { mine: number; other: number; pool: PoolName; otherPool: PoolName }) {
+  const max = Math.max(Math.abs(mine), Math.abs(other), 1e-9);
+  const bar = (v: number, cls: string, label: string) => (
+    <div className="grid grid-cols-[7.5rem_minmax(0,1fr)_5.5rem] items-center gap-3 text-sm">
+      <span className="text-fg-subtle">{label}</span>
+      <span className="h-2.5 rounded-full bg-surface-2">
+        <span className={`block h-full rounded-full ${cls}`} style={{ width: `${Math.max(2, (Math.abs(v) / max) * 100)}%`, opacity: v < 0 ? 0.45 : 1 }} />
+      </span>
+      <span className="text-right tabular-nums">{formatUsdCents(v)}</span>
+    </div>
+  );
+  return (
+    <div className="space-y-2">
+      {bar(mine, BAR[pool], `Yours, in pool ${pool}`)}
+      {bar(other, BAR[otherPool], `In pool ${otherPool}`)}
+    </div>
+  );
+}
+
+/** "Your positions": value, fees, and the P&L of the same liquidity in the twin pool. */
 export function PositionPanel({ mode, views, busy, onRemove }: {
   mode: TxMode;
   views: PositionView[];
@@ -18,54 +39,72 @@ export function PositionPanel({ mode, views, busy, onRemove }: {
   onRemove: (pool: PoolName) => void;
 }) {
   return (
-    <Panel
-      title="Your position"
-      subtitle={
-        mode === "mock"
-          ? "Simulated: valued at the pool price, with fees and P&L as your share of the pool's series over the whole simulated window."
-          : "Liquidity and uncollected fees read from Uniswap v4's StateView; P&L is your share of the pool's series since you added liquidity."
-      }
-    >
+    <section aria-labelledby="positions-title" className="space-y-3">
+      <div>
+        <h2 id="positions-title" className="font-display text-[22px] tracking-[-0.02em]">
+          Your positions
+        </h2>
+        <p className="text-sm text-fg-subtle">
+          {mode === "mock"
+            ? "Simulated: valued at the pool price, fees and P&L as your share of the pool's series over the whole simulated window."
+            : "Liquidity and uncollected fees from Uniswap v4's StateView; P&L as your share of the pool's series since you added liquidity."}
+        </p>
+      </div>
       {views.length === 0 ? (
-        <p className="text-sm text-fg-subtle">No position yet. Get test tokens, then add liquidity to pool V or pool S.</p>
+        <div className="grid place-items-center rounded-lg border border-dashed border-line px-6 py-14 text-center">
+          <p className="font-display text-lg">No position yet</p>
+          <p className="mt-1 max-w-sm text-sm text-fg-subtle">Get test tokens, pick pool V or pool S, and add full-range liquidity: the position shows up here, live.</p>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {views.map((v) => {
-            const diff = v.pnlUsd - v.pnlOtherUsd;
-            return (
-              <div key={v.pool} className="rounded-md border border-line p-3">
-                <h3 className="flex items-center gap-2 text-sm font-semibold">
-                  <span aria-hidden className={`inline-block h-2.5 w-2.5 rounded-full ${DOT[v.pool]}`} />
-                  {POOL_LABEL[v.pool]}
-                  <span className="text-xs font-normal text-fg-subtle">since {utcTime(v.sinceSec)} UTC</span>
-                </h3>
-                <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-5">
-                  <Stat label="Share of the pool" value={`${formatAmount(v.share * 100, 3)}%`} />
-                  <Stat label="Value" value={formatUsdCents(v.valueUsd)} hint={`${formatAmount(v.amountEth, 4)} tETH + ${formatAmount(v.amountUsd, 2)} tUSD`} />
-                  <Stat
-                    label="Fees earned"
-                    value={formatUsdCents(v.feesUsd)}
-                    hint={v.feesSource === "on-chain" ? "uncollected, on-chain" : "your share of the pool's fees"}
-                  />
-                  <Stat label="Your P&L" value={formatUsdCents(v.pnlUsd)} hint="retail fees − arbitrage, hedged" />
-                  <Stat label={`If you had been in ${v.otherPool}`} value={formatUsdCents(v.pnlOtherUsd)} hint="same liquidity, same period" />
+        views.map((v) => {
+          const diff = v.pnlUsd - v.pnlOtherUsd;
+          return (
+            <article key={v.pool} className="rounded-lg bg-surface p-5 shadow-[0_0_0_1px_var(--clim-line)]">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="flex -space-x-1.5">
+                  <TokenIcon symbol="tETH" className="size-6 ring-2 ring-surface" />
+                  <TokenIcon symbol="tUSD" className="size-6 ring-2 ring-surface" />
+                </span>
+                <span className="font-medium">{POOL_LABEL[v.pool]}</span>
+                <span className="rounded-full bg-signal/12 px-2 py-0.5 text-xs text-signal">Full range</span>
+                <span className="ml-auto text-xs text-fg-subtle">since {utcTime(v.sinceSec)} UTC</span>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs text-fg-subtle">Value</p>
+                  <p className="font-display text-[26px] leading-tight tracking-[-0.02em] tabular-nums">{formatUsdCents(v.valueUsd)}</p>
+                  <p className="text-xs text-fg-subtle">
+                    {formatAmount(v.amountEth, 4)} tETH + {formatAmount(v.amountUsd, 2)} tUSD
+                  </p>
                 </div>
-                <p className="mt-2 text-sm text-fg-muted">
-                  {Math.abs(diff) < 0.005
-                    ? `Over this period, pool ${v.pool} and pool ${v.otherPool} paid this liquidity the same.`
-                    : `Over this period, pool ${v.pool} paid this liquidity ${formatUsdCents(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than pool ${v.otherPool} would have.`}
-                </p>
-                <div className="mt-3">
-                  <ActionButton mode={mode} disabled={busy} onClick={() => onRemove(v.pool)}>
-                    Remove all liquidity from pool {v.pool}
-                  </ActionButton>
-                  {mode === "chain" ? <span className="ml-2 text-xs text-fg-subtle">Removing also collects the fees.</span> : null}
+                <div>
+                  <p className="text-xs text-fg-subtle">Fees earned</p>
+                  <p className="font-display text-[26px] leading-tight tracking-[-0.02em] tabular-nums">{formatUsdCents(v.feesUsd)}</p>
+                  <p className="text-xs text-fg-subtle">{v.feesSource === "on-chain" ? "uncollected, on-chain" : "your share of the pool's fees"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-fg-subtle">Share of the pool</p>
+                  <p className="font-display text-[26px] leading-tight tracking-[-0.02em] tabular-nums">{formatAmount(v.share * 100, 3)}%</p>
                 </div>
               </div>
-            );
-          })}
-        </div>
+              <div className="mt-5">
+                <Compare mine={v.pnlUsd} other={v.pnlOtherUsd} pool={v.pool} otherPool={v.otherPool} />
+                <p className="mt-3 text-sm text-fg-muted">
+                  {Math.abs(diff) < 0.005
+                    ? `Over this period, pool ${v.pool} and pool ${v.otherPool} paid this liquidity the same.`
+                    : `Over this period, pool ${v.pool} paid this liquidity ${formatUsdCents(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than pool ${v.otherPool} would have (retail fees − arbitrage, hedged).`}
+                </p>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <ActionButton mode={mode} disabled={busy} onClick={() => onRemove(v.pool)}>
+                  Remove all liquidity
+                </ActionButton>
+                {mode === "chain" ? <span className="text-xs text-fg-subtle">Removing also collects the fees.</span> : null}
+              </div>
+            </article>
+          );
+        })
       )}
-    </Panel>
+    </section>
   );
 }

@@ -2,10 +2,10 @@
 
 import { MOCK_FAUCET } from "@/hooks/useLpState";
 import { formatAmount } from "@/lib/units";
+import { TokenIcon } from "./dex";
 import { ActionButton, type TxMode } from "./TxModeSwitch";
-import { Panel, Stat } from "./ui";
 
-/** TestToken.faucet() on tETH and tUSD, and the wallet's balances. */
+/** TestToken.faucet() on tETH and tUSD, and the wallet's balances, as one strip above the pools. */
 export function FaucetCard({ mode, balances, busy, onFaucet }: {
   mode: TxMode;
   balances?: { tETH: number; tUSD: number };
@@ -13,24 +13,30 @@ export function FaucetCard({ mode, balances, busy, onFaucet }: {
   onFaucet: () => void;
 }) {
   return (
-    <Panel
-      title="Test tokens"
-      subtitle={
-        mode === "mock"
-          ? `Simulated faucet: +${MOCK_FAUCET.tETH} tETH and +${formatAmount(MOCK_FAUCET.tUSD, 0)} tUSD per call.`
-          : "TestToken.faucet() sends a fixed amount to your address, once per cooldown."
-      }
-    >
-      <div className="grid grid-cols-2 gap-3">
-        <Stat label="Your tETH" value={balances ? formatAmount(balances.tETH, 4) : "–"} />
-        <Stat label="Your tUSD" value={balances ? formatAmount(balances.tUSD, 2) : "–"} />
+    <section aria-label="Test tokens" className="flex flex-wrap items-center gap-x-8 gap-y-4 rounded-lg bg-surface p-4 shadow-[0_0_0_1px_var(--clim-line)] md:px-6">
+      <div className="min-w-0 flex-1">
+        <p className="font-display text-lg tracking-[-0.02em]">Test tokens</p>
+        <p className="text-xs text-fg-subtle">
+          {mode === "mock"
+            ? `Simulated faucet: +${MOCK_FAUCET.tETH} tETH and +${formatAmount(MOCK_FAUCET.tUSD, 0)} tUSD per call.`
+            : "TestToken.faucet() sends a fixed amount to your address, once per cooldown."}
+        </p>
       </div>
-      {mode === "chain" && !balances ? <p className="mt-2 text-xs text-fg-subtle">Connect a wallet on Sepolia to read your balances.</p> : null}
-      <div className="mt-3">
-        <ActionButton mode={mode} disabled={busy} onClick={onFaucet}>
-          Get tETH and tUSD
-        </ActionButton>
+      <div className="flex flex-wrap items-center gap-5">
+        {(["tETH", "tUSD"] as const).map((t) => (
+          <span key={t} className="flex items-center gap-2">
+            <TokenIcon symbol={t} className="size-7" />
+            <span>
+              <span className="block font-display text-lg leading-none tabular-nums">{balances ? formatAmount(balances[t], t === "tETH" ? 4 : 2) : "–"}</span>
+              <span className="text-xs text-fg-subtle">{t}</span>
+            </span>
+          </span>
+        ))}
       </div>
-    </Panel>
+      <ActionButton mode={mode} disabled={busy} onClick={onFaucet}>
+        Get tETH and tUSD
+      </ActionButton>
+      {mode === "chain" && !balances ? <p className="basis-full text-xs text-fg-subtle">Connect a wallet on Sepolia to read your balances.</p> : null}
+    </section>
   );
 }

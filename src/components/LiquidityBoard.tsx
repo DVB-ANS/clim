@@ -11,12 +11,14 @@ import { amountsForLiquidity, fullRangeTicks, liquidityForEth, type PositionView
 import { pnlExplain } from "@/lib/pnl";
 import type { PoolName } from "@/lib/swap";
 import { type FlowStep, mockStep, writeReadiness } from "@/lib/tx";
+import { formatBp, pipsToBp } from "@/lib/units";
 import { FaucetCard } from "./FaucetCard";
 import { type AddQuote, LiquidityForm } from "./LiquidityForm";
 import { PositionPanel } from "./PositionPanel";
 import { type TxMode, TxModeSwitch } from "./TxModeSwitch";
 import { TxSteps } from "./TxSteps";
-import { Panel } from "./ui";
+import type { PoolOption } from "./dex";
+import { ModeBadge } from "./ui";
 
 const twin = (pool: PoolName): PoolName => (pool === "V" ? "S" : "V");
 
@@ -108,7 +110,7 @@ export function LiquidityBoard() {
   // The user's position in each pool, against the same liquidity in the twin pool (pnl.ts, pro rata to L).
   const { pools, positions } = lp;
   const { pair: dataPair, swaps, reports, arbRouter } = data;
-  const views = useMemo(() => {
+  const views = (() => {
     const out: PositionView[] = [];
     if (!dataPair) return out;
     for (const name of POOLS) {
@@ -147,21 +149,39 @@ export function LiquidityBoard() {
       );
     }
     return out;
-  }, [dataPair, swaps, reports, arbRouter, positions, pools, tickLower, tickUpper, windowStart]);
+  })();
+
+  // the pool cards: what sets each fee, the fee now, and how deep the pool is at its price
+  const quoteNow = data.state?.quote;
+  const levelV = lp.pools.V;
+  const ethUsd = levelV ? (token0IsEth ? levelV.sqrtP ** 2 : 1 / levelV.sqrtP ** 2) : undefined;
+  const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
+  const depth = (p: PoolName) => {
+    const level = lp.pools[p];
+    const s2 = level ? sides(p, level.liquidity) : null;
+    return s2 && ethUsd !== undefined ? `≈ $${compact.format(s2.eth * ethUsd + s2.usd)} in the pool` : "pool depth …";
+  };
+  const poolOptions: PoolOption<PoolName>[] = [
+    {
+      value: "V",
+      title: "Pool V · clim",
+      subtitle: depth("V"),
+      fee: quoteNow ? formatBp(pipsToBp(quoteNow.feePips), 2) : "…",
+      badge: quoteNow ? <ModeBadge mode={quoteNow.mode} /> : null,
+    },
+    { value: "S", title: "Pool S · fixed", subtitle: depth("S"), fee: pair ? formatBp(pipsToBp(pair.S.key.fee), 2) : "…" },
+  ];
 
   return (
-    <div className="space-y-4">
-      <TxModeSwitch mode={mode} onChange={setMode} ready={ready} />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <FaucetCard mode={mode} balances={lp.balances} busy={flow.running} onFaucet={faucet} />
-        <LiquidityForm mode={mode} busy={flow.running} balances={lp.balances} quote={quoteAdd} onAdd={add} />
-      </div>
-      {flow.steps.length > 0 ? (
-        <Panel title="Transactions">
+    <div className="space-y-6">
+      <FaucetCard mode={mode} balances={lp.balances} busy={flow.running} onFaucet={faucet} />
+      <div className="grid items-start gap-6 lg:grid-cols-[440px_minmax(0,1fr)]">
+        <LiquidityForm mode={mode} busy={flow.running} balances={lp.balances} quote={quoteAdd} onAdd={add} pools={poolOptions} ethUsd={ethUsd}>
+          <TxModeSwitch mode={mode} onChange={setMode} ready={ready} />
           <TxSteps steps={flow.steps} live={mode === "chain"} />
-        </Panel>
-      ) : null}
-      <PositionPanel mode={mode} views={views} busy={flow.running} onRemove={remove} />
+        </LiquidityForm>
+        <PositionPanel mode={mode} views={views} busy={flow.running} onRemove={remove} />
+      </div>
     </div>
   );
 }

@@ -12,9 +12,11 @@ import { postSwapEthUsd } from "@/lib/pnl";
 import { estimateOut, feeReason, planSwap, type PoolName, type SwapPlan, swapResult, type SwapSide } from "@/lib/swap";
 import { mockStep, mockSwapLogs, mockTxHash, writeReadiness } from "@/lib/tx";
 import { formatAge, formatAmount, formatBp, pipsToBp, sigmaE9ToAnnualPct, tickToEthUsd } from "@/lib/units";
+import { AmountBox, DetailRow, FlipButton, PoolCards, TokenIcon } from "./dex";
+import { FeeCurveChart } from "./FeeCurveChart";
 import { ActionButton, type TxMode, TxModeSwitch } from "./TxModeSwitch";
 import { TxSteps } from "./TxSteps";
-import { ModeBadge, Panel, Stat, Toggle, TxLink } from "./ui";
+import { ModeBadge, Panel, Stat, TxLink } from "./ui";
 
 /** /swap: the fee of V (clim) or S (static) before the swap, the weather that sets it, then the fee paid. */
 export function SwapForm() {
@@ -103,19 +105,27 @@ export function SwapForm() {
       })()
     : null;
 
+  const flip = () => setSide(side === "sell ETH" ? "buy ETH" : "sell ETH");
+  const usdOf = (x: number, symbol: string) => (ethUsd === undefined ? undefined : symbol === "tETH" ? x * ethUsd : x);
+  const inUsd = plan ? usdOf(amountIn, inSymbol) : undefined;
+  const feeVBp = quote ? pipsToBp(quote.feePips) : undefined;
+
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_440px]">
       <Panel title="The weather sets your fee" subtitle="Read on every swap by the hook from the latest Chainlink CRE report (ClimHook.quoteFee()).">
         {!desk || !quote ? (
           <p className="text-sm text-fg-subtle">Loading the risk desk…</p>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               <Stat label="σ applied by the desk" value={`${sigmaPct.toFixed(1)}%/yr`} hint={lastReport ? `report #${lastReport.seq}, ${formatAge(data.nowSec - desk.tObs)} ago` : undefined} />
               <Stat label="Pool V (clim) now" value={formatBp(pipsToBp(quote.feePips), 2)} hint={<ModeBadge mode={quote.mode} />} />
-              <Stat label="Pool S (static)" value={formatBp(pipsToBp(staticFeePips), 2)} hint="fixed in its PoolKey" />
+              <Stat label="Pool S (fixed)" value={formatBp(pipsToBp(staticFeePips), 2)} hint="fixed in its PoolKey" />
             </div>
-            <p className="mt-4 rounded-sm bg-surface-2 px-3 py-2 text-sm">
+            <div className="mt-4">
+              <FeeCurveChart sigmaNowPct={sigmaPct} feeNowBp={pipsToBp(quote.feePips)} staticFeeBp={pipsToBp(staticFeePips)} />
+            </div>
+            <p className="mt-2 rounded-md bg-surface-2 px-4 py-3 text-sm leading-relaxed">
               {feeReason({ pool, quote, sigmaPct, staticFeePips, feeMinPips: params.feeMinPips, feeSafePips: params.feeSafePips, tauKillSec: params.tauKillSec })}
             </p>
             <p className="mt-2 text-xs text-fg-subtle">
@@ -125,46 +135,69 @@ export function SwapForm() {
         )}
       </Panel>
 
-      <Panel title="Swap" subtitle="Exact input through Uniswap v4's PoolSwapTest router on Sepolia (test tokens tETH and tUSD).">
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <Toggle value={pool} onChange={setPool} options={[{ value: "V", label: "Pool V · clim" }, { value: "S", label: "Pool S · fixed fee" }]} />
-            <Toggle value={side} onChange={setSide} options={[{ value: "sell ETH", label: "Sell tETH" }, { value: "buy ETH", label: "Buy tETH" }]} />
-          </div>
-          <label className="block text-sm">
-            <span className="text-xs text-fg-subtle">You pay ({inSymbol})</span>
-            <input
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              inputMode="decimal"
-              className="mt-1 block w-full rounded-sm border border-line bg-surface px-3 py-2 tabular-nums"
-            />
-          </label>
-          {planError ? (
-            <p className="text-xs text-danger">{planError}</p>
-          ) : estimate !== undefined && feePips !== undefined ? (
-            <p className="text-sm text-fg-muted">
-              ≈ {formatAmount(estimate, side === "sell ETH" ? 2 : 6)} {outSymbol} before price impact · fee {formatBp(pipsToBp(feePips), 2)} ={" "}
-              {formatAmount(amountIn * (feePips / 1e6), side === "sell ETH" ? 6 : 2)} {inSymbol}
-            </p>
-          ) : null}
-          <TxModeSwitch mode={mode} onChange={setMode} ready={ready} />
-          <ActionButton mode={mode} disabled={!plan || flow.running || estimate === undefined} onClick={submit}>
-            {flow.running ? "Swapping…" : `Approve and swap on pool ${pool}`}
+      <section aria-labelledby="swap-title" className="rounded-lg bg-surface p-3 shadow-[0_0_0_1px_var(--clim-line),0_24px_70px_rgba(0,0,0,0.28)]">
+        <div className="flex items-center justify-between px-2 pb-3 pt-1">
+          <h2 id="swap-title" className="font-display text-[22px] tracking-[-0.02em]">
+            Swap
+          </h2>
+          <span className="text-xs text-fg-subtle">PoolSwapTest · Sepolia</span>
+        </div>
+        <PoolCards
+          value={pool}
+          onChange={setPool}
+          options={[
+            { value: "V", title: "Pool V · clim", subtitle: "fee set by the weather", fee: feeVBp === undefined ? "…" : formatBp(feeVBp, 2), badge: quote ? <ModeBadge mode={quote.mode} /> : null },
+            { value: "S", title: "Pool S · fixed", subtitle: "fee fixed in its PoolKey", fee: formatBp(pipsToBp(staticFeePips), 2) },
+          ]}
+        />
+        <div className="mt-2">
+          <AmountBox
+            id="swap-in"
+            label="You pay"
+            value={amount}
+            onChange={setAmount}
+            symbol={inSymbol}
+            error={planError}
+            hint={inUsd === undefined ? " " : `≈ $${formatAmount(inUsd, 2)}`}
+          />
+          <FlipButton onClick={flip} label={side === "sell ETH" ? "Buy tETH instead" : "Sell tETH instead"} />
+          <AmountBox
+            id="swap-out"
+            label="You receive, before price impact"
+            value={estimate === undefined ? "" : formatAmount(estimate, side === "sell ETH" ? 2 : 6)}
+            symbol={outSymbol}
+            hint={estimate === undefined ? " " : `≈ $${formatAmount(usdOf(estimate, outSymbol) ?? 0, 2)}`}
+          />
+        </div>
+        <div className="mt-2 px-2">
+          <DetailRow label="Fee">
+            {feePips === undefined ? "…" : `${formatBp(pipsToBp(feePips), 2)} = ${formatAmount(amountIn * (feePips / 1e6), side === "sell ETH" ? 6 : 2)} ${inSymbol}`}
+          </DetailRow>
+          <DetailRow label="Price">{ethUsd === undefined ? "…" : `1 tETH ≈ ${formatAmount(ethUsd, 2)} tUSD`}</DetailRow>
+          <DetailRow label="Route">
+            <span className="inline-flex items-center gap-1.5">
+              <TokenIcon symbol={inSymbol} className="size-4" />→ pool {pool} →<TokenIcon symbol={outSymbol} className="size-4" />
+            </span>
+          </DetailRow>
+        </div>
+        <div className="mt-3 space-y-3 px-1">
+          <ActionButton mode={mode} block disabled={!plan || flow.running || estimate === undefined} onClick={submit}>
+            {flow.running ? "Swapping…" : `Swap on pool ${pool}`}
           </ActionButton>
+          <TxModeSwitch mode={mode} onChange={setMode} ready={ready} />
           <TxSteps steps={flow.steps} live={mode === "chain"} />
           {result && paid ? (
-            <div className="rounded-sm border border-line px-3 py-2 text-sm">
+            <div className="rounded-md bg-surface-2 px-4 py-3 text-sm">
               <p className="font-medium">
                 Fee paid: {formatBp(pipsToBp(result.swap.fee), 2)}, read from the Swap event{result.live ? "" : " (simulated)"}.
               </p>
-              <p className="text-fg-muted">
+              <p className="mt-0.5 text-fg-muted">
                 You paid {paid.paid} and received {paid.got}. <TxLink hash={result.swap.txHash} live={result.live} />
               </p>
             </div>
           ) : null}
         </div>
-      </Panel>
+      </section>
     </div>
   );
 }

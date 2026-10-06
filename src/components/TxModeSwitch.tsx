@@ -33,11 +33,11 @@ export function TxModeSwitch({ mode, onChange, ready }: { mode: TxMode; onChange
 }
 
 /** The main action: asks to connect a wallet, then to switch to Sepolia, before running on-chain. */
-export function ActionButton({ mode, disabled, onClick, children }: { mode: TxMode; disabled?: boolean; onClick: () => void; children: ReactNode }) {
+export function ActionButton({ mode, disabled, block, onClick, children }: { mode: TxMode; disabled?: boolean; block?: boolean; onClick: () => void; children: ReactNode }) {
   const { isConnected, chainId } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { openChainModal } = useChainModal();
-  const cls = "inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-[15px] font-medium text-accent-fg hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50";
+  const cls = `inline-flex items-center justify-center rounded-full bg-accent px-5 font-medium text-accent-fg transition-[filter,opacity] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 ${block ? "min-h-14 w-full text-[17px]" : "min-h-11 text-[15px]"}`;
   if (mode === "chain" && !isConnected) {
     return <button type="button" className={cls} onClick={openConnectModal}>Connect a wallet</button>;
   }
