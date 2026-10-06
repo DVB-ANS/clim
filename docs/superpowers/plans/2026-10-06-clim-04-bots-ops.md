@@ -105,12 +105,12 @@
 - Create: `package.json`, `bunfig.toml`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Install Bun if missing**
+- [x] **Step 1: Install Bun if missing**
 
 Run: `bun --version 2>/dev/null || { curl -fsSL https://bun.sh/install | bash -s "bun-v1.3.9" && ln -sf "$HOME/.bun/bin/bun" /opt/homebrew/bin/bun && ln -sf "$HOME/.bun/bin/bun" /opt/homebrew/bin/bunx; }; bun --version`
 Expected: `1.3.9` (plan 02 Task 1 installs it the same way; `1.4.2` also passes this plan's tests). The installer only edits `~/.zshrc`, which Claude Code's Bash tool does not re-read, so the binary is linked into `/opt/homebrew/bin` (on PATH, writable without sudo); never rely on `export PATH=...`, which does not survive to the next command.
 
-- [ ] **Step 2: Create the root `package.json`**
+- [x] **Step 2: Create the root `package.json`**
 
 Only `shared` for now: Bun refuses to install when a listed workspace folder does not exist (`error: Workspace not found "bots"`). Task 7 adds `bots`; `app` stays outside the workspace (plan 05 is a standalone npm project).
 
@@ -126,14 +126,14 @@ Only `shared` for now: Bun refuses to install when a listed workspace folder doe
 }
 ```
 
-- [ ] **Step 3: Create `bunfig.toml`**
+- [x] **Step 3: Create `bunfig.toml`**
 
 ```toml
 [install]
 linker = "hoisted"
 ```
 
-- [ ] **Step 4: Fix `.gitignore`**
+- [x] **Step 4: Fix `.gitignore`**
 
 In the `# Node / Next / Bun` block replace the line `out/` with `app/out/`, and insert this block right before the `# OS` line (plan 06 Task 1 expects exactly these lines and adds its own `docs/submission/out/`; if it ran first, only check that they exist):
 
@@ -153,7 +153,7 @@ bots/out/*
 
 ```
 
-- [ ] **Step 5: Verify the ignore rules**
+- [x] **Step 5: Verify the ignore rules**
 
 Run:
 ```bash
@@ -167,7 +167,7 @@ Expected exactly (`cre-runs.jsonl` is tracked on purpose, `arb-live.jsonl` and `
 ?? lab/out/.probe
 ```
 
-- [ ] **Step 6: Log the decision**
+- [x] **Step 6: Log the decision**
 
 Append under `## Build notes` at the end of today's session log (`docs/sessions/2026-10-06.md` on day 1, `docs/sessions/2026-10-07.md` on day 2; add the heading if it is missing):
 
@@ -175,7 +175,7 @@ Append under `## Build notes` at the end of today's session log (`docs/sessions/
 - (ops) Tooling: Bun workspaces at the root (`shared`, `bots`; `app` stays a standalone npm project, plan 05) with the hoisted linker. The bots run on Bun because the CRE TypeScript SDK already requires Bun >= 1.2.21. `.gitignore`: `out/` narrowed to `app/out/` (it also ignored `lab/out/`, which the app reads); `bots/out/*` ignored except `cre-runs.jsonl` and `security-demos.jsonl` (submission evidence).
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json bunfig.toml .gitignore docs/sessions/

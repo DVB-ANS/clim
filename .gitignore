@@ -7,7 +7,7 @@ __pycache__/
 # Node / Next / Bun
 node_modules/
 .next/
-out/
+app/out/
 dist/
 *.tsbuildinfo
 
@@ -26,6 +26,11 @@ cre/**/node_modules/
 !.env.example
 secrets.yaml
 !secrets.example.yaml
+
+# Bots: run logs stay local, except the CRE run log and the security demo records (submission evidence)
+bots/out/*
+!bots/out/cre-runs.jsonl
+!bots/out/security-demos.jsonl
 
 # OS
 .DS_Store

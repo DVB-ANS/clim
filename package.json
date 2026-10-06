@@ -1,0 +1,9 @@
+{
+  "name": "clim",
+  "private": true,
+  "workspaces": ["shared"],
+  "scripts": {
+    "test": "bun run --filter '*' test",
+    "typecheck": "bun run --filter '*' typecheck"
+  }
+}
