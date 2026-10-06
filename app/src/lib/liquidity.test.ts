@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   amountsForLiquidity,
+  approvalWithMargin,
+  fullRangeParams,
   feesOwed,
   fullRangeTicks,
   liquidityForEth,
@@ -99,5 +101,17 @@ describe("positionView", () => {
     const withOnChainFees = positionView({ ...v, liquidity: L, poolLiquidity: 100 * L, sqrtP: 50, tickLower, tickUpper, token0IsEth: true, ethUsd: 2_500, rowSame: row(400, 1_000), rowOther: row(250, 900), sinceSec: 123, feesUsdOnChain: 7 });
     expect(withOnChainFees.feesUsd).toBe(7);
     expect(withOnChainFees.feesSource).toBe("on-chain");
+  });
+});
+
+describe("what /lp sends to PoolModifyLiquidityTest", () => {
+  const user = "0x6963135F93D4d03C04F8370eAc46fd826a93dcce" as const;
+  it("approves 1% more than the quoted amount, rounded up to the wei", () => {
+    expect(approvalWithMargin(1)).toBe(1_010_000_000_000_000_000n);
+    expect(approvalWithMargin(0)).toBe(0n);
+  });
+  it("keys a full-range position by the user's address as salt, for adds and removals", () => {
+    expect(fullRangeParams(60, 5n, user)).toEqual({ tickLower: -887_220, tickUpper: 887_220, liquidityDelta: 5n, salt: saltFor(user) });
+    expect(fullRangeParams(60, -5n, user).liquidityDelta).toBe(-5n);
   });
 });

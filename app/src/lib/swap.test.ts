@@ -3,7 +3,7 @@ import type { Address } from "viem";
 import { computePoolId, type PairDeployment } from "./deployments";
 import { encodeSwapLog } from "./encode";
 import { FeeMode } from "./feeMath";
-import { estimateOut, feeReason, MAX_SQRT_PRICE, MIN_SQRT_PRICE, planSwap, swapResult } from "./swap";
+import { estimateOut, feeReason, MAX_SQRT_PRICE, MIN_SQRT_PRICE, planSwap, swapArgs, swapResult } from "./swap";
 
 const tETH: Address = "0x1000000000000000000000000000000000000001";
 const tUSD: Address = "0x2000000000000000000000000000000000000002";
@@ -102,5 +102,12 @@ describe("swapResult", () => {
     ];
     expect(swapResult(logs, pair.V.poolId)?.fee).toBe(1_822);
     expect(swapResult(logs, "0x01")).toBeUndefined();
+  });
+});
+
+describe("the PoolSwapTest call /swap sends", () => {
+  it("passes the plan's key and params, ERC-20 settlement and no hook data", () => {
+    const plan = planSwap({ pair: pairOf(tETH, tUSD), tETH, tUSD, pool: "S", side: "buy ETH", amount: "100" });
+    expect(swapArgs(plan)).toEqual([plan.key, plan.params, { takeClaims: false, settleUsingBurn: false }, "0x"]);
   });
 });

@@ -53,6 +53,14 @@ export function planSwap(o: { pair: PairDeployment; tETH: Address; tUSD: Address
   };
 }
 
+/** PoolSwapTest settles in ERC-20s: no ERC-6909 claims taken or burnt. */
+export const SWAP_TEST_SETTINGS = { takeClaims: false, settleUsingBurn: false } as const;
+
+/** The PoolSwapTest.swap arguments for a plan, exactly as /swap sends them (no hook data). */
+export function swapArgs(plan: SwapPlan) {
+  return [plan.key, plan.params, SWAP_TEST_SETTINGS, "0x"] as const;
+}
+
 /** The sentence shown before a swap: what the swapper pays, and the weather that sets it. */
 export function feeReason(o: {
   pool: PoolName;

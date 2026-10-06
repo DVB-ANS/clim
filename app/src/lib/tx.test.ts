@@ -3,7 +3,7 @@ import type { Address } from "viem";
 import { computePoolId, type PairDeployment } from "./deployments";
 import { encodeSwapLog } from "./encode";
 import { planSwap, swapResult } from "./swap";
-import { mockSwapLogs, mockTxHash, receiptLogs } from "./tx";
+import { mockSwapLogs, mockTxHash, receiptLogs, withGasMargin } from "./tx";
 
 const tETH: Address = "0x1000000000000000000000000000000000000001";
 const tUSD: Address = "0x2000000000000000000000000000000000000002";
@@ -109,5 +109,12 @@ describe("errorText", () => {
     expect(errorText({ shortMessage: "User rejected the request.", message: "long\nstack" })).toBe("User rejected the request.");
     expect(errorText(new Error("execution reverted: cooldown\nmore"))).toBe("execution reverted: cooldown");
     expect(errorText("plain")).toBe("plain");
+  });
+});
+
+describe("gas limit of a swap or a liquidity change", () => {
+  it("adds 25 % to the estimate", () => {
+    expect(withGasMargin(342_216n)).toBe(427_770n);
+    expect(withGasMargin(0n)).toBe(0n);
   });
 });

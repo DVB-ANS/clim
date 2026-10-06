@@ -30,6 +30,16 @@ export function writeReadiness(d: Deployments, needs: "swap" | "lp" | "faucet"):
   return { ok: true };
 }
 
+/**
+ * Gas limit for a swap or a liquidity change: the estimate plus 25 %. The estimate is exact for the state it
+ * ran on, and another swap on the same pool landing first can raise the cost (on Sepolia, 2026-10-07, an add
+ * of liquidity estimated at 342,216 gas reverted after an arbitrage swap on the pool earlier in its block;
+ * the same call then estimated at 352,527). Only the gas used is paid.
+ */
+export function withGasMargin(estimate: bigint): bigint {
+  return (estimate * 125n) / 100n;
+}
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** A simulated step: "signed" after signMs, "mined" mineMs later, with a deterministic hash. */

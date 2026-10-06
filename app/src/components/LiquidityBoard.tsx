@@ -7,7 +7,7 @@ import { useClimData } from "@/hooks/useClimData";
 import { POOLS, useLpState } from "@/hooks/useLpState";
 import { useTxFlow } from "@/hooks/useTxFlow";
 import { deployments } from "@/lib/config";
-import { amountsForLiquidity, fullRangeTicks, liquidityForEth, type PositionView, positionView, saltFor } from "@/lib/liquidity";
+import { amountsForLiquidity, approvalWithMargin, fullRangeParams, fullRangeTicks, liquidityForEth, type PositionView, positionView } from "@/lib/liquidity";
 import { pnlExplain } from "@/lib/pnl";
 import type { PoolName } from "@/lib/swap";
 import { type FlowStep, mockStep, writeReadiness } from "@/lib/tx";
@@ -78,12 +78,11 @@ export function LiquidityBoard() {
       return run([mockStep("Approve tETH", n), mockStep("Approve tUSD", n), mockStep(label, n)], () => lp.mock.add(pool, q.liquidity, q.eth, q.usd));
     }
     if (!router || !tETH || !tUSD || !address) return;
-    const withMargin = (x: number) => BigInt(Math.ceil(x * 1e18 * 1.01)); // the router pulls the exact amounts, rounded up
-    const params = { tickLower, tickUpper, liquidityDelta: BigInt(Math.floor(q.liquidity)), salt: saltFor(address) };
+    const params = fullRangeParams(pair[pool].key.tickSpacing, BigInt(Math.floor(q.liquidity)), address);
     return run(
       [
-        chain.approve(tETH, "tETH", router, withMargin(q.eth)),
-        chain.approve(tUSD, "tUSD", router, withMargin(q.usd)),
+        chain.approve(tETH, "tETH", router, approvalWithMargin(q.eth)),
+        chain.approve(tUSD, "tUSD", router, approvalWithMargin(q.usd)),
         chain.modifyLiquidity(router, pair[pool].key, params, label),
       ],
       () => {
@@ -103,7 +102,7 @@ export function LiquidityBoard() {
       return run([mockStep(label, n)], () => lp.mock.remove(pool, s?.eth ?? 0, s?.usd ?? 0));
     }
     if (!router || !address || pos.liquidityRaw === undefined) return;
-    const params = { tickLower, tickUpper, liquidityDelta: -pos.liquidityRaw, salt: saltFor(address) };
+    const params = fullRangeParams(pair[pool].key.tickSpacing, -pos.liquidityRaw, address);
     return run([chain.modifyLiquidity(router, pair[pool].key, params, label)], lp.refresh);
   }
 

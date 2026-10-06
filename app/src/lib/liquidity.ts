@@ -26,6 +26,16 @@ export function saltFor(user: Address): Hex {
   return pad(user.toLowerCase() as Hex, { size: 32 });
 }
 
+/** What /lp approves for an add: the router pulls the exact amounts, rounded up, so 1 % more than the quote. */
+export function approvalWithMargin(amount: number): bigint {
+  return BigInt(Math.ceil(amount * 1e18 * 1.01));
+}
+
+/** PoolModifyLiquidityTest params of a full-range add (delta > 0) or removal (delta < 0) keyed by the user's salt. */
+export function fullRangeParams(tickSpacing: number, liquidityDelta: bigint, user: Address) {
+  return { ...fullRangeTicks(tickSpacing), liquidityDelta, salt: saltFor(user) };
+}
+
 /** sqrt of the pool price (token1 per token0) from the ETH/USD price and the pool orientation. */
 export function sqrtPriceOf(ethUsd: number, token0IsEth: boolean): number {
   return Math.sqrt(token0IsEth ? ethUsd : 1 / ethUsd);

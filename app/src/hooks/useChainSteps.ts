@@ -4,8 +4,8 @@ import type { Address, Hex } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { poolModifyLiquidityTestAbi, poolSwapTestAbi, testTokenAbi } from "@/lib/abis";
 import type { PoolKey } from "@/lib/deployments";
-import type { SwapPlan } from "@/lib/swap";
-import { type FlowStep, receiptLogs } from "@/lib/tx";
+import { type SwapPlan, swapArgs } from "@/lib/swap";
+import { type FlowStep, receiptLogs, withGasMargin } from "@/lib/tx";
 
 export type LiquidityParams = { tickLower: number; tickUpper: number; liquidityDelta: bigint; salt: Hex };
 
@@ -45,12 +45,9 @@ export function useChainSteps() {
       return {
         label: `Swap on pool ${plan.pool}`,
         run: async (onHash) => {
-          const hash = await writeContractAsync({
-            address: router,
-            abi: poolSwapTestAbi,
-            functionName: "swap",
-            args: [plan.key, plan.params, { takeClaims: false, settleUsingBurn: false }, "0x"],
-          });
+          const call = { address: router, abi: poolSwapTestAbi, functionName: "swap", args: swapArgs(plan) } as const;
+          const gas = client && address ? withGasMargin(await client.estimateContractGas({ ...call, account: address })) : undefined;
+          const hash = await writeContractAsync({ ...call, gas });
           onHash(hash);
           return mined(hash);
         },
@@ -70,7 +67,9 @@ export function useChainSteps() {
       return {
         label,
         run: async (onHash) => {
-          const hash = await writeContractAsync({ address: router, abi: poolModifyLiquidityTestAbi, functionName: "modifyLiquidity", args: [key, params, "0x"] });
+          const call = { address: router, abi: poolModifyLiquidityTestAbi, functionName: "modifyLiquidity", args: [key, params, "0x"] } as const;
+          const gas = client && address ? withGasMargin(await client.estimateContractGas({ ...call, account: address })) : undefined;
+          const hash = await writeContractAsync({ ...call, gas });
           onHash(hash);
           return mined(hash);
         },
