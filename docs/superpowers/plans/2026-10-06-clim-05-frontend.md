@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 > **Execution status (read first; fixer pass, 2026-10-06).** Tasks 1 to 24 of this plan, plus the Frontend scope upgrade decided by the maintainer (wallet connect, core `/swap` and `/lp` pages, session log 2026-10-06), were executed after kickoff in the private repository DVB-ANS/clim-front (local clone `/Users/fianso/Development/hackathons/clim-front`, its root is this plan's `app/`, first commit 2026-10-06 20:24 SGT). Its own `docs/sessions/2026-10-06.md` records the deviations from the code below: design tokens instead of raw Tailwind colours, wagmi 2.19.5 + RainbowKit 2.2.11 + TanStack Query 5 (the "viem only" choice is reversed), `CLIM_ROOT` for `npm run sync`, `/swap` and `/lp` with a simulated mode until the live pair exists. The dashboard is live at https://clim-zeta.vercel.app (Vercel project `clim`, mock data until Gate B).
-> In the clim repository: **do not re-run Tasks 1 to 24.** Master plan Task 14 imports clim-front into `app/` with `git subtree` (history kept, so the commit dates stay visible), then runs Task 28 (post-import fixes from the plan review), Task 25 (wire to Sepolia), Task 27 (check `/swap` and `/lp` on Sepolia) and Task 26 (freeze). Tasks 1 to 24 stay below as the reference of what the app does. After the import, the app changes only in `clim/app/`.
+> In the clim repository: **do not re-run Tasks 1 to 24.** Master plan Task 14 imports clim-front into `app/` with `git subtree` (history kept, so the commit dates stay visible), then runs Task 28 (post-import fixes from the plan review), Task 25 (wire to Sepolia), Task 27 (check `/swap` and `/lp` on Sepolia) and Task 26 (freeze). Tasks 1 to 24 stay below as the reference of what the app does. After the import, the app changes only in `clim/app/`. **Status 2026-10-07:** imported at clim-front `d05ee94` (subtree `758ab5a`); Tasks 1 to 24 are ticked from clim-front's history (each task names its commit and what differs today), Tasks 25 to 28 were done in clim, and the live URL reads Sepolia.
 
 **Goal:** A basic but functional public dashboard (live URL on Vercel) that shows how clim computes its fee from the Chainlink CRE risk desk, compares the clim pool V with its static twin S from on-chain logs, checks the model's arbitrage-frequency prediction, and presents the lab's Feb 4 2026 replay and backtests; restyled later.
 
@@ -66,7 +66,7 @@ These are the exact shapes the app parses. If another plan writes a different sh
 
 ## File structure
 
-All paths are under `app/`. The Frontend scope upgrade added, in clim-front: `src/lib/{wallet,swap,liquidity,tx}.ts` (wagmi config, swap planning, full-range position math and fees owed, transaction steps) with their tests, `src/hooks/{useTxFlow,useChainSteps,useLpState,useStored}.ts`, `src/components/{WalletProviders,WalletButton,SwapForm,LiquidityBoard,LiquidityForm,PositionPanel,FaucetCard,TxSteps,TxModeSwitch}.tsx` and the pages `src/app/swap/page.tsx` and `src/app/lp/page.tsx`. Task 28 adds `src/lib/labText.ts` (rounded lab numbers, dollars per $1M, the replay-window note) and its test.
+All paths are under `app/`. The Frontend scope upgrade added, in clim-front: `src/lib/{wallet,swap,liquidity,tx}.ts` (wagmi config, swap planning, full-range position math and fees owed, transaction steps) with their tests, `src/hooks/{useTxFlow,useChainSteps,useLpState,useStored}.ts`, `src/components/{WalletProviders,WalletButton,SwapForm,LiquidityBoard,LiquidityForm,PositionPanel,FaucetCard,TxSteps,TxModeSwitch}.tsx` and the pages `src/app/swap/page.tsx` and `src/app/lp/page.tsx`. Task 28 adds `src/lib/labText.ts` (rounded lab numbers, dollars per $1M, the replay-window note) and its test. clim-front also split the routes into two groups: `src/app/(site)/page.tsx` is the landing at `/`, and `src/app/(app)/{app,replay,lab,how,swap,lp,credits}/page.tsx` share the app header of `src/app/(app)/layout.tsx`, so the dashboard is at `/app`.
 
 | File | Responsibility |
 |---|---|
@@ -103,6 +103,8 @@ All paths are under `app/`. The Frontend scope upgrade added, in clim-front: `sr
 ---
 ### Task 1: Scaffold the Next.js app
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `7f416ef`. Differences: the root `src/app/layout.tsx` now loads the fonts, `WalletProviders` and `MotionProvider`, and the nav lives in `src/app/(app)/layout.tsx` (`AppHeader.tsx`); the Task 1 home stub became the landing `src/app/(site)/page.tsx`; colours are design tokens in `globals.css`; `.env.example` also has `NEXT_PUBLIC_WC_PROJECT_ID`; `app/README.md` is a later README (`c924078`, how to run and go live), not the scaffold's. The Step 7 line is in `docs/sessions/2026-10-06.md` ("Frontend build log"), marked as superseded for "viem only".
+
 **Delegable:** yes
 **Depends on:** nothing
 
@@ -111,14 +113,14 @@ All paths are under `app/`. The Frontend scope upgrade added, in clim-front: `sr
 - Modify: `app/package.json` (deps, scripts), `app/tsconfig.json` (target), `app/.gitignore`, `app/src/app/layout.tsx`, `app/src/app/globals.css`, `app/src/app/page.tsx`
 - Delete: `app/public/*.svg`, `app/README.md`
 
-- [ ] **Step 1: Create the app**
+- [x] **Step 1: Create the app**
 
 ```bash
 npx -y create-next-app@16.3.8 app --ts --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm --disable-git --no-react-compiler --yes
 ```
 Expected: ends with `Success! Created app at /Users/fianso/Development/hackathons/clim/app`. It pins `next` 16.3.8 and `react` 19.2.8 and writes `app/AGENTS.md` + `app/CLAUDE.md` (Next.js agent rules: keep them). If the install step fails with `ETIMEDOUT`, run `(cd app && npm install --fetch-retries=5 --fetch-timeout=180000)`.
 
-- [ ] **Step 2: Add the dependencies**
+- [x] **Step 2: Add the dependencies**
 
 ```bash
 (cd app && npm install --fetch-retries=5 viem@2.57.3 recharts@3.10.1 react-markdown@10.1.0 remark-gfm@4.0.1)
@@ -126,7 +128,7 @@ Expected: ends with `Success! Created app at /Users/fianso/Development/hackathon
 ```
 Expected: both end with `found 0 vulnerabilities` or an audit summary, no `ERESOLVE`. (`@types/node` must move from ^20 to ^22: Vitest 5 declares the peer `@types/node ^22 || >=24`, and npm refuses the install otherwise.)
 
-- [ ] **Step 3: Scripts, TypeScript target, cleanup**
+- [x] **Step 3: Scripts, TypeScript target, cleanup**
 
 ```bash
 (cd app && npm pkg set name=clim-app scripts.typecheck="tsc --noEmit" scripts.test="vitest run" scripts.sync="node scripts/sync-data.mjs" scripts.fixtures="tsx scripts/make-fixtures.ts" scripts.snapshot="tsx scripts/snapshot.ts")
@@ -137,7 +139,7 @@ printf 'NEXT_PUBLIC_SEPOLIA_RPC_URL=\nNEXT_PUBLIC_CLIM_SOURCE=\n' > app/.env.exa
 ```
 ES2020 is required for bigint literals (`10n`) under `tsc`. The `.gitignore` line re-includes `.env.example`, which the scaffold's `.env*` rule would hide.
 
-- [ ] **Step 4: Vitest config and a smoke test**
+- [x] **Step 4: Vitest config and a smoke test**
 
 Create `app/vitest.config.mts`:
 
@@ -168,7 +170,7 @@ describe("toolchain", () => {
 });
 ```
 
-- [ ] **Step 5: Replace the scaffold's layout, styles and home page**
+- [x] **Step 5: Replace the scaffold's layout, styles and home page**
 
 The scaffold's `layout.tsx` uses the `LayoutProps` global that only exists after `next build`/`next dev` typegen, so `npm run typecheck` fails on a fresh clone; the version below does not need it.
 
@@ -242,14 +244,14 @@ export default function Home() {
 }
 ```
 
-- [ ] **Step 6: Run every check**
+- [x] **Step 6: Run every check**
 
 ```bash
 (cd app && npm test && npm run typecheck && npm run lint && npm run build)
 ```
 Expected: `Tests  1 passed (1)`; `tsc` and `eslint` print nothing; the build ends with the route table `○ /` and `○ /_not-found` marked `(Static)`.
 
-- [ ] **Step 7: Log the decision**
+- [x] **Step 7: Log the decision**
 
 Append under `## Decisions` in today's session log:
 
@@ -257,7 +259,7 @@ Append under `## Decisions` in today's session log:
 - **Frontend stack (plan 05):** Next.js 16.3.8 (App Router, Turbopack), React 19.2, Tailwind 4, Recharts 3.10 for charts, viem 2.57 only (no wagmi: the optional test-swap page needs one injected wallet), Vitest 5 for the pure transforms. `npm run sync` copies shared/, lab/out and docs/faq.md into app/, so Vercel builds app/ alone.
 ```
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app docs/sessions
@@ -268,6 +270,8 @@ git commit -m "chore(app): scaffold Next.js 16 dashboard with vitest"
 
 ### Task 2: Unit conversions and formatters
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `74c7686`. `units.test.ts` has 9 tests today (7 at this commit; `5cd934f` added the amount formatters).
+
 **Delegable:** yes
 **Depends on:** Task 1
 
@@ -275,7 +279,7 @@ git commit -m "chore(app): scaffold Next.js 16 dashboard with vitest"
 - Create: `app/src/lib/units.ts`
 - Test: `app/src/lib/units.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/units.test.ts`:
 
@@ -339,12 +343,12 @@ describe("other units", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/units.test.ts)`
 Expected: `FAIL  src/lib/units.test.ts`, `Error: Cannot find module './units' imported from …/app/src/lib/units.test.ts`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/units.ts`:
 
@@ -408,12 +412,12 @@ export function shortHash(hash: string): string {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/units.test.ts)`
 Expected: `Tests  7 passed (7)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/units.ts app/src/lib/units.test.ts
@@ -424,6 +428,8 @@ git commit -m "feat(app): unit conversions and formatters"
 
 ### Task 3: TS port of the fee rule
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `a573c8d`.
+
 **Delegable:** yes
 **Depends on:** Task 2
 
@@ -433,7 +439,7 @@ The test vectors are the spec's (§2.4, §2.5, §3.6): 48%/yr at P\* = 10% is ce
 - Create: `app/src/lib/feeMath.ts`
 - Test: `app/src/lib/feeMath.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/feeMath.test.ts`:
 
@@ -504,12 +510,12 @@ describe("quoteFee (TS port of ClimHook.quoteFee)", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/feeMath.test.ts)`
 Expected: `Error: Cannot find module './feeMath' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/feeMath.ts`:
 
@@ -562,12 +568,12 @@ export function quoteFee(s: DeskState, nowSec: number, p: FeeParams): Quote {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/feeMath.test.ts)`
 Expected: `Tests  12 passed (12)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/feeMath.ts app/src/lib/feeMath.test.ts
@@ -578,6 +584,8 @@ git commit -m "feat(app): TS port of ClimFeeMath.feePips and ClimHook.quoteFee"
 
 ### Task 4: ABI fragments and event topics
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `e0c244e`. Today `abis.test.ts` has 10 tests and none skipped: `shared/abis/` exists, so the drift guards run, and the liquidity, position and faucet fragments came with `7920998` and Task 28.
+
 **Delegable:** yes
 **Depends on:** Task 1
 
@@ -587,7 +595,7 @@ The expected values were read on Sepolia on 2026-10-06: the Swap topic from Pool
 - Create: `app/src/lib/abis.ts`
 - Test: `app/src/lib/abis.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/abis.test.ts`:
 
@@ -645,12 +653,12 @@ describe("drift against shared/abis", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/abis.test.ts)`
 Expected: `Error: Cannot find module './abis' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/abis.ts`:
 
@@ -703,12 +711,12 @@ export const SWAP_TOPIC = toEventSelector(poolManagerAbi[0]);
 export const REPORT_PROCESSED_TOPIC = toEventSelector(forwarderAbi[0]);
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/abis.test.ts)`
 Expected: `Tests  4 passed | 2 skipped (6)` (the two drift tests run, and must pass, once `shared/abis/RiskDesk.json` and `shared/abis/ClimHook.json` exist).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/abis.ts app/src/lib/abis.test.ts
@@ -719,6 +727,8 @@ git commit -m "feat(app): ABI fragments and event topics with drift guard"
 
 ### Task 5: Log encoding and decoding
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `8f9090e`.
+
 **Delegable:** yes
 **Depends on:** Task 4
 
@@ -726,7 +736,7 @@ git commit -m "feat(app): ABI fragments and event topics with drift guard"
 - Create: `app/src/lib/encode.ts`, `app/src/lib/decode.ts`
 - Test: `app/src/lib/decode.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/decode.test.ts`:
 
@@ -836,12 +846,12 @@ describe("decodeDeliveries", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/decode.test.ts)`
 Expected: `Error: Cannot find module './decode' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/encode.ts`:
 
@@ -1053,12 +1063,12 @@ export function lastAtOrBefore(rows: { blockNumber: number }[], block: number): 
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/decode.test.ts)`
 Expected: `Tests  5 passed (5)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/encode.ts app/src/lib/decode.ts app/src/lib/decode.test.ts
@@ -1069,6 +1079,8 @@ git commit -m "feat(app): encode and decode RiskReported, Swap and ReportProcess
 
 ### Task 6: Deployments and parameters parsers
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `125ec6e`.
+
 **Delegable:** yes
 **Depends on:** Task 3
 
@@ -1078,7 +1090,7 @@ The parser reads the schema plan 04 fixed for `shared/deployments/sepolia.json` 
 - Create: `app/src/lib/deployments.ts`
 - Test: `app/src/lib/deployments.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/deployments.test.ts`:
 
@@ -1190,12 +1202,12 @@ describe("parseParams", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/deployments.test.ts)`
 Expected: `Error: Cannot find module './deployments' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/deployments.ts`:
 
@@ -1333,12 +1345,12 @@ export function parseParams(raw: unknown): Params {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/deployments.test.ts)`
 Expected: `Tests  8 passed (8)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/deployments.ts app/src/lib/deployments.test.ts
@@ -1349,6 +1361,8 @@ git commit -m "feat(app): parse shared deployments and hook parameters"
 
 ### Task 7: Lab output schemas
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `0e861c8`. The Step 5 line is in `docs/sessions/2026-10-06.md` ("Frontend build log").
+
 **Delegable:** yes
 **Depends on:** Task 1
 
@@ -1358,7 +1372,7 @@ This task fixes how the app reads the lab outputs (interface 6). `summary.json`,
 - Create: `app/src/lib/lab.ts`
 - Test: `app/src/lib/lab.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/lab.test.ts`:
 
@@ -1448,12 +1462,12 @@ describe("parseSummary", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/lab.test.ts)`
 Expected: `Error: Cannot find module './lab' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/lab.ts`:
 
@@ -1585,12 +1599,12 @@ export function bandAt(band: LabPTradeBand, p: number): Omit<BandRow, "p"> {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/lab.test.ts)`
 Expected: `Tests  7 passed (7)`.
 
-- [ ] **Step 5: Log the schemas and commit**
+- [x] **Step 5: Log the schemas and commit**
 
 Append under `## Decisions` in today's session log:
 
@@ -1607,6 +1621,8 @@ git commit -m "feat(app): lab output types and band interpolation"
 
 ### Task 8: Weather series (σ and the fee it sets)
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `692b5c5`.
+
 **Delegable:** yes
 **Depends on:** Tasks 3, 5
 
@@ -1616,7 +1632,7 @@ The fee is a step function of time rebuilt from logs only: it changes when a rep
 - Create: `app/src/lib/series.ts`
 - Test: `app/src/lib/series.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/series.test.ts`:
 
@@ -1721,12 +1737,12 @@ describe("timeAverageFeeBp", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/series.test.ts)`
 Expected: `Error: Cannot find module './series' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/series.ts`:
 
@@ -1818,12 +1834,12 @@ export function timeAverageFeeBp(points: WeatherPoint[], to: number): number {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/series.test.ts)`
 Expected: `Tests  11 passed (11)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/series.ts app/src/lib/series.test.ts
@@ -1834,6 +1850,8 @@ git commit -m "feat(app): weather series, blind episodes and time-average fee fr
 
 ### Task 9: P_trade, predicted against observed
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `577c005`. The Step 5 line is in `docs/sessions/2026-10-06.md` ("Frontend build log").
+
 **Delegable:** yes
 **Depends on:** Tasks 7, 8
 
@@ -1843,7 +1861,7 @@ Predicted per block (spec §7.1): `1 / (f / (σ̂·√(Δt/2)) + 0.824)` with th
 - Create: `app/src/lib/ptrade.ts`
 - Test: `app/src/lib/ptrade.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/ptrade.test.ts`:
 
@@ -1960,12 +1978,12 @@ describe("sigmaArbAnnualPct", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/ptrade.test.ts)`
 Expected: `Error: Cannot find module './ptrade' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/ptrade.ts`:
 
@@ -2105,12 +2123,12 @@ export function pTradeTotals(o: {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/ptrade.test.ts)`
 Expected: `Tests  13 passed (13)`.
 
-- [ ] **Step 5: Log the interface requirement and commit**
+- [x] **Step 5: Log the interface requirement and commit**
 
 Append under `## Decisions` in today's session log:
 
@@ -2127,6 +2145,8 @@ git commit -m "feat(app): rolling P_trade observed vs predicted with the lab ban
 
 ### Task 10: LP P&L explain and swap rows
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `981e307`.
+
 **Delegable:** yes
 **Depends on:** Task 5
 
@@ -2136,7 +2156,7 @@ Valuing arbitrage swaps at the desk's refTick would be biased: the refTick is 30
 - Create: `app/src/lib/pnl.ts`
 - Test: `app/src/lib/pnl.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/pnl.test.ts`:
 
@@ -2247,12 +2267,12 @@ describe("recentSwapRows", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/pnl.test.ts)`
 Expected: `Error: Cannot find module './pnl' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/pnl.ts`:
 
@@ -2388,12 +2408,12 @@ export function recentSwapRows(o: { swaps: SwapRow[]; pair: PairDeployment; arbR
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/pnl.test.ts)`
 Expected: `Tests  7 passed (7)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/pnl.ts app/src/lib/pnl.test.ts
@@ -2404,6 +2424,8 @@ git commit -m "feat(app): LP P&L explain, break-even vol and recent-swap rows"
 
 ### Task 11: Chain data layer (RPCs, chunked logs, snapshot schema)
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `177cc55`. The Step 5 line is in `docs/sessions/2026-10-06.md` ("Frontend build log", Surprises).
+
 **Delegable:** yes
 **Depends on:** Tasks 5, 6
 
@@ -2413,7 +2435,7 @@ Measured on 2026-10-06 (and the snapshot script of Task 23 was run against real 
 - Create: `app/src/lib/chain.ts`
 - Test: `app/src/lib/chain.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/chain.test.ts`:
 
@@ -2505,12 +2527,12 @@ describe("rpcUrls", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/chain.test.ts)`
 Expected: `Error: Cannot find module './chain' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/chain.ts`:
 
@@ -2657,12 +2679,12 @@ export async function readPairState(client: PublicClient, d: PairDeployment, sta
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/chain.test.ts)`
 Expected: `Tests  7 passed (7)`.
 
-- [ ] **Step 5: Log the RPC finding and commit**
+- [x] **Step 5: Log the RPC finding and commit**
 
 Append under a `## Surprises` heading at the end of today's session log (create the heading if it does not exist):
 
@@ -2679,6 +2701,8 @@ git commit -m "feat(app): chunked eth_getLogs with RPC fallback and snapshot sch
 
 ### Task 12: Deterministic mock chain
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `10e68c1`. The Step 5 line is in `docs/sessions/2026-10-06.md` ("Frontend build log", Surprises); as logged it cites plan 04's depth (L about 5.2e23), and the correction below it gives about 1.5 bp per $2,000 order, not 0.15 bp.
+
 **Delegable:** yes
 **Depends on:** Tasks 5, 6, 8, 9, 10
 
@@ -2688,7 +2712,7 @@ Six hours of 12 s blocks: a calm 35% regime, a storm peaking at 180% (55% of the
 - Create: `app/src/lib/mock.ts`
 - Test: `app/src/lib/mock.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/src/lib/mock.test.ts`:
 
@@ -2754,12 +2778,12 @@ describe("makeMockWorld", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run src/lib/mock.test.ts)`
 Expected: `Error: Cannot find module './mock' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/src/lib/mock.ts`:
 
@@ -2961,12 +2985,12 @@ export function makeMockWorld(o: { nowSec: number; params: FeeParams; seed?: num
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run src/lib/mock.test.ts)`
 Expected: `Tests  7 passed (7)`.
 
-- [ ] **Step 5: Log the retail-flow finding and commit**
+- [x] **Step 5: Log the retail-flow finding and commit**
 
 Append under `## Surprises` in today's session log:
 
@@ -2983,6 +3007,8 @@ git commit -m "feat(app): deterministic mock chain with storm, degraded, blind a
 
 ### Task 13: Sync script and static fixtures
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `34cf9ec`. `sync-data.mjs` also reads `CLIM_ROOT` (a clim checkout next to clim-front); in clim the default, the parent directory, applies.
+
 **Delegable:** yes
 **Depends on:** Task 1
 
@@ -2990,7 +3016,7 @@ git commit -m "feat(app): deterministic mock chain with storm, degraded, blind a
 - Create: `app/scripts/sync-data.mjs`, `app/src/fixtures/deployments.sepolia.json`, `app/src/fixtures/params.json`, `app/src/fixtures/faq.md`
 - Test: `app/scripts/sync-data.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/scripts/sync-data.test.ts`:
 
@@ -3037,12 +3063,12 @@ describe("syncData", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `(cd app && npx vitest run scripts/sync-data.test.ts)`
 Expected: `Error: Cannot find module './sync-data.mjs' imported from …`, `Test Files  1 failed (1)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `app/scripts/sync-data.mjs`:
 
@@ -3082,12 +3108,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `(cd app && npx vitest run scripts/sync-data.test.ts)`
 Expected: `Tests  2 passed (2)`.
 
-- [ ] **Step 5: Static fixtures**
+- [x] **Step 5: Static fixtures**
 
 These are used only while `shared/deployments/sepolia.json`, `shared/params.json` and `docs/faq.md` do not exist. The deployments fixture is plan 04's bootstrap file (verified infrastructure, nothing deployed) plus `fixture: true` and an empty `routers.arb`, so the dashboard runs on mock data. The params fixture is P\* = 20% (flagged `fixture: true`) until the lab decides.
 
@@ -3149,7 +3175,7 @@ No transaction ever "changes" the fee. On every swap, the Uniswap v4 PoolManager
 _This is the fixture FAQ shipped with the app. The full FAQ lives in `docs/faq.md`; `npm run sync` copies it here._
 ````
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/scripts/sync-data.mjs app/scripts/sync-data.test.ts app/src/fixtures
@@ -3160,6 +3186,8 @@ git commit -m "feat(app): sync shared/, lab/out and docs/faq.md into the app wit
 
 ### Task 14: Lab fixtures, first sync, config modules
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `f289f29`. Today every source reads `repo` (`npm run sync` at `d05ee94`, session log 2026-10-07) and the suite is 21 files, 170 tests.
+
 **Delegable:** yes
 **Depends on:** Tasks 7, 12, 13
 
@@ -3169,7 +3197,7 @@ The lab fixtures are **synthetic** and labeled as such in every title (`Syntheti
 - Create: `app/scripts/make-fixtures.ts`, `app/src/lib/config.ts`, `app/src/lib/labData.ts`
 - Generated (committed): `app/src/fixtures/lab/{summary,replay-2026-02-04,ptrade-band}.json`, `app/src/generated/{sepolia.json,params.json,faq.ts}`, `app/public/data/lab/*.json`
 
-- [ ] **Step 1: Write the fixture generator**
+- [x] **Step 1: Write the fixture generator**
 
 Create `app/scripts/make-fixtures.ts`:
 
@@ -3269,14 +3297,14 @@ write("summary.json", summary(r.stats));
 console.log("wrote src/fixtures/lab/{replay-2026-02-04,ptrade-band,summary}.json");
 ```
 
-- [ ] **Step 2: Generate the fixtures and run the first sync**
+- [x] **Step 2: Generate the fixtures and run the first sync**
 
 ```bash
 (cd app && npm run fixtures && npm run sync)
 ```
 Expected: `wrote src/fixtures/lab/{replay-2026-02-04,ptrade-band,summary}.json`, then a table with six rows. `src/generated/faq.ts` shows `repo` (docs/faq.md exists); the other five show `fixture` until plans 01 and 03 deliver. The replay fixture is about 50 KB (1,200 points, columnar).
 
-- [ ] **Step 3: Config modules**
+- [x] **Step 3: Config modules**
 
 Create `app/src/lib/config.ts`:
 
@@ -3316,14 +3344,14 @@ export const labReplay = parseReplay(replay);
 export const labBand = parsePTradeBand(band);
 ```
 
-- [ ] **Step 4: Run every check**
+- [x] **Step 4: Run every check**
 
 ```bash
 (cd app && npm test && npm run typecheck && npm run lint)
 ```
 Expected: `Test Files  13 passed (13)`, `Tests  91 passed | 2 skipped (93)`; `tsc` and `eslint` print nothing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/scripts/make-fixtures.ts app/src/lib/config.ts app/src/lib/labData.ts app/src/fixtures/lab app/src/generated app/public/data/lab
@@ -3333,6 +3361,8 @@ git commit -m "feat(app): synthetic lab fixtures, first data sync, config module
 ---
 ### Task 15: Theme, UI primitives and the data hook
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `9ec11b4`. `theme.ts` maps the series and modes to CSS variables (design tokens) instead of the Conventions' raw colours; today V is Chainlink Blue, S gray (dashed), σ Uniswap pink (session log 2026-10-07, "Frontend build log"); `ui.tsx` also exports `Toggle`.
+
 **Delegable:** yes
 **Depends on:** Tasks 11, 14
 
@@ -3341,7 +3371,7 @@ git commit -m "feat(app): synthetic lab fixtures, first data sync, config module
 **Files:**
 - Create: `app/src/lib/theme.ts`, `app/src/components/ui.tsx`, `app/src/hooks/useClimData.ts`
 
-- [ ] **Step 1: Theme**
+- [x] **Step 1: Theme**
 
 Create `app/src/lib/theme.ts`:
 
@@ -3370,7 +3400,7 @@ export function utcTime(t: number): string {
 }
 ```
 
-- [ ] **Step 2: UI primitives**
+- [x] **Step 2: UI primitives**
 
 Create `app/src/components/ui.tsx`:
 
@@ -3427,7 +3457,7 @@ export function TxLink({ hash, live, explorer = "https://sepolia.etherscan.io" }
 }
 ```
 
-- [ ] **Step 3: Data hook**
+- [x] **Step 3: Data hook**
 
 Create `app/src/hooks/useClimData.ts`:
 
@@ -3553,12 +3583,12 @@ export function useClimData(pairName: Pair): ClimData {
 }
 ```
 
-- [ ] **Step 4: Typecheck and lint**
+- [x] **Step 4: Typecheck and lint**
 
 Run: `(cd app && npm run typecheck && npm run lint)`
 Expected: no output, exit code 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/theme.ts app/src/components/ui.tsx app/src/hooks/useClimData.ts
@@ -3569,13 +3599,15 @@ git commit -m "feat(app): theme, UI primitives and the chain/mock data hook"
 
 ### Task 16: Desk and Quote panels
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `549e910`.
+
 **Delegable:** yes
 **Depends on:** Task 15
 
 **Files:**
 - Create: `app/src/components/DeskPanel.tsx`, `app/src/components/FeeCurveChart.tsx`, `app/src/components/QuotePanel.tsx`
 
-- [ ] **Step 1: Desk panel**
+- [x] **Step 1: Desk panel**
 
 Create `app/src/components/DeskPanel.tsx`:
 
@@ -3626,7 +3658,7 @@ export function DeskPanel({ data }: { data: ClimData }) {
 }
 ```
 
-- [ ] **Step 2: Theoretical fee curve**
+- [x] **Step 2: Theoretical fee curve**
 
 Create `app/src/components/FeeCurveChart.tsx`:
 
@@ -3670,7 +3702,7 @@ export function FeeCurveChart({ sigmaNowPct, feeNowBp, staticFeeBp }: { sigmaNow
 }
 ```
 
-- [ ] **Step 3: Quote panel**
+- [x] **Step 3: Quote panel**
 
 Create `app/src/components/QuotePanel.tsx`:
 
@@ -3708,12 +3740,12 @@ export function QuotePanel({ data }: { data: ClimData }) {
 }
 ```
 
-- [ ] **Step 4: Typecheck and lint**
+- [x] **Step 4: Typecheck and lint**
 
 Run: `(cd app && npm run typecheck && npm run lint)`
 Expected: no output, exit code 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/components/DeskPanel.tsx app/src/components/FeeCurveChart.tsx app/src/components/QuotePanel.tsx
@@ -3724,6 +3756,8 @@ git commit -m "feat(app): desk and quote panels with the theoretical fee curve"
 
 ### Task 17: The weather chart (the answer to "how is the fee computed?")
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commits `e8053b7` and `f41f432`.
+
 **Delegable:** yes
 **Depends on:** Task 15
 
@@ -3732,7 +3766,7 @@ Two stacked charts on one time axis (spec §4, "The picture"): σ on top; below,
 **Files:**
 - Create: `app/src/components/WeatherChart.tsx`
 
-- [ ] **Step 1: Write the component**
+- [x] **Step 1: Write the component**
 
 Create `app/src/components/WeatherChart.tsx`:
 
@@ -3825,12 +3859,12 @@ export function WeatherChart({ data }: { data: ClimData }) {
 }
 ```
 
-- [ ] **Step 2: Typecheck and lint**
+- [x] **Step 2: Typecheck and lint**
 
 Run: `(cd app && npm run typecheck && npm run lint)`
 Expected: no output, exit code 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/src/components/WeatherChart.tsx
@@ -3841,13 +3875,15 @@ git commit -m "feat(app): weather chart, sigma over the fee staircase with swap 
 
 ### Task 18: Validation and volatility-quad panels
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `c347a8d`.
+
 **Delegable:** yes
 **Depends on:** Task 15
 
 **Files:**
 - Create: `app/src/components/ValidationPanel.tsx`, `app/src/components/VolQuadPanel.tsx`
 
-- [ ] **Step 1: Validation panel**
+- [x] **Step 1: Validation panel**
 
 Create `app/src/components/ValidationPanel.tsx`:
 
@@ -3937,7 +3973,7 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
 }
 ```
 
-- [ ] **Step 2: Volatility quad**
+- [x] **Step 2: Volatility quad**
 
 Create `app/src/components/VolQuadPanel.tsx`:
 
@@ -3994,12 +4030,12 @@ export function VolQuadPanel({ data, band }: { data: ClimData; band: LabPTradeBa
 }
 ```
 
-- [ ] **Step 3: Typecheck and lint**
+- [x] **Step 3: Typecheck and lint**
 
 Run: `(cd app && npm run typecheck && npm run lint)`
 Expected: no output, exit code 0.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/src/components/ValidationPanel.tsx app/src/components/VolQuadPanel.tsx
@@ -4010,6 +4046,8 @@ git commit -m "feat(app): P_trade validation with band and the volatility quad"
 
 ### Task 19: P&L explain, safety and recent-swaps panels
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `85cb8dc`.
+
 **Delegable:** yes
 **Depends on:** Task 15
 
@@ -4018,7 +4056,7 @@ The P&L panel also checks the fairness condition of spec §3.7: if V's realized 
 **Files:**
 - Create: `app/src/components/PnlPanel.tsx`, `app/src/components/SafetyPanel.tsx`, `app/src/components/RecentSwapsPanel.tsx`
 
-- [ ] **Step 1: P&L panel**
+- [x] **Step 1: P&L panel**
 
 Create `app/src/components/PnlPanel.tsx`:
 
@@ -4100,7 +4138,7 @@ export function PnlPanel({ data }: { data: ClimData }) {
 }
 ```
 
-- [ ] **Step 2: Safety panel**
+- [x] **Step 2: Safety panel**
 
 Create `app/src/components/SafetyPanel.tsx`:
 
@@ -4155,7 +4193,7 @@ export function SafetyPanel({ data }: { data: ClimData }) {
 }
 ```
 
-- [ ] **Step 3: Recent swaps**
+- [x] **Step 3: Recent swaps**
 
 Create `app/src/components/RecentSwapsPanel.tsx`:
 
@@ -4202,12 +4240,12 @@ export function RecentSwapsPanel({ data }: { data: ClimData }) {
 }
 ```
 
-- [ ] **Step 4: Typecheck and lint**
+- [x] **Step 4: Typecheck and lint**
 
 Run: `(cd app && npm run typecheck && npm run lint)`
 Expected: no output, exit code 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/components/PnlPanel.tsx app/src/components/SafetyPanel.tsx app/src/components/RecentSwapsPanel.tsx
@@ -4218,6 +4256,8 @@ git commit -m "feat(app): LP P&L explain, safety evidence and recent swaps panel
 
 ### Task 20: Dashboard page on mock data
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `43eabbe`. The dashboard page is now `src/app/(app)/app/page.tsx` at `/app` (with `ContractsPanel` below it since 2026-10-07); `/` is the landing `src/app/(site)/page.tsx`. Step 4's mock-data look was checked in clim-front; production reads Sepolia since Task 25, and mock data is only the fallback of a build without contracts. The Step 5 line is in `docs/sessions/2026-10-06.md` ("Frontend build log").
+
 **Delegable:** yes
 **Depends on:** Tasks 16, 17, 18, 19
 
@@ -4225,7 +4265,7 @@ git commit -m "feat(app): LP P&L explain, safety evidence and recent swaps panel
 - Create: `app/src/components/Dashboard.tsx`
 - Modify: `app/src/app/page.tsx` (replace the Task 1 stub)
 
-- [ ] **Step 1: Dashboard**
+- [x] **Step 1: Dashboard**
 
 Create `app/src/components/Dashboard.tsx`:
 
@@ -4298,7 +4338,7 @@ export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand;
 }
 ```
 
-- [ ] **Step 2: Home page**
+- [x] **Step 2: Home page**
 
 Create (overwrite) `app/src/app/page.tsx`:
 
@@ -4324,12 +4364,12 @@ export default function Home() {
 }
 ```
 
-- [ ] **Step 3: Build**
+- [x] **Step 3: Build**
 
 Run: `(cd app && npm run typecheck && npm run lint && npm run build)`
 Expected: the route table lists `○ /` and `○ /_not-found` as `(Static)`; no error.
 
-- [ ] **Step 4: Look at it**
+- [x] **Step 4: Look at it**
 
 Run `(cd app && npx next start -p 3000)` in the background, open http://localhost:3000, then stop the server (`lsof -ti tcp:3000 | xargs kill`). Expected on mock data:
 - an amber badge "Mock data: contracts not deployed yet …";
@@ -4341,7 +4381,7 @@ Run `(cd app && npx next start -p 3000)` in the background, open http://localhos
 
 If a panel is missing or a chart is empty, open the browser console, fix, and re-run Steps 3 and 4.
 
-- [ ] **Step 5: Log and commit**
+- [x] **Step 5: Log and commit**
 
 Append under `## Decisions` in today's session log:
 
@@ -4358,6 +4398,8 @@ git commit -m "feat(app): dashboard page with desk, quote, weather, validation, 
 
 ### Task 21: Replay and lab pages
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `621a38a`. The pages are `src/app/(app)/replay/page.tsx` and `src/app/(app)/lab/page.tsx`; Task 28 replaced the typed 74 % to 225 % range with the lab's and rounded the numbers, and the "Synthetic fixture" notes no longer show since the real lab outputs are synced.
+
 **Delegable:** yes
 **Depends on:** Tasks 14, 15, 20
 
@@ -4366,7 +4408,7 @@ git commit -m "feat(app): dashboard page with desk, quote, weather, validation, 
 **Files:**
 - Create: `app/src/components/ReplayCharts.tsx`, `app/src/components/ReplayPanel.tsx`, `app/src/components/BacktestTable.tsx`, `app/src/app/replay/page.tsx`, `app/src/app/lab/page.tsx`
 
-- [ ] **Step 1: Replay charts**
+- [x] **Step 1: Replay charts**
 
 Create `app/src/components/ReplayCharts.tsx`:
 
@@ -4430,7 +4472,7 @@ export function ReplayCharts({ replay }: { replay: LabReplay }) {
 }
 ```
 
-- [ ] **Step 2: Replay panel**
+- [x] **Step 2: Replay panel**
 
 Create `app/src/components/ReplayPanel.tsx`:
 
@@ -4460,7 +4502,7 @@ export function ReplayPanel({ replay, summary }: { replay: LabReplay; summary: L
 }
 ```
 
-- [ ] **Step 3: Backtest table**
+- [x] **Step 3: Backtest table**
 
 Create `app/src/components/BacktestTable.tsx`:
 
@@ -4506,7 +4548,7 @@ export function BacktestTable({ summary }: { summary: LabSummary }) {
 }
 ```
 
-- [ ] **Step 4: Pages**
+- [x] **Step 4: Pages**
 
 Create `app/src/app/replay/page.tsx`:
 
@@ -4564,12 +4606,12 @@ export default function LabPage() {
 }
 ```
 
-- [ ] **Step 5: Build and look**
+- [x] **Step 5: Build and look**
 
 Run: `(cd app && npm run typecheck && npm run lint && npm run build)`
 Expected: `○ /lab` and `○ /replay` in the route table. Then `(cd app && npx next start -p 3000)`, open http://localhost:3000/replay and http://localhost:3000/lab: the replay panel with four stacked charts (ETH/USD, σ rising from 74% to about 225%, V's fee leaving S's dashed line, cumulative ARB with V ending below S) and the yellow "Synthetic fixture" notes; on `/lab`, the table with both comparisons and the three honest-number bullets. Stop the server.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/src/components/ReplayCharts.tsx app/src/components/ReplayPanel.tsx app/src/components/BacktestTable.tsx app/src/app/replay/page.tsx app/src/app/lab/page.tsx
@@ -4580,6 +4622,8 @@ git commit -m "feat(app): replay and lab pages with both backtest comparisons"
 
 ### Task 22: How-it-works page and FAQ
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `8d5c392`. The page is `src/app/(app)/how/page.tsx` (with `ContractsPanel` at `/how#contracts` since 2026-10-07). `docs/faq.md`'s heading is now "Can a pool that is already live switch to clim?", so Step 2 greps `already live` (2 matches on production, 2026-10-07).
+
 **Delegable:** yes
 **Depends on:** Tasks 14, 15
 
@@ -4588,7 +4632,7 @@ The plain-language explanation uses the live parameters from `params.json` (form
 **Files:**
 - Create: `app/src/app/how/page.tsx`
 
-- [ ] **Step 1: Write the page**
+- [x] **Step 1: Write the page**
 
 Create `app/src/app/how/page.tsx`:
 
@@ -4668,17 +4712,17 @@ export default function HowPage() {
 }
 ```
 
-- [ ] **Step 2: Build and check the FAQ is there**
+- [x] **Step 2: Build and check the FAQ is there**
 
 Run: `(cd app && npm run typecheck && npm run lint && npm run build)`
 Expected: `○ /how` in the route table. Then:
 
 ```bash
-(cd app && (npx next start -p 3000 >/dev/null 2>&1 &) && sleep 4 && curl -s http://localhost:3000/how | grep -c "change its fee"; lsof -ti tcp:3000 | xargs kill)
+(cd app && (npx next start -p 3000 >/dev/null 2>&1 &) && sleep 4 && curl -s http://localhost:3000/how | grep -c "already live"; lsof -ti tcp:3000 | xargs kill)
 ```
 Expected: a count of at least `1`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/src/app/how/page.tsx
@@ -4689,13 +4733,15 @@ git commit -m "feat(app): how-it-works page with live parameters and the FAQ"
 
 ### Task 23: Chain snapshot script
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `7d44982`. The refusal is line 16 of `scripts/snapshot.ts`; with the live pair synced, the script ran for real in Task 26.
+
 **Delegable:** yes
 **Depends on:** Tasks 11, 14
 
 **Files:**
 - Create: `app/scripts/snapshot.ts`
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 Create `app/scripts/snapshot.ts`:
 
@@ -4745,12 +4791,12 @@ main().catch((e) => {
 });
 ```
 
-- [ ] **Step 2: Run it before deployment, expected clean refusal**
+- [x] **Step 2: Run it before deployment, expected clean refusal**
 
 Run: `(cd app && npm run snapshot -- live)`
 Expected (while the live pair is not deployed): `pair live is not in src/generated/sepolia.json: run npm run sync after deploying`, exit code 1. (Validated in the scratch project against real Sepolia logs: with a temporary plan-04-shaped deployments file pointing at an existing pool and an existing forwarder receiver, it wrote `public/data/chain/live.json` covering 3,000 blocks with 35 swaps and 3 rejected deliveries.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/scripts/snapshot.ts
@@ -4761,19 +4807,21 @@ git commit -m "feat(app): freeze on-chain log history into a static snapshot"
 
 ### Task 24: First deployment to Vercel (mock data)
 
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); the URL was logged in clim-front commit `5f51267`. Deployed with the CLI from the clim-front root; since master Task 14 production deploys from the clim repo root (Vercel Root Directory `app`, `VERCEL_ORG_ID`/`VERCEL_PROJECT_ID`, Task 25 Step 5), not with `vercel link` in `app/`. Checked on 2026-10-07 with curl: `/`, `/app`, `/replay`, `/lab`, `/how`, `/swap`, `/lp`, `/credits` and `/data/lab/replay-2026-02-04.json` answer 200, and `/how` contains "already live".
+
 **Delegable:** no (uses the maintainer's Vercel account)
 **Depends on:** Tasks 20, 21, 22
 
-Done in clim-front: https://clim-zeta.vercel.app (Vercel project `clim`, logged in clim-front's session log). After the import, master plan Task 14 links `app/` to the same project (`vercel link --yes --project clim`), so the URL does not change.
+Done in clim-front: https://clim-zeta.vercel.app (Vercel project `clim`, logged in clim-front's session log). After the import, production deploys from the clim repo root to the same project (Root Directory `app`, Task 25 Step 5), so the URL does not change.
 
 Deploying early gives the submission a live URL from the start; later deployments only refresh data.
 
-- [ ] **Step 1: Check the CLI session**
+- [x] **Step 1: Check the CLI session**
 
 Run: `(cd app && vercel whoami)`
 Expected: the maintainer's Vercel username. If it asks to log in, the maintainer runs `vercel login` himself.
 
-- [ ] **Step 2: Link and deploy from app/**
+- [x] **Step 2: Link and deploy from app/**
 
 ```bash
 (cd app && vercel link --yes --project clim)
@@ -4781,15 +4829,15 @@ Expected: the maintainer's Vercel username. If it asks to log in, the maintainer
 ```
 Expected: `vercel link` creates `app/.vercel/` (already ignored by `app/.gitignore`); `vercel deploy` builds remotely (`next build`, same route table as locally) and prints the production URL. The stable address is the production domain of project `clim` (Vercel dashboard → clim → Domains), for example `https://clim-<suffix>.vercel.app`.
 
-- [ ] **Step 3: Verify it is public and complete**
+- [x] **Step 3: Verify it is public and complete**
 
 ```bash
 URL=https://<the production domain from Step 2>
-curl -s -o /dev/null -w "%{http_code}\n" $URL/ && curl -s $URL/how | grep -c "change its fee" && curl -s -o /dev/null -w "%{http_code}\n" $URL/data/lab/replay-2026-02-04.json
+curl -s -o /dev/null -w "%{http_code}\n" $URL/ && curl -s $URL/how | grep -c "already live" && curl -s -o /dev/null -w "%{http_code}\n" $URL/data/lab/replay-2026-02-04.json
 ```
 Expected: `200`, a count of at least `1`, `200`. If the page asks for a Vercel login, turn off Vercel Authentication for production in Project Settings → Deployment Protection (judges must reach it without an account).
 
-- [ ] **Step 4: Log the URL and commit**
+- [x] **Step 4: Log the URL and commit**
 
 Append under `## Decisions` in today's session log, with the domain from Step 2:
 
