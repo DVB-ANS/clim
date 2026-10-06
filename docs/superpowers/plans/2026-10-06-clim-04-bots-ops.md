@@ -44,7 +44,7 @@
 3. **Fee formula mirror** (`feePips`, `quoteFeeMirror` in `shared/src/units.ts`) = spec 3.6. Shared test vectors (sqrtHalfDtE6 2,449,490, kE4 10,000), to be reused by plan 01's Foundry tests: 48 %/yr = sigmaE9 85,475 with etaE4 91,761 gives **1,922 pips** (unrounded 1,921.2: the "1,921" quoted in the design brief is not the ceiling); 25 %/yr = 44,518 gives 1,001; 100 %/yr = 178,072 gives 1,822 (P\* 20 %, etaE4 41,760) and 1,095 (P\* 30 %, etaE4 25,093); 225 %/yr = 400,663 gives 4,099 and 2,463; 46 %/yr = 81,913 at P\* 30 % gives 504; SIGMA_MAX 1,780,730 at P\* 20 % gives raw 18,216, capped to 15,000; k = 2.0 at 100 %/yr, P\* 30 % gives 2,190; an exact product (10,000 x 10,000 x 1,000,000 x 10,000) gives 10 and one more unit of sigma gives 11. Annual sigma to sigmaE9 rounds to nearest (100 %/yr is 178,072, not 178,073). `status.ts` compares the deployed hook's `quoteFee()` with the mirror on every block.
 4. **TestToken** (plan 01): ERC-20, 18 decimals, `mint(address to, uint256 amount)` callable only by the deployer (`onlyOwner`), plus a public `faucet()` (10 tETH or 25,000 tUSD per address per hour) that plan 05's `/swap` and `/lp` pages use; `fund.ts` mints from the deployer key.
 5. **ABIs:** plan 01 Task 14 runs its own `contracts/script/export-abis.sh` (bare ABI arrays for RiskDesk, IRiskDesk, ClimHook, TestToken, IPoolManager, IStateView, PoolSwapTest, PoolModifyLiquidityTest); `bun run --cwd shared export-abis` (Task 5) writes the same three files this package needs and can be used instead; `shared/test/abis.test.ts` then fails if the hand-written fragments drift from the compiled contracts.
-6. **CRE loop and log lines (plan 02), transcripts (plan 06):** `cre/scripts/sim-loop.sh <staging-settings|replay-settings> --broadcast`, run from `cre/`, prints `=== <UTC time>` before each run and the workflow's `[USER LOG]` lines plus any line containing `rror`. `bots/src/lib/simParse.ts` reads the workflow's final lines: `REPORT applied ... tx=0x..`, `REPORT sent, desk state unreadable after tx=0x..`, `NOT APPLIED: ... tx=0x..`, `REJECTED by RiskDesk (onReport reverted) tx=0x..`, `clim: no report (<reason>)`, `DRY RUN: ...`. The CRE template's `Write report transaction succeeded: 0x..` comes before the final line, so it is kept in the transcript but does not end the run. If plan 02 changes these words, change `RULES` in `simParse.ts` and its test in the same commit. `bun run cre-loop` writes each run's transcript (from its `===` line to its last line, which carries `tx=0x...`) to `bots/out/cre-sim/<pair>-<run start>.log`: the "one file per `cre workflow simulate` run" that plan 06's evidence collector reads (they hold the loop's filtered stdout; the complete CLI output is in plan 02's `cre/logs/`).
+6. **CRE loop and log lines (plan 02), transcripts (plan 06):** `cre/scripts/sim-loop.sh <staging-settings|replay-settings> --broadcast`, run from `cre/`, prints `=== <UTC time>` before each run and the workflow's `[USER LOG]` lines plus any line containing `rror` and the CLI's failure lines marked `✗` (for example `✗ Credential validation failed`). `bots/src/lib/simParse.ts` reads the workflow's final lines: `REPORT applied ... tx=0x..`, `REPORT sent, desk state unreadable after tx=0x..`, `NOT APPLIED: ... tx=0x..`, `REJECTED by RiskDesk (onReport reverted) tx=0x..`, `clim: no report (<reason>)`, `DRY RUN: ...`. The CRE template's `Write report transaction succeeded: 0x..` comes before the final line, so it is kept in the transcript but does not end the run; when the simulator loses the final line, the run keeps that line's tx. For a run with a tx the receipt decides `applied`: the forwarder's `ReportProcessed.result` true and a `RiskReported` from the desk in that tx (`statusFromReceipt: true` when this overrides the workflow's line, which stays in `detail`). If plan 02 changes these words, change `RULES` in `simParse.ts` and its test in the same commit. `bun run cre-loop` writes each run's transcript (from its `===` line to its last line, which carries `tx=0x...`) to `bots/out/cre-sim/<pair>-<run start>.log`: the "one file per `cre workflow simulate` run" that plan 06's evidence collector reads (they hold the loop's filtered stdout; the complete CLI output is in plan 02's `cre/logs/`).
 7. **Replay (plans 02 and 03):** plan 03 writes `lab/out/replay-window.json` = `{ symbol: "ETHUSDT", source, startTs, stepSec: 1, warmupSec, closes }`: `startTs` on a minute boundary, `warmupSec` a multiple of 60 and >= 1260 (use 1800: 2026-02-04 11:30 to 16:00 UTC, 16,200 closes, about 128 KB, no gap in `lab/data/b1s_feb.csv`), one close per second, forward-filled, length a multiple of 60. The server maps the main start (12:00 UTC) to the wall-clock minute it starts on and then runs at 1x. **Plan 02's replay mode reads `GET /venue/<venue>/api/v3/klines?symbol=ETHUSDT&interval=1m&limit=20`** (one call per configured venue): Binance 1m klines whose open and close times are shifted to the wall clock (`+offsetSec`, a multiple of 60), so the workflow's freshness rule works with DON time. Every venue path returns the same series, so the quorum is met by construction, dispersion is 0 and `dvolE2 = 0`; the replay desk's REPLAY flag discloses it. The plan 00 integration check ran this route through plan 02's parser and estimator: all 479 replay reports from 12:00:30 reproduce the lab's `points[].rv15E9` exactly. `GET /api/v3/ticker/price?symbol=ETHUSDT` gives the replay arbitrageur its market price; `GET /api/v3/klines` (historical times) and `GET /snapshot` (`{ nowSec, usdtUsd: 1, dvol: null, venues: [binance-replay-1..4] }` in historical time) are diagnostics.
 8. **Importing `shared/` from `cre/`:** `shared/src/units.ts` has no dependency and can be imported by relative path (`../../shared/src/units`); `shared/src/report.ts` imports viem, which Bun resolves from the root `node_modules` only after a root `bun install`. The desk's rounding rule is `sigmaE9 = Math.round(rv15PerSqrtSecond * 1e9)`.
 9. **App (plan 05):** standalone npm project, outside the workspace. It copies `shared/deployments/sepolia.json`, `shared/params.json` and `shared/abis/*.json` with its sync script and ports the fee helpers, checked against the vectors of contract 3. It identifies arbitrage swaps by `Swap.sender == routers.arb` and recovers the arbitrageur's market price from the post-swap price, which relies on this plan's band edges `[m(1 - f), m/(1 - f)]`.
@@ -56,7 +56,7 @@
 - `PoolSwapTest.swap(PoolKey, SwapParams{zeroForOne, amountSpecified, sqrtPriceLimitX96}, TestSettings{takeClaims, settleUsingBurn}, bytes)` and its settlement (`transferFrom(msg.sender, manager, amount)`, so approve PoolSwapTest) read in `Uniswap/v4-core` `src/test/PoolSwapTest.sol` and `test/utils/CurrencySettler.sol`; a negative `amountSpecified` is exact input; `Pool.swap` reverts `PriceLimitAlreadyExceeded` unless the limit is strictly beyond the current price in the swap direction.
 - MockKeystoneForwarder source (Sourcify, verified): `report()` is permissionless, slices `rawReport[45:109]` as metadata and `rawReport[109:]` as the report, calls `onReport` through `route()`, emits `ReportProcessed(receiver, executionId, reportId, result)` and does not revert when the receiver reverts.
 - Spec Appendix B question 1 answered on-chain: `cre workflow simulate --broadcast` sends `report()` from the `CRE_ETH_PRIVATE_KEY` account straight to the mock forwarder (Sepolia tx `0xe57a006e7585984137cb5064d6be6fc7b9353194760178b85a78274c8785fa2c`: from an EOA, selector `0x11289565`, gas used 185,913), so `tx.origin` is the operator and the RiskDesk SIM guard works. Its metadata carries placeholders (workflowCid `0x11...11`, workflowName 10 bytes, owner `0xaa...aa`, header timestamp 100), which is why the spec keeps the workflow-identity checks off in simulation.
-- All the code below was typechecked (`tsc --noEmit`) and unit-tested (`bun test`: shared 55 pass and 3 skip, bots 57 pass) under Bun 1.4.2 and viem 2.57.3. After the plan 00 integration changes (simParse outcome rules, wall-clock venue klines) the suite is shared 55 pass and 3 skip, bots 60 pass, re-run under both Bun 1.3.9 and 1.4.2. End to end on an anvil fork of Sepolia (real PoolManager, StateView, PoolSwapTest and MockKeystoneForwarder; stub tokens, a stub desk with the `tx.origin` guard and a stub override-fee hook installed at an address carrying the afterInitialize and beforeSwap flags; both token orders tried): `fund` minted and approved (arbitrage key on a second PoolSwapTest installed as `routers.arb`, retail key on the shared one; replay keys skipped), `status` read both pools and the 4-venue median, exited 0 when the hook matched the mirror and 1 with a `PROBLEM` line when it did not; `arb` moved each pool exactly to the band edge `m(1 - f)` on its first block (fees of 5 bp and 30 bp tried), printed `none` inside the band, and its swaps carried `Swap.sender = routers.arb`; `noise` mirrored each order to V and S; a stub-desk report sent by the operator through the mock was applied while `forge-report` was rejected (`forwarder result=false`, desk unchanged); `cre-loop` (driving a stand-in for plan 02's script) recorded `applied` (with the decoded `RiskReported`, `forwarderResult true`), `no-report` and `error` runs with one transcript file each, and `--once` stopped after the first. The replay server served the real February window: `/snapshot` gave four venues of 25 closed candles with `nowSec` inside the window.
+- All the code below was typechecked (`tsc --noEmit`) and unit-tested (`bun test`: shared 55 pass and 3 skip, bots 57 pass) under Bun 1.4.2 and viem 2.57.3. After the plan 00 integration changes (simParse outcome rules, wall-clock venue klines) the suite is shared 55 pass and 3 skip, bots 60 pass, re-run under both Bun 1.3.9 and 1.4.2. After the 2026-10-07 receipt classification fix (Tasks 16 and 17): bots 66 pass, simParse 15, under Bun 1.3.9. End to end on an anvil fork of Sepolia (real PoolManager, StateView, PoolSwapTest and MockKeystoneForwarder; stub tokens, a stub desk with the `tx.origin` guard and a stub override-fee hook installed at an address carrying the afterInitialize and beforeSwap flags; both token orders tried): `fund` minted and approved (arbitrage key on a second PoolSwapTest installed as `routers.arb`, retail key on the shared one; replay keys skipped), `status` read both pools and the 4-venue median, exited 0 when the hook matched the mirror and 1 with a `PROBLEM` line when it did not; `arb` moved each pool exactly to the band edge `m(1 - f)` on its first block (fees of 5 bp and 30 bp tried), printed `none` inside the band, and its swaps carried `Swap.sender = routers.arb`; `noise` mirrored each order to V and S; a stub-desk report sent by the operator through the mock was applied while `forge-report` was rejected (`forwarder result=false`, desk unchanged); `cre-loop` (driving a stand-in for plan 02's script) recorded `applied` (with the decoded `RiskReported`, `forwarderResult true`), `no-report` and `error` runs with one transcript file each, and `--once` stopped after the first. The replay server served the real February window: `/snapshot` gave four venues of 25 closed candles with `nowSec` inside the window.
 - Public venue endpoints answered from Singapore: Coinbase Advanced product `price`, Kraken `Ticker?pair=ETHUSD,USDTUSD` (`result.XETHZUSD.c[0]`, `result.USDTZUSD.c[0]`), Binance `data-api.binance.vision` ticker (USDT), Hyperliquid `allMids` (`ETH`).
 
 ## File structure
@@ -2989,12 +2989,12 @@ git commit -m "feat(bots): retail noise bot"
 `bots/test/simParse.test.ts`:
 ```ts
 import { describe, expect, test } from "bun:test";
-import { loopCommand, outcomeOf, RunTracker, type RunResult } from "../src/lib/simParse";
+import { loopCommand, outcomeOf, receiptStatus, RunTracker, type RunResult } from "../src/lib/simParse";
 
 const TX = "0x1013abc0b6f345fad15b19a56cabbbaab2a2aa94f81eb3a709058adf18a4f23f";
 
 // Lines as printed by plan 02's cre/scripts/sim-loop.sh: "=== <UTC time>" before each run, then the workflow's
-// [USER LOG] lines and any line containing "rror" (the script greps "USER LOG|rror").
+// [USER LOG] lines, any line containing "rror" and the CLI's failure lines marked "✗" (the script greps "USER LOG|rror|✗").
 const APPLIED = `2026-10-07T03:00:09Z [USER LOG] REPORT applied seq=12 sigmaReported=33.4% sigmaApplied=33.4% flags=0 tx=${TX}`;
 
 describe("outcomeOf: one workflow log line -> run outcome", () => {
@@ -3049,6 +3049,45 @@ describe("RunTracker: stream of loop lines -> one result per run", () => {
     expect(r.map((x) => x.status)).toEqual(["error", "no-outcome", "applied"]);
     expect(r[0]?.detail).toBe("Error: writeReport failed: status=1");
   });
+  test("a run that lost its final line keeps the tx of the CRE template line, for the receipt check", () => {
+    const sent = `2026-10-06T17:18:03Z [USER LOG] Write report transaction succeeded: ${TX}`;
+    const r = feed(["=== 2026-10-06T17:17:44Z", "[USER LOG] desk before: seq=66 tObs=1791307040 sigma=23.9%/yr flags=0", sent, "=== 2026-10-06T17:18:14Z", APPLIED]);
+    expect(r.map((x) => [x.status, x.txHash, x.detail])).toEqual([
+      ["no-outcome", TX, sent],
+      ["applied", TX, APPLIED],
+    ]);
+  });
+  test("a CRE CLI credential failure is an error that says so", () => {
+    const r = feed([
+      "=== 2026-10-06T17:03:12Z",
+      "✗ Credential validation failed",
+      "✗ authentication required: credential validation failed: authentication failed: unable to retrieve organization info. Your account may not be fully set up yet — please try again in a few minutes",
+    ]);
+    expect(r.map((x) => [x.status, x.txHash, x.detail])).toEqual([["error", null, "CRE CLI credential validation failed"]]);
+  });
+  test("any other CRE CLI failure line (marked ✗) is an error", () => {
+    const failed = '✗ workflow execution failed: [2]Unknown: Post "https://ethereum-sepolia-rpc.publicnode.com": read tcp: can\'t assign requested address';
+    const r = feed(["=== 2026-10-06T18:23:08Z", "[USER LOG] desk before: seq=159 tObs=1791310961 sigma=73.0%/yr flags=2", failed]);
+    expect(r.map((x) => [x.status, x.detail])).toEqual([["error", failed]]);
+  });
+  test("a run that printed nothing says so", () => {
+    expect(feed(["=== 2026-10-06T17:03:12Z"]).map((x) => [x.status, x.txHash, x.detail])).toEqual([["no-outcome", null, "no output"]]);
+  });
+});
+
+describe("receiptStatus: the receipt is the ground truth for a run with a tx", () => {
+  test("forwarder result true and a desk RiskReported mean applied, whatever the workflow printed", () => {
+    expect(receiptStatus("not-applied", true, true)).toBe("applied");
+    expect(receiptStatus("no-outcome", true, true)).toBe("applied");
+    expect(receiptStatus("sent", true, true)).toBe("applied");
+    expect(receiptStatus("applied", true, true)).toBe("applied");
+  });
+  test("never applied without both receipt facts", () => {
+    expect(receiptStatus("not-applied", false, false)).toBe("not-applied");
+    expect(receiptStatus("not-applied", true, false)).toBe("not-applied");
+    expect(receiptStatus("no-outcome", null, true)).toBe("no-outcome");
+    expect(receiptStatus("rejected", false, false)).toBe("rejected");
+  });
 });
 
 describe("loop command", () => {
@@ -3069,11 +3108,13 @@ Expected: `error: Cannot find module '../src/lib/simParse'`, ` 1 fail`.
 ```ts
 // Pure helpers for sim-loop.ts, which runs plan 02's cre/scripts/sim-loop.sh and records every run.
 // That script prints "=== <UTC time>" before each `cre workflow simulate` run and echoes the workflow's
-// [USER LOG] lines plus any line containing "rror". The workflow (plan 02, workflow.ts) ends each run with one of:
+// [USER LOG] lines plus any line containing "rror" or the CLI's failure mark "✗". The workflow (plan 02, workflow.ts)
+// ends each run with one of:
 //   REPORT applied ... tx=0x..    REPORT sent, desk state unreadable after tx=0x..    NOT APPLIED: ... tx=0x..
 //   REJECTED by RiskDesk (onReport reverted) tx=0x..    clim: no report (<reason>)    DRY RUN: ...
 // "Write report transaction succeeded: 0x.." (the CRE template wording) comes BEFORE the final line, so it is not
-// an outcome: the run stays open and its transcript keeps both lines.
+// an outcome: the run stays open and its transcript keeps both lines. The simulator sometimes loses the final line
+// when it shuts down, so a run without one keeps that line's tx for the receipt check (sim-loop.ts, receiptStatus).
 import type { Hex } from "viem";
 
 export type RunStatus = "applied" | "sent" | "not-applied" | "rejected" | "no-report" | "dry-run" | "error" | "no-outcome";
@@ -3081,6 +3122,9 @@ export type RunStatus = "applied" | "sent" | "not-applied" | "rejected" | "no-re
 export type RunResult = { startedAt: string | null; status: RunStatus; txHash: Hex | null; detail: string | null; lines: string[] };
 
 const HASH = /0x[0-9a-fA-F]{64}(?![0-9a-fA-F])/;
+const SENT = /Write report transaction succeeded/;
+const CLI_FAILED = /^\s*✗/;
+const CREDENTIALS = /credential validation failed/i;
 const RULES: Array<[RegExp, RunStatus]> = [
   [/REPORT applied/, "applied"],
   [/REPORT sent/, "sent"],
@@ -3100,11 +3144,22 @@ export function outcomeOf(line: string): { status: RunStatus; txHash: Hex | null
   return null;
 }
 
+/**
+ * The receipt is the ground truth for a run with a tx: the forwarder's ReportProcessed.result true AND a RiskReported
+ * from the desk in that tx mean the report was applied, whatever the workflow printed (its read-back of
+ * RiskDesk.state() at `latest` can hit a lagging RPC node and print NOT APPLIED; its final line can be lost).
+ * Any other receipt keeps the workflow's status: never `applied` without both facts.
+ */
+export function receiptStatus(parsed: RunStatus, forwarderResult: boolean | null, deskReported: boolean): RunStatus {
+  return forwarderResult === true && deskReported ? "applied" : parsed;
+}
+
 /** Turns the loop's output stream into one RunResult per run. */
 export class RunTracker {
   private startedAt: string | null = null;
   private open = false;
   private firstError: string | null = null;
+  private sent: { txHash: Hex; line: string } | null = null;
   private lines: string[] = [];
 
   /** Feed one line; returns a finished run when this line completes one. */
@@ -3115,6 +3170,7 @@ export class RunTracker {
       this.startedAt = start[1] ?? null;
       this.open = true;
       this.firstError = null;
+      this.sent = null;
       this.lines = [line];
       return previous;
     }
@@ -3125,15 +3181,23 @@ export class RunTracker {
       this.open = false;
       return { startedAt: this.startedAt, ...o, lines: this.lines };
     }
-    if (this.firstError === null && /error/i.test(line)) this.firstError = line.trim();
+    const m = SENT.test(line) ? HASH.exec(line) : null;
+    if (this.sent === null && m) this.sent = { txHash: m[0].toLowerCase() as Hex, line: line.trim() };
+    if (this.firstError === null && (/error/i.test(line) || CLI_FAILED.test(line))) this.firstError = line.trim();
     return null;
   }
 
-  /** Closes the current run (no outcome line seen): an error if an error line was seen, else no-outcome. */
+  /**
+   * Closes the current run (no outcome line seen): an error if an error or CLI failure line was seen, else no-outcome.
+   * It keeps the tx of the CRE template line, if any, for the receipt check.
+   */
   flush(): RunResult | null {
     if (!this.open) return null;
     this.open = false;
-    return { startedAt: this.startedAt, status: this.firstError ? "error" : "no-outcome", txHash: null, detail: this.firstError, lines: this.lines };
+    const detail = this.lines.some((l) => CREDENTIALS.test(l))
+      ? "CRE CLI credential validation failed"
+      : (this.firstError ?? this.sent?.line ?? (this.lines.length === 1 ? "no output" : null));
+    return { startedAt: this.startedAt, status: this.firstError ? "error" : "no-outcome", txHash: this.sent?.txHash ?? null, detail, lines: this.lines };
   }
 }
 
@@ -3146,7 +3210,7 @@ export function loopCommand(target: string): string[] {
 - [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/simParse.test.ts`
-Expected: ` 9 pass`, ` 0 fail`.
+Expected: ` 15 pass`, ` 0 fail`.
 
 - [x] **Step 5: Commit**
 
@@ -3166,7 +3230,7 @@ git commit -m "feat(bots): per-run outcomes from the CRE simulation loop output"
 - Create: `bots/src/sim-loop.ts`
 - Modify: `docs/feedback/cre-friction-log.md`, today's session log
 
-Behaviour (`bun run cre-loop`): start plan 02's `bash scripts/sim-loop.sh <target> --broadcast` in `cre/` (target `staging-settings` for `--pair live`, `replay-settings` for `--pair replay`, or `--target`), echo its output, cut it into runs with `RunTracker`, write each run's transcript to `bots/out/cre-sim/<pair>-<run start>.log`, and append one JSON line per run to `bots/out/cre-runs.jsonl`: `status` (`applied`, `sent`, `not-applied`, `rejected`, `no-report`, `dry-run`, `error`, `no-outcome`), `detail`, and for runs with a transaction the receipt (`txStatus`, `blockNumber`, `gasUsed`, `from`), the MockKeystoneForwarder `ReportProcessed.result` (`forwarderResult`) and the decoded `RiskReported` fields. `--once` stops after the first run. Ctrl-C stops the loop too.
+Behaviour (`bun run cre-loop`): start plan 02's `bash scripts/sim-loop.sh <target> --broadcast` in `cre/` (target `staging-settings` for `--pair live`, `replay-settings` for `--pair replay`, or `--target`), echo its output, cut it into runs with `RunTracker`, write each run's transcript to `bots/out/cre-sim/<pair>-<run start>.log`, and append one JSON line per run to `bots/out/cre-runs.jsonl`: `status` (`applied`, `sent`, `not-applied`, `rejected`, `no-report`, `dry-run`, `error`, `no-outcome`), `detail`, and for runs with a transaction the receipt (`txStatus`, `blockNumber`, `gasUsed`, `from`), the MockKeystoneForwarder `ReportProcessed.result` (`forwarderResult`) and the decoded `RiskReported` fields. The receipt is the ground truth: `forwarderResult` true and a `RiskReported` from the desk make the run `applied` whatever the workflow printed (its read-back of `RiskDesk.state()` at `latest` can hit a lagging RPC node, and the simulator can lose its final line), with `statusFromReceipt: true` when that overrides the workflow's line; never `applied` without both facts. A CRE CLI credential failure is recorded as `error` with `detail` `CRE CLI credential validation failed`, a run that printed nothing as `no-outcome` with `detail` `no output`. `--once` stops after the first run. Ctrl-C stops the loop too.
 
 - [x] **Step 1: Implementation**
 
@@ -3177,7 +3241,8 @@ Behaviour (`bun run cre-loop`): start plan 02's `bash scripts/sim-loop.sh <targe
 // `cre workflow simulate --wasm ... --non-interactive --trigger-index 0 --broadcast` every 30 s) and echoes its output.
 // For each run it writes the transcript to bots/out/cre-sim/<run start>.log (plan 06 evidence input) and appends one
 // line to bots/out/cre-runs.jsonl: status, tx hash, receipt, the forwarder's ReportProcessed.result and the decoded
-// RiskReported event.
+// RiskReported event. The receipt decides `applied` (receiptStatus); statusFromReceipt says when it overrode the
+// workflow's final line, which stays in `detail`.
 // Usage: bun src/sim-loop.ts --pair live|replay [--target <cre target>] [--once]
 import { loadDeployments, mockForwarderAbi, requireValue, riskDeskAbi } from "@clim/shared";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -3186,7 +3251,7 @@ import { parseEventLogs } from "viem";
 import { publicClientFor } from "./lib/chain";
 import { argValue, envStr, hasFlag, pairArg } from "./lib/env";
 import { appendJsonl, OUT_DIR, shortError } from "./lib/jsonl";
-import { loopCommand, RunTracker, type RunResult } from "./lib/simParse";
+import { loopCommand, receiptStatus, RunTracker, type RunResult } from "./lib/simParse";
 
 const pair = pairArg();
 const DEFAULT_TARGET = { live: "staging-settings", replay: "replay-settings" } as const;
@@ -3215,13 +3280,17 @@ async function record(run: RunResult): Promise<void> {
     const reported = parseEventLogs({ abi: riskDeskAbi, eventName: "RiskReported", logs: r.logs }).filter((l) => l.address.toLowerCase() === desk.toLowerCase());
     const processed = parseEventLogs({ abi: mockForwarderAbi, eventName: "ReportProcessed", logs: r.logs });
     const ev = reported[0]?.args;
+    const forwarderResult = processed[0]?.args.result ?? null;
+    const status = receiptStatus(run.status, forwarderResult, reported.length > 0);
     const rec = {
       ...base,
+      status,
+      statusFromReceipt: status !== run.status,
       txStatus: r.status,
       blockNumber: r.blockNumber,
       gasUsed: r.gasUsed,
       from: r.from,
-      forwarderResult: processed[0]?.args.result ?? null,
+      forwarderResult,
       seq: ev?.seq ?? null,
       tObs: ev?.tObs ?? null,
       sigmaApplied: ev?.sigmaApplied ?? null,
@@ -3231,7 +3300,8 @@ async function record(run: RunResult): Promise<void> {
       kE4: ev?.kE4 ?? null,
     };
     appendJsonl(runsFile, rec);
-    console.log(`[sim-loop ${pair}] run ${run.startedAt}: ${run.status} tx ${run.txHash} block ${r.blockNumber} seq ${rec.seq} sigmaApplied ${rec.sigmaApplied} forwarderResult ${rec.forwarderResult}`);
+    const why = rec.statusFromReceipt ? ` (from the receipt; workflow: ${run.status})` : "";
+    console.log(`[sim-loop ${pair}] run ${run.startedAt}: ${status}${why} tx ${run.txHash} block ${r.blockNumber} seq ${rec.seq} sigmaApplied ${rec.sigmaApplied} forwarderResult ${forwarderResult}`);
   } catch (e) {
     appendJsonl(runsFile, { ...base, receiptError: shortError(e) });
     console.error(`[sim-loop ${pair}] run ${run.startedAt}: tx ${run.txHash} receipt error: ${shortError(e)}`);
@@ -4258,7 +4328,7 @@ ls -t bots/out/cre-sim/*.log | head -3                                # latest r
 - [x] **Step 3: Full check**
 
 Run: `bun run test && bun run typecheck`
-Expected: `@clim/shared test:  55 pass`, `@clim/shared test:  3 skip` (or ` 58 pass` and ` 0 skip` once `shared/abis/*.json` exist), `@clim/bots test:  60 pass`, both ` 0 fail`; both typechecks `Exited with code 0`.
+Expected: `@clim/shared test:  55 pass`, `@clim/shared test:  3 skip` (or ` 58 pass` and ` 0 skip` once `shared/abis/*.json` exist), `@clim/bots test:  66 pass`, both ` 0 fail`; both typechecks `Exited with code 0`.
 
 - [x] **Step 4: Commit**
 

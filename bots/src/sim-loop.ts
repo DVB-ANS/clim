@@ -3,7 +3,8 @@
 // `cre workflow simulate --wasm ... --non-interactive --trigger-index 0 --broadcast` every 30 s) and echoes its output.
 // For each run it writes the transcript to bots/out/cre-sim/<run start>.log (plan 06 evidence input) and appends one
 // line to bots/out/cre-runs.jsonl: status, tx hash, receipt, the forwarder's ReportProcessed.result and the decoded
-// RiskReported event.
+// RiskReported event. The receipt decides `applied` (receiptStatus); statusFromReceipt says when it overrode the
+// workflow's final line, which stays in `detail`.
 // Usage: bun src/sim-loop.ts --pair live|replay [--target <cre target>] [--once]
 import { loadDeployments, mockForwarderAbi, requireValue, riskDeskAbi } from "@clim/shared";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -12,7 +13,7 @@ import { parseEventLogs } from "viem";
 import { publicClientFor } from "./lib/chain";
 import { argValue, envStr, hasFlag, pairArg } from "./lib/env";
 import { appendJsonl, OUT_DIR, shortError } from "./lib/jsonl";
-import { loopCommand, RunTracker, type RunResult } from "./lib/simParse";
+import { loopCommand, receiptStatus, RunTracker, type RunResult } from "./lib/simParse";
 
 const pair = pairArg();
 const DEFAULT_TARGET = { live: "staging-settings", replay: "replay-settings" } as const;
@@ -41,13 +42,17 @@ async function record(run: RunResult): Promise<void> {
     const reported = parseEventLogs({ abi: riskDeskAbi, eventName: "RiskReported", logs: r.logs }).filter((l) => l.address.toLowerCase() === desk.toLowerCase());
     const processed = parseEventLogs({ abi: mockForwarderAbi, eventName: "ReportProcessed", logs: r.logs });
     const ev = reported[0]?.args;
+    const forwarderResult = processed[0]?.args.result ?? null;
+    const status = receiptStatus(run.status, forwarderResult, reported.length > 0);
     const rec = {
       ...base,
+      status,
+      statusFromReceipt: status !== run.status,
       txStatus: r.status,
       blockNumber: r.blockNumber,
       gasUsed: r.gasUsed,
       from: r.from,
-      forwarderResult: processed[0]?.args.result ?? null,
+      forwarderResult,
       seq: ev?.seq ?? null,
       tObs: ev?.tObs ?? null,
       sigmaApplied: ev?.sigmaApplied ?? null,
@@ -57,7 +62,8 @@ async function record(run: RunResult): Promise<void> {
       kE4: ev?.kE4 ?? null,
     };
     appendJsonl(runsFile, rec);
-    console.log(`[sim-loop ${pair}] run ${run.startedAt}: ${run.status} tx ${run.txHash} block ${r.blockNumber} seq ${rec.seq} sigmaApplied ${rec.sigmaApplied} forwarderResult ${rec.forwarderResult}`);
+    const why = rec.statusFromReceipt ? ` (from the receipt; workflow: ${run.status})` : "";
+    console.log(`[sim-loop ${pair}] run ${run.startedAt}: ${status}${why} tx ${run.txHash} block ${r.blockNumber} seq ${rec.seq} sigmaApplied ${rec.sigmaApplied} forwarderResult ${forwarderResult}`);
   } catch (e) {
     appendJsonl(runsFile, { ...base, receiptError: shortError(e) });
     console.error(`[sim-loop ${pair}] run ${run.startedAt}: tx ${run.txHash} receipt error: ${shortError(e)}`);

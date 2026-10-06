@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { loopCommand, outcomeOf, RunTracker, type RunResult } from "../src/lib/simParse";
+import { loopCommand, outcomeOf, receiptStatus, RunTracker, type RunResult } from "../src/lib/simParse";
 
 const TX = "0x1013abc0b6f345fad15b19a56cabbbaab2a2aa94f81eb3a709058adf18a4f23f";
 
 // Lines as printed by plan 02's cre/scripts/sim-loop.sh: "=== <UTC time>" before each run, then the workflow's
-// [USER LOG] lines and any line containing "rror" (the script greps "USER LOG|rror").
+// [USER LOG] lines, any line containing "rror" and the CLI's failure lines marked "✗" (the script greps "USER LOG|rror|✗").
 const APPLIED = `2026-10-07T03:00:09Z [USER LOG] REPORT applied seq=12 sigmaReported=33.4% sigmaApplied=33.4% flags=0 tx=${TX}`;
 
 describe("outcomeOf: one workflow log line -> run outcome", () => {
@@ -58,6 +58,45 @@ describe("RunTracker: stream of loop lines -> one result per run", () => {
     const r = feed(["=== 2026-10-07T03:00:00Z", "Error: writeReport failed: status=1", "=== 2026-10-07T03:00:30Z", "=== 2026-10-07T03:01:00Z", APPLIED]);
     expect(r.map((x) => x.status)).toEqual(["error", "no-outcome", "applied"]);
     expect(r[0]?.detail).toBe("Error: writeReport failed: status=1");
+  });
+  test("a run that lost its final line keeps the tx of the CRE template line, for the receipt check", () => {
+    const sent = `2026-10-06T17:18:03Z [USER LOG] Write report transaction succeeded: ${TX}`;
+    const r = feed(["=== 2026-10-06T17:17:44Z", "[USER LOG] desk before: seq=66 tObs=1791307040 sigma=23.9%/yr flags=0", sent, "=== 2026-10-06T17:18:14Z", APPLIED]);
+    expect(r.map((x) => [x.status, x.txHash, x.detail])).toEqual([
+      ["no-outcome", TX, sent],
+      ["applied", TX, APPLIED],
+    ]);
+  });
+  test("a CRE CLI credential failure is an error that says so", () => {
+    const r = feed([
+      "=== 2026-10-06T17:03:12Z",
+      "✗ Credential validation failed",
+      "✗ authentication required: credential validation failed: authentication failed: unable to retrieve organization info. Your account may not be fully set up yet — please try again in a few minutes",
+    ]);
+    expect(r.map((x) => [x.status, x.txHash, x.detail])).toEqual([["error", null, "CRE CLI credential validation failed"]]);
+  });
+  test("any other CRE CLI failure line (marked ✗) is an error", () => {
+    const failed = '✗ workflow execution failed: [2]Unknown: Post "https://ethereum-sepolia-rpc.publicnode.com": read tcp: can\'t assign requested address';
+    const r = feed(["=== 2026-10-06T18:23:08Z", "[USER LOG] desk before: seq=159 tObs=1791310961 sigma=73.0%/yr flags=2", failed]);
+    expect(r.map((x) => [x.status, x.detail])).toEqual([["error", failed]]);
+  });
+  test("a run that printed nothing says so", () => {
+    expect(feed(["=== 2026-10-06T17:03:12Z"]).map((x) => [x.status, x.txHash, x.detail])).toEqual([["no-outcome", null, "no output"]]);
+  });
+});
+
+describe("receiptStatus: the receipt is the ground truth for a run with a tx", () => {
+  test("forwarder result true and a desk RiskReported mean applied, whatever the workflow printed", () => {
+    expect(receiptStatus("not-applied", true, true)).toBe("applied");
+    expect(receiptStatus("no-outcome", true, true)).toBe("applied");
+    expect(receiptStatus("sent", true, true)).toBe("applied");
+    expect(receiptStatus("applied", true, true)).toBe("applied");
+  });
+  test("never applied without both receipt facts", () => {
+    expect(receiptStatus("not-applied", false, false)).toBe("not-applied");
+    expect(receiptStatus("not-applied", true, false)).toBe("not-applied");
+    expect(receiptStatus("no-outcome", null, true)).toBe("no-outcome");
+    expect(receiptStatus("rejected", false, false)).toBe("rejected");
   });
 });
 

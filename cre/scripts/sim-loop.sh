@@ -23,7 +23,7 @@ while true; do
   START=$(date +%s)
   echo "=== $(date -u +%FT%TZ)" | tee -a "$LOG"
   cre workflow simulate risk-desk --wasm "$WASM" --non-interactive --trigger-index 0 \
-    --target "$TARGET" ${BROADCAST} ${ENV_FILE:+-e "$ENV_FILE"} 2>&1 | tee -a "$LOG" | grep -E "USER LOG|rror" || true
+    --target "$TARGET" ${BROADCAST} ${ENV_FILE:+-e "$ENV_FILE"} 2>&1 | tee -a "$LOG" | grep -E "USER LOG|rror|✗" || true
   ELAPSED=$(( $(date +%s) - START ))
   if (( ELAPSED < INTERVAL )); then sleep $(( INTERVAL - ELAPSED )); fi
 done
