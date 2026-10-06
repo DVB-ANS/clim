@@ -2252,7 +2252,7 @@ git commit -m "feat(bots): myopic arbitrage decision and price limit"
 - Create: `bots/src/lib/market.ts`
 - Test: `bots/test/market.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 The fixtures are trimmed real responses of the four public endpoints.
 
@@ -2344,12 +2344,12 @@ describe("replay price", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/market.test.ts`
 Expected: `error: Cannot find module '../src/lib/market'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/lib/market.ts`:
 ```ts
@@ -2449,7 +2449,7 @@ export async function fetchReplayPrice(replayUrl: string, fetchFn: FetchLike = f
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/market.test.ts && bun run typecheck`
 Expected: ` 7 pass`, ` 0 fail`; typecheck clean.
@@ -2457,7 +2457,7 @@ Expected: ` 7 pass`, ` 0 fail`; typecheck clean.
 Live check (network): `cd bots && bun -e 'import { fetchVenueQuotes, aggregate } from "./src/lib/market"; const q = await fetchVenueQuotes(); console.log(q, aggregate(q))'`
 Expected: four quotes within a few dollars of each other and `{ price: <median>, n: 4 }`. If a venue is missing, note which one in the session log (geo-blocking or rate limit); the bots need 3.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/lib/market.ts bots/test/market.test.ts
