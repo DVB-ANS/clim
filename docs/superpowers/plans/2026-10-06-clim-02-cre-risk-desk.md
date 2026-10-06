@@ -916,7 +916,7 @@ git commit -m "test(cre): capture script and real responses of the six risk-desk
 - Create: `cre/risk-desk/venues.ts` (pure part; Task 7 adds the node-mode fetch)
 - Test: `cre/risk-desk/venues.test.ts`
 
-- [ ] **Step 1: Write the failing test** at `cre/risk-desk/venues.test.ts`
+- [x] **Step 1: Write the failing test** at `cre/risk-desk/venues.test.ts`
 
 ```ts
 import { describe, expect, test } from 'bun:test'
@@ -1032,7 +1032,7 @@ describe('replayVenueRequest', () => {
 })
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 (cd cre/risk-desk && bun test venues.test.ts)
@@ -1040,7 +1040,7 @@ describe('replayVenueRequest', () => {
 
 Expected: `error: Cannot find module './venues' from '.../cre/risk-desk/venues.test.ts'`, then `0 pass`, `1 fail`, `1 error`.
 
-- [ ] **Step 3: Minimal implementation** at `cre/risk-desk/venues.ts`
+- [x] **Step 3: Minimal implementation** at `cre/risk-desk/venues.ts`
 
 ```ts
 // Venue requests and response parsers (pure), tested on fixtures captured from the real
@@ -1225,7 +1225,7 @@ export interface DeskInput {
 }
 ```
 
-- [ ] **Step 4: Run it, expected PASS**
+- [x] **Step 4: Run it, expected PASS**
 
 ```bash
 (cd cre/risk-desk && bun test venues.test.ts)
@@ -1233,7 +1233,7 @@ export interface DeskInput {
 
 Expected: `9 pass`, `0 fail`, `22 expect() calls`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add cre/risk-desk/venues.ts cre/risk-desk/venues.test.ts
