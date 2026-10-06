@@ -47,7 +47,7 @@ describe("contourSegments (marching squares, for the isobar map)", () => {
   });
 });
 
-describe("stormParticles / stormPositions (the stippled storm of the CL-1 screen and the launch)", () => {
+describe("stormParticles / stormPositions (the stippled storm of the CL-1 screen)", () => {
   it("is deterministic for a seed", () => {
     expect(stormParticles(50, 7)).toEqual(stormParticles(50, 7));
     expect(stormParticles(50, 7)).not.toEqual(stormParticles(50, 8));

@@ -2,21 +2,27 @@
 
 import Link from "next/link";
 import type { CSSProperties, MouseEvent, ReactNode } from "react";
-import { type BootValues, useLaunch } from "./Launch";
 
 /**
- * A real link to /app that plays the launch transition on a plain click (a modified click, or no
- * JavaScript, still just opens the app).
+ * A real link to /app tagged with the "launch" transition type: the button blooms into the app
+ * (globals.css, "Launch transition"). On click it hands its box and its rounding to that CSS; a
+ * modified click opens a new tab as usual, and browsers without view transitions simply navigate.
  */
-export function LaunchLink({ boot, className, style, children, ...rest }: { boot: BootValues; className: string; style?: CSSProperties; children: ReactNode; "aria-label"?: string }) {
-  const launch = useLaunch();
+export function LaunchLink({ className, style, children, ...rest }: { className: string; style?: CSSProperties; children: ReactNode; "aria-label"?: string }) {
   const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    e.preventDefault();
-    launch(boot);
+    const r = e.currentTarget.getBoundingClientRect();
+    const radius = parseFloat(getComputedStyle(e.currentTarget).borderTopLeftRadius) || 0;
+    const s = document.documentElement.style;
+    s.setProperty("--launch-t", `${r.top}px`);
+    s.setProperty("--launch-l", `${r.left}px`);
+    s.setProperty("--launch-r", `${r.right}px`);
+    s.setProperty("--launch-b", `${r.bottom}px`);
+    s.setProperty("--launch-rad", `${Math.min(radius, r.height / 2)}px`);
+    s.setProperty("--launch-cx", `${r.left + r.width / 2}px`);
+    s.setProperty("--launch-cy", `${r.top + r.height / 2}px`);
   };
   return (
-    <Link href="/app" onClick={onClick} className={className} style={style} {...rest}>
+    <Link href="/app" transitionTypes={["launch"]} onClick={onClick} className={className} style={style} {...rest}>
       {children}
     </Link>
   );

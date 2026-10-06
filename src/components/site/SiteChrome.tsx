@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Wordmark } from "../Wordmark";
-import type { BootValues } from "./Launch";
 import { LaunchLink } from "./LaunchLink";
 
 const NAV = [
@@ -14,7 +13,7 @@ const NAV = [
 const pillBlue = "inline-flex min-h-11 items-center gap-2 rounded-full bg-accent px-5 text-[15px] text-accent-fg transition-[filter] hover:brightness-110";
 
 /** Ventriloc's header: wordmark, the navigation in a pill, the network, and Chainlink's blue pill to enter the app. */
-export function SiteHeader({ boot }: { boot: BootValues }) {
+export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur">
       <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4">
@@ -30,7 +29,7 @@ export function SiteHeader({ boot }: { boot: BootValues }) {
         </nav>
         <div className="flex items-center gap-5">
           <span className="text-sm text-fg-subtle">Sepolia</span>
-          <LaunchLink boot={boot} className={pillBlue}>
+          <LaunchLink className={pillBlue}>
             Launch app
           </LaunchLink>
         </div>

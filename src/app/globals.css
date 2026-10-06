@@ -292,3 +292,95 @@ h3 {
     transform: none;
   }
 }
+
+/* Launch transition: "Launch app" blooms into the app. The button's blue grows from its own box to
+   the whole window, Uniswap's pink follows from the same box, then the white app rises over them
+   (two flat waves rather than a blended gradient, which would muddy into purple). React's
+   <ViewTransition> boundaries on the landing (exit) and the app layout (enter) carry the "launch"
+   type; LaunchLink writes the button's box into --launch-*. Browsers without view transitions just
+   navigate. */
+:root {
+  --launch-t: 45vh;
+  --launch-l: 45vw;
+  --launch-r: 55vw;
+  --launch-b: 55vh;
+  --launch-rad: 999px;
+  --launch-cx: 50vw;
+  --launch-cy: 50vh;
+}
+
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(.launch-out) {
+  animation: 900ms linear both launch-hold;
+}
+::view-transition-group(.launch-in) {
+  background: var(--clim-accent);
+  animation: 480ms cubic-bezier(0.7, 0, 0.25, 1) both launch-bloom;
+}
+::view-transition-image-pair(.launch-in) {
+  background: var(--clim-sigma);
+  animation: 460ms cubic-bezier(0.7, 0, 0.25, 1) 150ms both launch-follow;
+}
+::view-transition-new(.launch-in) {
+  animation: 320ms cubic-bezier(0.7, 0, 0.25, 1) 560ms both launch-curtain;
+}
+
+@keyframes launch-bloom {
+  from {
+    clip-path: inset(var(--launch-t) calc(100% - var(--launch-r)) calc(100% - var(--launch-b)) var(--launch-l) round var(--launch-rad));
+  }
+  /* to the window's edges, not the app's full height, so the shape grows evenly in both directions */
+  to {
+    clip-path: inset(0 0 calc(100% - 100vh) 0 round 0);
+  }
+}
+/* the pink follows from the button's centre, inside the blue */
+@keyframes launch-follow {
+  from {
+    clip-path: inset(var(--launch-cy) calc(100% - var(--launch-cx)) calc(100% - var(--launch-cy)) var(--launch-cx) round var(--launch-rad));
+  }
+  to {
+    clip-path: inset(0 0 calc(100% - 100vh) 0 round 0);
+  }
+}
+@keyframes launch-curtain {
+  from {
+    clip-path: inset(100vh 0 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes launch-hold {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+@keyframes launch-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes launch-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The global reduced-motion rule does not reach these pseudo-elements: a short crossfade instead */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(.launch-in),
+  ::view-transition-image-pair(.launch-in) {
+    animation: none;
+    background: none;
+  }
+  ::view-transition-old(.launch-out) {
+    animation: 150ms ease both launch-fade-out;
+  }
+  ::view-transition-new(.launch-in) {
+    animation: 150ms ease both launch-fade-in;
+  }
+}

@@ -13,7 +13,6 @@ import { type Kpi, DashboardPreview } from "./DashboardPreview";
 import { DeskChecks } from "./DeskChecks";
 import { HeroCards } from "./HeroCards";
 import { IsobarCanvas } from "./IsobarCanvas";
-import type { BootValues } from "./Launch";
 import { LiveTicker, type TickerItem } from "./LiveTicker";
 import { LogoStrip } from "./LogoStrip";
 import { PipelineDiagram } from "./PipelineDiagram";
@@ -82,11 +81,9 @@ export function Landing() {
     { label: "Venues", value: last ? `${last.nSources}/4` : "…", unit: "", note: last ? `dispersion ${last.dispBp} bp` : "" },
   ];
 
-  const boot: BootValues = { block: data.state?.latestBlock.number, seq: last?.seq, sources: last?.nSources, sigmaPct, feeBp: feeVBp, mode: modeLabel, simulated };
-
   return (
     <div className="bg-surface">
-      <SiteHeader boot={boot} />
+      <SiteHeader />
 
       <section className="mx-auto grid max-w-[1200px] items-center gap-12 px-4 pb-16 pt-10 md:pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <div>
@@ -102,7 +99,7 @@ export function Landing() {
             Live from the desk{simulated ? ", simulated until the contracts are on Sepolia" : ""}. Click the CL-1 to enter.
           </p>
         </div>
-        <HeroCards live={{ points, feeVBp, feeSBp, sigmaPct, modeLabel, seq: last?.seq, simulated }} boot={boot} />
+        <HeroCards live={{ points, feeVBp, feeSBp, sigmaPct, modeLabel, seq: last?.seq, simulated }} />
       </section>
 
       <LogoStrip />

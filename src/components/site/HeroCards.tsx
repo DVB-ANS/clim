@@ -2,7 +2,6 @@
 
 import type { WeatherPoint } from "@/lib/series";
 import { Cursor } from "./Cursor";
-import { type BootValues, LAUNCH_ORIGIN } from "./Launch";
 import { LaunchLink } from "./LaunchLink";
 import { LcdStorm } from "./LcdStorm";
 import { WeatherMini } from "./WeatherMini";
@@ -34,7 +33,7 @@ function Spark({ points }: { points: WeatherPoint[] }) {
 }
 
 /** The hero's cluster of live cards: the weather, the fee now, and the CL-1 instrument's screen. */
-export function HeroCards({ live, boot }: { live: HeroLive; boot: BootValues }) {
+export function HeroCards({ live }: { live: HeroLive }) {
   const bp = (x?: number) => (x === undefined ? "…" : x.toFixed(2));
   return (
     <div className="relative flex flex-col gap-4 md:block md:h-[500px]">
@@ -72,7 +71,6 @@ export function HeroCards({ live, boot }: { live: HeroLive; boot: BootValues }) 
       </article>
 
       <LaunchLink
-        boot={boot}
         aria-label="Enter the desk: open the app"
         className="rise group relative block overflow-hidden rounded-md bg-lcd-bg p-4 text-lcd-lit shadow-[0_10px_30px_rgba(14,17,25,0.22)] transition-transform duration-500 ease-out hover:-translate-y-1 md:absolute md:right-[2%] md:top-[300px] md:w-[46%]"
         style={{ animationDelay: "360ms" }}
@@ -82,7 +80,7 @@ export function HeroCards({ live, boot }: { live: HeroLive; boot: BootValues }) 
           <span className="font-lcd text-xs font-bold tracking-wider text-lcd-hot transition-opacity duration-300 group-hover:opacity-0">#{live.seq ?? "…"}</span>
           <span className="absolute right-4 top-4 font-lcd text-xs font-bold tracking-wider text-lcd-hot opacity-0 transition-opacity duration-300 group-hover:opacity-100">ENTER ↗</span>
         </div>
-        <div {...{ [LAUNCH_ORIGIN]: "" }} className="relative mt-3 aspect-[16/9] overflow-hidden rounded-sm">
+        <div className="relative mt-3 aspect-[16/9] overflow-hidden rounded-sm">
           <LcdStorm sigmaPct={live.sigmaPct ?? 40} className="absolute inset-0 h-full w-full" />
           <div className="absolute inset-x-3 bottom-2 flex items-end justify-between font-lcd text-lcd-lit">
             <span>
