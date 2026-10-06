@@ -1,7 +1,7 @@
 // Copies the repo's single sources of truth into the app so the app builds on its own (Vercel
 // deploys only app/). Real files win; fixtures fill the gaps. Run: npm run sync
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const LAB_FILES = ["summary.json", "replay-2026-02-04.json", "ptrade-band.json"];
@@ -29,5 +29,8 @@ export function syncData({ repoRoot, appRoot }) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const appRoot = dirname(dirname(fileURLToPath(import.meta.url)));
-  console.table(syncData({ repoRoot: dirname(appRoot), appRoot }));
+  // CLIM_ROOT points at the clim repo while the app is still a separate checkout (clim-front);
+  // inside clim/app the default (the parent directory) is the repo.
+  const repoRoot = process.env.CLIM_ROOT ? resolve(process.env.CLIM_ROOT) : dirname(appRoot);
+  console.table(syncData({ repoRoot, appRoot }));
 }
