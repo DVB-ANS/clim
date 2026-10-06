@@ -935,7 +935,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/submission/src/fee.
 - Create: `docs/submission/src/readme-blocks.mjs`, `docs/submission/src/update-readme.mjs`
 - Test: `docs/submission/test/readme-blocks.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `docs/submission/test/readme-blocks.test.mjs`:
 ```js
@@ -1015,12 +1015,12 @@ test("replaceBlock swaps only the content between markers", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expect FAIL**
+- [x] **Step 2: Run it, expect FAIL**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/readme-blocks.test.mjs`
 Expected: FAIL with `Cannot find module '.../docs/submission/src/readme-blocks.mjs'`.
 
-- [ ] **Step 3: Implement the renderer and the CLI**
+- [x] **Step 3: Implement the renderer and the CLI**
 
 `docs/submission/src/readme-blocks.mjs`:
 ```js
@@ -1235,12 +1235,12 @@ writeFileSync(P.readme, readme);
 console.log(`README.md updated: ${Object.keys(blocks).join(", ")}${missing.length ? ` (pending: ${missing.join(", ")})` : ""}`);
 ```
 
-- [ ] **Step 4: Run, expect PASS**
+- [x] **Step 4: Run, expect PASS**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/readme-blocks.test.mjs`
 Expected: `# pass 8`, `# fail 0`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/submission/src/readme-blocks.mjs docs/submission/src/update-readme.mjs docs/submission/test/readme-blocks.test.mjs && git commit -m "feat(submission): generated README blocks (links, results, params, fees, deployments, evidence, team)"
