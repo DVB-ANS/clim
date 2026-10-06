@@ -1632,7 +1632,7 @@ git commit -m "feat(shared): deployments and params schemas with validated loade
 - Create: `bots/package.json`, `bots/tsconfig.json`, `bots/src/lib/env.ts`, `bots/src/lib/jsonl.ts`
 - Test: `bots/test/env.test.ts`
 
-- [ ] **Step 1: Register the workspace and create the package**
+- [x] **Step 1: Register the workspace and create the package**
 
 In the root `package.json`, change `"workspaces": ["shared"]` to `"workspaces": ["shared", "bots"]` (keep `"app"` if plan 05 already added it).
 
@@ -1689,7 +1689,7 @@ In the root `package.json`, change `"workspaces": ["shared"]` to `"workspaces": 
 Run: `bun install`
 Expected: no error; `ls -la node_modules/@clim` shows `bots -> ../../bots` and `shared -> ../../shared`.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 `bots/test/env.test.ts`:
 ```ts
@@ -1728,12 +1728,12 @@ describe("jsonl", () => {
 });
 ```
 
-- [ ] **Step 3: Run it, expected FAIL**
+- [x] **Step 3: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/env.test.ts`
 Expected: `error: Cannot find module '../src/lib/env'`, ` 1 fail`.
 
-- [ ] **Step 4: Minimal implementation**
+- [x] **Step 4: Minimal implementation**
 
 `bots/src/lib/env.ts`:
 ```ts
@@ -1822,12 +1822,12 @@ export function shortError(e: unknown): string {
 }
 ```
 
-- [ ] **Step 5: Run, expected PASS**
+- [x] **Step 5: Run, expected PASS**
 
 Run: `cd bots && bun test test/env.test.ts && bun run typecheck`
 Expected: ` 5 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json bun.lock bots/package.json bots/tsconfig.json bots/src/lib/env.ts bots/src/lib/jsonl.ts bots/test/env.test.ts
@@ -1845,7 +1845,7 @@ git commit -m "feat(bots): package scaffold, env and jsonl helpers"
 - Create: `bots/src/lib/rng.ts`
 - Test: `bots/test/rng.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `bots/test/rng.test.ts`:
 ```ts
@@ -1903,12 +1903,12 @@ describe("distributions", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/rng.test.ts`
 Expected: `error: Cannot find module '../src/lib/rng'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/lib/rng.ts`:
 ```ts
@@ -1954,12 +1954,12 @@ export function logNormal(rand: Rand, median: number, sigmaLn: number): number {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/rng.test.ts`
 Expected: ` 5 pass`, ` 0 fail`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/lib/rng.ts bots/test/rng.test.ts
@@ -1977,7 +1977,7 @@ git commit -m "feat(bots): seeded PRNG and distributions"
 - Create: `bots/src/lib/swap.ts`
 - Test: `bots/test/swap.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `bots/test/swap.test.ts`:
 ```ts
@@ -2031,12 +2031,12 @@ describe("USD notional -> input amount in base units", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/swap.test.ts`
 Expected: `error: Cannot find module '../src/lib/swap'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/lib/swap.ts`:
 ```ts
@@ -2076,12 +2076,12 @@ export function inputAmountForUsd(side: Side, usd: number, ethUsd: number, ethDe
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/swap.test.ts && bun run typecheck`
 Expected: ` 6 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/lib/swap.ts bots/test/swap.test.ts
@@ -2099,7 +2099,7 @@ git commit -m "feat(bots): PoolSwapTest swap arguments and retail amounts"
 - Create: `bots/src/lib/arb.ts`
 - Test: `bots/test/arb.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `bots/test/arb.test.ts`:
 ```ts
@@ -2176,12 +2176,12 @@ describe("myopic arbitrageur", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/arb.test.ts`
 Expected: `error: Cannot find module '../src/lib/arb'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/lib/arb.ts`:
 ```ts
@@ -2229,12 +2229,12 @@ export function decideArb(i: ArbInput): ArbDecision {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/arb.test.ts && bun run typecheck`
 Expected: ` 8 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/lib/arb.ts bots/test/arb.test.ts
@@ -2252,7 +2252,7 @@ git commit -m "feat(bots): myopic arbitrage decision and price limit"
 - Create: `bots/src/lib/market.ts`
 - Test: `bots/test/market.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 The fixtures are trimmed real responses of the four public endpoints.
 
@@ -2344,12 +2344,12 @@ describe("replay price", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/market.test.ts`
 Expected: `error: Cannot find module '../src/lib/market'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/lib/market.ts`:
 ```ts
@@ -2449,7 +2449,7 @@ export async function fetchReplayPrice(replayUrl: string, fetchFn: FetchLike = f
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/market.test.ts && bun run typecheck`
 Expected: ` 7 pass`, ` 0 fail`; typecheck clean.
@@ -2457,7 +2457,7 @@ Expected: ` 7 pass`, ` 0 fail`; typecheck clean.
 Live check (network): `cd bots && bun -e 'import { fetchVenueQuotes, aggregate } from "./src/lib/market"; const q = await fetchVenueQuotes(); console.log(q, aggregate(q))'`
 Expected: four quotes within a few dollars of each other and `{ price: <median>, n: 4 }`. If a venue is missing, note which one in the session log (geo-blocking or rate limit); the bots need 3.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/lib/market.ts bots/test/market.test.ts
@@ -2475,7 +2475,7 @@ git commit -m "feat(bots): multi-venue market price with quorum"
 - Create: `bots/src/lib/noise.ts`
 - Test: `bots/test/noise.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `bots/test/noise.test.ts`:
 ```ts
@@ -2544,12 +2544,12 @@ describe("planBlockOrders", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/noise.test.ts`
 Expected: `error: Cannot find module '../src/lib/noise'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/lib/noise.ts`:
 ```ts
@@ -2598,12 +2598,12 @@ export function planBlockOrders(rand: Rand, cfg: NoiseConfig, quotes: Record<Poo
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/noise.test.ts && bun run typecheck`
 Expected: ` 7 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/lib/noise.ts bots/test/noise.test.ts
@@ -2622,7 +2622,7 @@ git commit -m "feat(bots): retail order planning and routing"
 
 This module only wires viem (one `multicall` per block through Multicall3, which viem's `sepolia` chain already knows); its correctness is checked by the typechecker here and against the chain in Task 23.
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/lib/chain.ts`:
 ```ts
@@ -2713,12 +2713,12 @@ export async function readBalances(client: Client, p: ResolvedPair, owner: Addre
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `cd bots && bun run typecheck`
 Expected: `$ tsc --noEmit -p .` with no error (viem infers the multicall result tuple from the `as const` ABIs; a wrong output index fails here).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/lib/chain.ts
@@ -2737,7 +2737,7 @@ git commit -m "feat(bots): viem clients and per-block pair reads"
 
 Behaviour: on each new block (polled every 2 s; missed blocks are not replayed; a block that arrives while the previous one is still being handled is skipped), read V and S (`slot0`), the hook fee, the desk, the bot balances and the market price (live: median of the four venues; replay: the replay server's ticker); decide for each pool; outside the band, simulate then send an exact-input swap through `arbRouter(d)` (`routers.arb`, or the shared PoolSwapTest with a warning until plan 01 deploys it) spending up to the whole balance with the band-edge price limit (the swap stops at the limit). A pool with a pending arbitrage is skipped. `PriceLimitAlreadyExceeded` (0x7c9c6e8f) in simulation is logged as `stale`: another swap moved the pool after the read, and nothing was sent.
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/arb.ts`:
 ```ts
@@ -2862,12 +2862,12 @@ client.watchBlockNumber({
 });
 ```
 
-- [ ] **Step 2: Typecheck and wiring check**
+- [x] **Step 2: Typecheck and wiring check**
 
 Run: `cd bots && bun run typecheck && bun run arb --pair live`
 Expected: typecheck clean; then, before plan 01 has deployed, the bot stops at once with `error: pools.liveV is null: deploy it first (plan 01) and record it in shared/deployments/sepolia.json`. On-chain behaviour is checked in Task 23.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/arb.ts
@@ -2884,7 +2884,7 @@ git commit -m "feat(bots): arbitrage bot"
 **Files:**
 - Create: `bots/src/noise.ts`
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/noise.ts`:
 ```ts
@@ -2961,12 +2961,12 @@ client.watchBlockNumber({
 });
 ```
 
-- [ ] **Step 2: Typecheck and wiring check**
+- [x] **Step 2: Typecheck and wiring check**
 
 Run: `cd bots && bun run typecheck && bun run noise --pair live`
 Expected: typecheck clean; before plan 01 has deployed: `error: pools.liveV is null: deploy it first (plan 01) and record it in shared/deployments/sepolia.json`. `bun run noise --pair live --routing best` must fail with `error: --routing must be one of mirror, split, cheapest, got best`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/noise.ts
@@ -2984,7 +2984,7 @@ git commit -m "feat(bots): retail noise bot"
 - Create: `bots/src/lib/simParse.ts`
 - Test: `bots/test/simParse.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `bots/test/simParse.test.ts`:
 ```ts
@@ -3058,12 +3058,12 @@ describe("loop command", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/simParse.test.ts`
 Expected: `error: Cannot find module '../src/lib/simParse'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/lib/simParse.ts`:
 ```ts
@@ -3143,12 +3143,12 @@ export function loopCommand(target: string): string[] {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/simParse.test.ts`
 Expected: ` 9 pass`, ` 0 fail`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/lib/simParse.ts bots/test/simParse.test.ts
@@ -3168,7 +3168,7 @@ git commit -m "feat(bots): per-run outcomes from the CRE simulation loop output"
 
 Behaviour (`bun run cre-loop`): start plan 02's `bash scripts/sim-loop.sh <target> --broadcast` in `cre/` (target `staging-settings` for `--pair live`, `replay-settings` for `--pair replay`, or `--target`), echo its output, cut it into runs with `RunTracker`, write each run's transcript to `bots/out/cre-sim/<pair>-<run start>.log`, and append one JSON line per run to `bots/out/cre-runs.jsonl`: `status` (`applied`, `sent`, `not-applied`, `rejected`, `no-report`, `dry-run`, `error`, `no-outcome`), `detail`, and for runs with a transaction the receipt (`txStatus`, `blockNumber`, `gasUsed`, `from`), the MockKeystoneForwarder `ReportProcessed.result` (`forwarderResult`) and the decoded `RiskReported` fields. `--once` stops after the first run. Ctrl-C stops the loop too.
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/sim-loop.ts`:
 ```ts
@@ -3281,12 +3281,12 @@ console.error(`[sim-loop ${pair}] loop exited with code ${code}`);
 process.exit(code === 0 ? 0 : 1);
 ```
 
-- [ ] **Step 2: Typecheck and wiring check**
+- [x] **Step 2: Typecheck and wiring check**
 
 Run: `cd bots && bun run typecheck && bun run cre-loop --pair live --once`
 Expected: typecheck clean; before plan 01 has deployed: `error: riskDesks.live is null: deploy it first (plan 01) and record it in shared/deployments/sepolia.json`. The real run is in Task 23.
 
-- [ ] **Step 3: Record what the research verified**
+- [x] **Step 3: Record what the research verified**
 
 In `docs/feedback/cre-friction-log.md`, in the row that starts with `| 1 |`, set the last cell to the following text if it still reads `design phase, to confirm`; if plan 01 Task 6 already wrote a status there, append `; ` and this text to it instead:
 `confirmed on Sepolia: simulate --broadcast sends report() from the CRE_ETH_PRIVATE_KEY account straight to the mock (tx 0xe57a006e7585984137cb5064d6be6fc7b9353194760178b85a78274c8785fa2c), so a tx.origin guard works; bots/src/scripts/forge-report.ts demonstrates the guard on our desk`
@@ -3298,7 +3298,7 @@ Append under `## Build notes` in today's session log:
 - (ops) `bun run cre-loop` (`bots/src/sim-loop.ts`) runs plan 02's `cre/scripts/sim-loop.sh`, records each run (receipt, `ReportProcessed.result`, decoded `RiskReported`) in `bots/out/cre-runs.jsonl` and writes one transcript per run to `bots/out/cre-sim/` for plan 06's evidence collector.
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add bots/src/sim-loop.ts docs/feedback/cre-friction-log.md docs/sessions/
@@ -3316,7 +3316,7 @@ git commit -m "feat(bots): CRE loop runner that records every run on-chain"
 - Create: `bots/src/replay/klines.ts`
 - Test: `bots/test/replay.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `bots/test/replay.test.ts`:
 ```ts
@@ -3447,12 +3447,12 @@ describe("GET /api/v3/ticker/price and /status", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/replay.test.ts`
 Expected: `error: Cannot find module '../src/replay/klines'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/replay/klines.ts`:
 ```ts
@@ -3645,12 +3645,12 @@ export function handleReplayRequest(
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/replay.test.ts && bun run typecheck`
 Expected: ` 13 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/replay/klines.ts bots/test/replay.test.ts
@@ -3667,7 +3667,7 @@ git commit -m "feat(bots): replay window, wall-clock venue klines, snapshot, tic
 **Files:**
 - Create: `bots/src/replay-server.ts`
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/replay-server.ts`:
 ```ts
@@ -3704,7 +3704,7 @@ console.log(`[replay] anchor ${new Date(anchor * 1000).toISOString()} (REPLAY_AN
 console.log(`[replay] listening on http://127.0.0.1:${port} (GET /venue/<name>/api/v3/klines, /api/v3/ticker/price, /api/v3/klines, /snapshot, /status)`);
 ```
 
-- [ ] **Step 2: Smoke test with a synthetic window**
+- [x] **Step 2: Smoke test with a synthetic window**
 
 Run (one shell; the server runs in the background and is stopped at the end):
 ```bash
@@ -3728,7 +3728,7 @@ Expected, with s = the seconds elapsed in the current wall-clock minute (validat
 ```
 (`histNow` and `nowSec` are 1770205860 + s; the kline's high and close are 2630 + 0.5 s. The last line is the same candle on the wall clock: `<anchor>` is the `REPLAY_ANCHOR_SEC` printed on the second line, which is what plan 02's replay mode reads.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/replay-server.ts
@@ -3745,7 +3745,7 @@ git commit -m "feat(bots): replay server"
 **Files:**
 - Create: `bots/src/scripts/fund.ts`, `bots/src/scripts/status.ts`
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/scripts/fund.ts`:
 ```ts
@@ -3912,12 +3912,12 @@ if (hasFlag("--watch")) {
 }
 ```
 
-- [ ] **Step 2: Typecheck and wiring check**
+- [x] **Step 2: Typecheck and wiring check**
 
 Run: `cd bots && bun run typecheck && bun run status --pair live`
 Expected: typecheck clean; before plan 01 has deployed: `error: pools.liveV is null: deploy it first (plan 01) and record it in shared/deployments/sepolia.json`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/scripts/fund.ts bots/src/scripts/status.ts
@@ -3934,13 +3934,15 @@ git commit -m "feat(bots): funding, approvals and status scripts"
 **Files:**
 - Create: `bots/src/scripts/forge-report.ts`
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/scripts/forge-report.ts`:
 ```ts
 // Safety demo 1 (forged report): a third party pushes sigma = 0 to RiskDesk through the permissionless
 // MockKeystoneForwarder. The SIM guard (tx.origin must be the CRE operator) must reject it:
-// the forwarder emits ReportProcessed(result=false), no RiskReported, and the desk state does not change.
+// the forwarder emits ReportProcessed(result=false) and the transaction carries no RiskReported.
+// The verdict reads only this transaction's receipt: the live CRE loop keeps reporting every 30 s, so a
+// legitimate report can land between the two state() reads, which are printed and logged for context only.
 // Sends from NOISE_<PAIR>_PRIVATE_KEY, which must NOT be the CRE operator key.
 // Usage: bun src/scripts/forge-report.ts --pair live
 import { buildMockRawReport, loadDeployments, mockForwarderAbi, requireValue, riskDeskAbi } from "@clim/shared";
@@ -3971,33 +3973,44 @@ const hash = await attacker.writeContract({
 });
 const r = await client.waitForTransactionReceipt({ hash });
 const result = parseEventLogs({ abi: mockForwarderAbi, eventName: "ReportProcessed", logs: r.logs })[0]?.args.result ?? null;
+const reported = parseEventLogs({ abi: riskDeskAbi, eventName: "RiskReported", logs: r.logs }).filter((l) => l.address.toLowerCase() === desk.toLowerCase());
 const after = await client.readContract({ address: desk, abi: riskDeskAbi, functionName: "state" });
-const held = result === false && after[4] === before[4] && after[1] === before[1];
+const held = r.status === "success" && result === false && reported.length === 0;
+const accepted = result === true || reported.length > 0;
 appendJsonl(join(OUT_DIR, "security-demos.jsonl"), {
   ts: new Date().toISOString(),
   demo: "forge-report",
   pair,
   attacker: attacker.account.address,
   txHash: hash,
+  txStatus: r.status,
   forwarderResult: result,
+  riskReportedInTx: reported.length,
   seqBefore: before[4],
   seqAfter: after[4],
   sigmaBefore: before[1],
   sigmaAfter: after[1],
   held,
 });
-console.log(`forged report tx ${hash} from ${attacker.account.address}: forwarder result=${result}`);
-console.log(`desk seq ${before[4]} -> ${after[4]}, sigmaE9 ${before[1]} -> ${after[1]}`);
-console.log(held ? "SIM guard held: forged report rejected" : "FORGED REPORT ACCEPTED: investigate the RiskDesk SIM guard");
+console.log(`forged report tx ${hash} from ${attacker.account.address}: status ${r.status}, forwarder result=${result}, RiskReported in tx: ${reported.length}`);
+const moved = after[4] !== before[4] && reported.length === 0 ? " (another report landed in between, not this tx)" : "";
+console.log(`desk seq ${before[4]} -> ${after[4]}, sigmaE9 ${before[1]} -> ${after[1]}${moved}`);
+console.log(
+  held
+    ? "SIM guard held: forged report rejected"
+    : accepted
+      ? "FORGED REPORT ACCEPTED: investigate the RiskDesk SIM guard"
+      : `NO VERDICT: tx status ${r.status}, forwarder result=${result}: the forwarder did not process the forged report`,
+);
 process.exit(held ? 0 : 1);
 ```
 
-- [ ] **Step 2: Typecheck and wiring check**
+- [x] **Step 2: Typecheck and wiring check**
 
 Run: `cd bots && bun run typecheck && bun run forge-report --pair live`
 Expected: typecheck clean; before plan 01 has deployed: `error: riskDesks.live is null: deploy it first (plan 01) and record it in shared/deployments/sepolia.json`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/scripts/forge-report.ts
@@ -4014,7 +4027,7 @@ git commit -m "feat(bots): forged report security demo"
 **Files:**
 - Create: `bots/.env.example`, `docs/runbook.md`
 
-- [ ] **Step 1: Environment template**
+- [x] **Step 1: Environment template**
 
 `bots/.env.example`:
 ```bash
@@ -4057,7 +4070,7 @@ REPLAY_PORT=8787
 # CRE_PROJECT_DIR=
 ```
 
-- [ ] **Step 2: Run-book**
+- [x] **Step 2: Run-book**
 
 `docs/runbook.md`:
 ````markdown
@@ -4208,11 +4221,11 @@ cd bots && bun run forge-report --pair live
 ```
 Expected (exit code 0):
 ```
-forged report tx 0x... from 0x<NOISE_LIVE address>: forwarder result=false
+forged report tx 0x... from 0x<NOISE_LIVE address>: status success, forwarder result=false, RiskReported in tx: 0
 desk seq 12 -> 12, sigmaE9 57012 -> 57012
 SIM guard held: forged report rejected
 ```
-The record is appended to `bots/out/security-demos.jsonl`. On `https://sepolia.etherscan.io/tx/<hash>` show the `ReportProcessed` event with `result = false` and the absence of `RiskReported`.
+The verdict reads only the forged transaction's receipt (`ReportProcessed` result `false`, no `RiskReported`). T1 keeps running, so one of its reports can land between the two desk reads: the second line then reads `desk seq 12 -> 13, sigmaE9 57012 -> 57390 (another report landed in between, not this tx)` and the verdict does not change. The record is appended to `bots/out/security-demos.jsonl`. On `https://sepolia.etherscan.io/tx/<hash>` show the `ReportProcessed` event with `result = false` and the absence of `RiskReported`.
 
 ### Circuit breaker (blind mode)
 1. Keep T4 (`status --pair live --watch`) visible.
@@ -4242,12 +4255,12 @@ ls -t bots/out/cre-sim/*.log | head -3                                # latest r
 | HTTP 429 from the RPC | public endpoint rate limit | set a keyed `SEPOLIA_RPC_URL` |
 ````
 
-- [ ] **Step 3: Full check**
+- [x] **Step 3: Full check**
 
 Run: `bun run test && bun run typecheck`
 Expected: `@clim/shared test:  55 pass`, `@clim/shared test:  3 skip` (or ` 58 pass` and ` 0 skip` once `shared/abis/*.json` exist), `@clim/bots test:  60 pass`, both ` 0 fail`; both typechecks `Exited with code 0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add bots/.env.example docs/runbook.md
