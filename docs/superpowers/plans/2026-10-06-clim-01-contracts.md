@@ -2877,7 +2877,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/sessions/2026-10-06
 - Create: `contracts/deployments/11155111/*.json`, `contracts/broadcast/*/11155111/*.json`
 - Modify: `shared/deployments/sepolia.json`, `shared/abis/*.json`, `docs/sessions/2026-10-06.md`
 
-- [ ] **Step 1: Gate checks**
+- [x] **Step 1: Gate checks**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && set -a && source .env && set +a && \
@@ -2888,36 +2888,38 @@ forge test 2>&1 | tail -1
 ```
 Expected: `true`, `true`, a balance of at least `0.05`, and `71 tests passed, 0 failed, 0 skipped (71 total tests)`. Stop on any other output. `02_DeployHook` also refuses non-decided params on chain 11155111: a second, independent guard.
 
-- [ ] **Step 2: Deploy tokens, desk and hook**
+- [x] **Step 2: Deploy tokens, desk and hook**
+
+Sepolia runs Glamsterdam (its block headers carry `blockAccessListHash` and `slotNumber`), whose gas schedule makes contract creation and new storage several times more expensive than the `cancun` schedule `forge` simulates locally: on 2026-10-06 the first `00_Tokens` transaction ran out of gas (tx `0xe853dba51848b0bd0aa005095ceb474ea56370688429e9d82df8ed00661d6312`, limit 862,119 from the local simulation, where the node estimates 4,350,932). Every Sepolia `forge script --broadcast` therefore passes `--skip-simulation`: forge then asks the node (`eth_estimateGas`, times 1.3) for each transaction's gas right before sending it, one at a time (foundry v1.4.2 `crates/script/src/broadcast.rs`, `estimate_via_rpc`). Measured: `TestToken` about 4.3M gas, `PoolSwapTest` 9.4M, the whole live suite about 0.04 ETH at 0.95 gwei.
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && \
 ok(){ out=$("$@" 2>&1); echo "$out" | grep -E "ONCHAIN EXECUTION COMPLETE|Error" || echo "$out" | grep -E "Script ran successfully"; ! echo "$out" | grep -q "Error"; } && \
-ok forge script script/00_Tokens.s.sol --rpc-url sepolia --broadcast --slow && \
-SUITE=live ok forge script script/01_DeployDesk.s.sol --rpc-url sepolia --broadcast --slow && \
-SUITE=live ok forge script script/02_DeployHook.s.sol --rpc-url sepolia --broadcast --slow && \
+ok forge script script/00_Tokens.s.sol --rpc-url sepolia --broadcast --slow --skip-simulation && \
+SUITE=live ok forge script script/01_DeployDesk.s.sol --rpc-url sepolia --broadcast --slow --skip-simulation && \
+SUITE=live ok forge script script/02_DeployHook.s.sol --rpc-url sepolia --broadcast --slow --skip-simulation && \
 cat deployments/11155111/tokens.json deployments/11155111/desk-live.json deployments/11155111/hook-live.json
 ```
 Expected: three `ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.` lines and three JSON fragments. `hook` must end in `…1080` or another value whose last 14 bits are `0x1080` (afterInitialize 0x1000 | beforeSwap 0x80).
 
-- [ ] **Step 3: Create the pools at the current ETH price and add liquidity**
+- [x] **Step 3: Create the pools at the current ETH price and add liquidity**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && export INIT_ETH_USD=$(curl -s https://api.coinbase.com/v2/prices/ETH-USD/spot | jq -r '.data.amount | tonumber | floor') && echo "INIT_ETH_USD=$INIT_ETH_USD" && \
 ok(){ out=$("$@" 2>&1); echo "$out" | grep -E "ONCHAIN EXECUTION COMPLETE|Error" || echo "$out" | grep -E "Script ran successfully"; ! echo "$out" | grep -q "Error"; } && \
-SUITE=live ok forge script script/03_CreatePools.s.sol --rpc-url sepolia --broadcast --slow && \
-SUITE=live ok forge script script/04_AddLiquidity.s.sol --rpc-url sepolia --broadcast --slow
+SUITE=live ok forge script script/03_CreatePools.s.sol --rpc-url sepolia --broadcast --slow --skip-simulation && \
+SUITE=live ok forge script script/04_AddLiquidity.s.sol --rpc-url sepolia --broadcast --slow --skip-simulation
 ```
 Expected: a plausible price (`INIT_ETH_USD=2713` on 2026-10-06), then two `ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.` lines.
 
-- [ ] **Step 4: Write shared/deployments/sepolia.json and the ABIs**
+- [x] **Step 4: Write shared/deployments/sepolia.json and the ABIs**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && ok(){ out=$("$@" 2>&1); echo "$out" | grep -E "ONCHAIN EXECUTION COMPLETE|Error" || echo "$out" | grep -E "Script ran successfully"; ! echo "$out" | grep -q "Error"; } && ok forge script script/05_WriteDeployments.s.sol --rpc-url sepolia && ./script/export-abis.sh >/dev/null && jq -c '{chainId, riskDesks, hooks, routers, liveS: .pools.liveS.key.fee, liq: .liquidity.live}' ../shared/deployments/sepolia.json
 ```
 Expected: `Script ran successfully.`, then one JSON line: `chainId` is 11155111, `riskDesks.live`, `hooks.live` and `routers.arb` are addresses, `replay` and `don` are null, and `liveS` is `staticFeePips`. If plan 04 is set up (`shared/src/config.ts`), also run `cd /Users/fianso/Development/hackathons/clim/shared && bun test test/config.test.ts`. Expected: ` 0 fail`.
 
-- [ ] **Step 5: Smoke on Sepolia (no report pushed: the first report must come from CRE)**
+- [x] **Step 5: Smoke on Sepolia (no report pushed: the first report must come from CRE)**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && set -a && source .env && set +a && ./script/smoke.sh "$SEPOLIA_RPC_URL" ../shared/deployments/sepolia.json live
@@ -2997,7 +2999,7 @@ The replay window starts at 2026-02-04 12:00 UTC, which is 1770206400000 ms; its
 cd /Users/fianso/Development/hackathons/clim/contracts && export SIM_OPERATOR=$(cast wallet address --private-key "0x$(grep '^CRE_ETH_PRIVATE_KEY=' ../cre/.env.replay | cut -d= -f2)") && echo "SIM_OPERATOR=$SIM_OPERATOR" && \
 export INIT_ETH_USD=$(curl -s "https://data-api.binance.vision/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=1770206400000&limit=1" | jq -r '.[0][1] | tonumber | floor') && echo "INIT_ETH_USD=$INIT_ETH_USD" && \
 ok(){ out=$("$@" 2>&1); echo "$out" | grep -E "ONCHAIN EXECUTION COMPLETE|Error" || echo "$out" | grep -E "Script ran successfully"; ! echo "$out" | grep -q "Error"; } && \
-F=0; for s in 01_DeployDesk 02_DeployHook 03_CreatePools 04_AddLiquidity; do SUITE=replay ok forge script script/$s.s.sol --rpc-url sepolia --broadcast --slow || { F=1; break; }; done; [ $F = 0 ] && \
+F=0; for s in 01_DeployDesk 02_DeployHook 03_CreatePools 04_AddLiquidity; do SUITE=replay ok forge script script/$s.s.sol --rpc-url sepolia --broadcast --slow --skip-simulation || { F=1; break; }; done; [ $F = 0 ] && \
 ok forge script script/05_WriteDeployments.s.sol --rpc-url sepolia && \
 cast call $(jq -r .riskDesks.replay ../shared/deployments/sepolia.json) "state()(uint40,uint32,uint16,uint8,uint32)" --rpc-url sepolia && \
 cast call $(jq -r .riskDesks.replay ../shared/deployments/sepolia.json) "simOperator()(address)" --rpc-url sepolia
@@ -3026,7 +3028,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/deployments/11
 - [ ] **Step 1: Deploy the DON desk (production forwarder; simulation mode is switched off in the same broadcast)**
 
 ```bash
-cd /Users/fianso/Development/hackathons/clim/contracts && ok(){ out=$("$@" 2>&1); echo "$out" | grep -E "ONCHAIN EXECUTION COMPLETE|Error" || echo "$out" | grep -E "Script ran successfully"; ! echo "$out" | grep -q "Error"; } && SUITE=don ok forge script script/01_DeployDesk.s.sol --rpc-url sepolia --broadcast --slow && ok forge script script/05_WriteDeployments.s.sol --rpc-url sepolia && cat deployments/11155111/desk-don.json
+cd /Users/fianso/Development/hackathons/clim/contracts && ok(){ out=$("$@" 2>&1); echo "$out" | grep -E "ONCHAIN EXECUTION COMPLETE|Error" || echo "$out" | grep -E "Script ran successfully"; ! echo "$out" | grep -q "Error"; } && SUITE=don ok forge script script/01_DeployDesk.s.sol --rpc-url sepolia --broadcast --slow --skip-simulation && ok forge script script/05_WriteDeployments.s.sol --rpc-url sepolia && cat deployments/11155111/desk-don.json
 ```
 Expected: `ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.`, `Script ran successfully.`, and a fragment with `"forwarder": "0xF8344CFd5c43616a4366C34E3EEE75af79a74482"` and `"simMode": false`. `riskDesks.don` is now set in `shared/deployments/sepolia.json`. Plan 02's later `cast send <don desk> "disableSim()"` is then a harmless no-op.
 

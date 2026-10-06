@@ -2828,7 +2828,7 @@ If there is no private registry, stop here: the onchain registry needs a linked 
 Run plan 01 Task 19 (the `don` suite of `01_DeployDesk`: production forwarder `0xF8344CFd5c43616a4366C34E3EEE75af79a74482`, `disableSim()` in the same broadcast, then `05_WriteDeployments`, which records it as `riskDesks.don`):
 
 ```bash
-(cd contracts && ok(){ out=$("$@" 2>&1); echo "$out" | grep -E "ONCHAIN EXECUTION COMPLETE|Error" || echo "$out" | grep -E "Script ran successfully"; ! echo "$out" | grep -q "Error"; } && SUITE=don ok forge script script/01_DeployDesk.s.sol --rpc-url sepolia --broadcast --slow && ok forge script script/05_WriteDeployments.s.sol --rpc-url sepolia)
+(cd contracts && ok(){ out=$("$@" 2>&1); echo "$out" | grep -E "ONCHAIN EXECUTION COMPLETE|Error" || echo "$out" | grep -E "Script ran successfully"; ! echo "$out" | grep -q "Error"; } && SUITE=don ok forge script script/01_DeployDesk.s.sol --rpc-url sepolia --broadcast --slow --skip-simulation && ok forge script script/05_WriteDeployments.s.sol --rpc-url sepolia)
 DESK=$(jq -r .riskDesks.don shared/deployments/sepolia.json)
 cast call $DESK "getForwarderAddress()(address)" --rpc-url https://ethereum-sepolia-rpc.publicnode.com
 cast call $DESK "simMode()(bool)" --rpc-url https://ethereum-sepolia-rpc.publicnode.com
