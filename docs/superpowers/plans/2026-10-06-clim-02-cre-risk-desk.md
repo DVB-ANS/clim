@@ -2943,7 +2943,7 @@ git commit -m "feat(cre): deploy the risk desk to a CRE DON writing to a dedicat
 - Create: `cre/README.md`
 - Modify: today's session log, `docs/feedback/cre-friction-log.md`
 
-- [ ] **Step 1: Create `cre/README.md`**
+- [x] **Step 1: Create `cre/README.md`**
 
 ````markdown
 # clim risk desk (Chainlink CRE workflow)
@@ -3014,7 +3014,7 @@ Replay mode (`--target replay-settings`, `mode: "replay"`) fetches, for each con
 | `scripts/sim-loop.sh` | CRE-only smoke loop (build once, `simulate --wasm` every 30 s). The demo loop that records receipts is `bots/src/sim-loop.ts`. |
 ````
 
-- [ ] **Step 2: Append a real sample run** (from the latest broadcast log, colour codes stripped)
+- [x] **Step 2: Append a real sample run** (from the latest broadcast log, colour codes stripped)
 
 ```bash
 (cd cre && LOG=$(ls -t logs/*-broadcast.log | head -1) && { echo; echo "## Sample run (Sepolia, $(date -u +%F))"; echo; echo '```text'; grep "USER LOG" "$LOG" | tail -5 | sed -E 's/\x1b\[[0-9;]*m//g'; echo '```'; } >> README.md)
@@ -3023,7 +3023,7 @@ tail -9 cre/README.md
 
 Expected: a `## Sample run` section with five `[USER LOG]` lines ending in `REPORT applied ...`.
 
-- [ ] **Step 3: Append the evidence links** (use the real values from the session log)
+- [x] **Step 3: Append the evidence links** (use the real values from the session log)
 
 Append to `cre/README.md`:
 
@@ -3036,7 +3036,7 @@ Append to `cre/README.md`:
 - DON deployment (if done): workflow ID 0x<id>, DON desk https://sepolia.etherscan.io/address/0x<don desk>.
 ```
 
-- [ ] **Step 4: Final checks**
+- [x] **Step 4: Final checks**
 
 ```bash
 (cd cre/risk-desk && bun test && bun run typecheck)
@@ -3049,7 +3049,7 @@ Expected:
 - a clean typecheck and `✓ Workflow compiled successfully`;
 - `git status` lists only the files you are about to commit, with no `.env`, `binary.wasm` or `logs/`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add cre/README.md docs/sessions/ docs/feedback/cre-friction-log.md
