@@ -836,7 +836,7 @@ git commit -m "feat(shared): CRE risk report encoding and mock forwarder raw rep
 - Create: `shared/src/abis.ts`, `shared/scripts/export-abis.ts`
 - Test: `shared/test/abis.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 The selector checks pin the fragments to the bytecode deployed on Sepolia; the drift checks run as soon as `shared/abis/*.json` exist (they are skipped before plan 01 compiles the contracts).
 
@@ -896,12 +896,12 @@ describe("hand-written clim fragments match the compiled contracts (shared/abis/
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd shared && bun test test/abis.test.ts`
 Expected: `error: Cannot find module '../src/abis'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `shared/src/abis.ts`:
 ```ts
@@ -1146,14 +1146,14 @@ for (const name of CONTRACTS) {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd shared && bun test test/abis.test.ts && bun run typecheck`
 Expected: ` 3 pass`, ` 3 skip`, ` 0 fail` (the three skips are the drift checks, waiting for `shared/abis/*.json`); typecheck clean.
 
 When plan 01 has compiled the contracts: `cd contracts && forge build && cd .. && bun run --cwd shared export-abis` prints `exported shared/abis/RiskDesk.json (N items)` for the three contracts, and the same test then shows ` 6 pass`, ` 0 skip`. A failing drift check means the contract and the canonical interface disagree: fix the side that deviates from the canonical interface in the master plan, never silence the test.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add shared/src/abis.ts shared/scripts/export-abis.ts shared/test/abis.test.ts
