@@ -1,0 +1,36 @@
+import type { StepState, StepStatus } from "@/lib/tx";
+import { StatusMark, type StatusMarkStatus } from "./StatusMark";
+import { TxLink } from "./ui";
+
+/** Wallet prompt and block wait both read as "running": the text beside the mark tells them apart. */
+const MARK: Record<StepStatus, StatusMarkStatus> = { waiting: "pending", signing: "running", pending: "running", done: "done", failed: "failed" };
+const TEXT: Record<StepStatus, string> = {
+  waiting: "waiting",
+  signing: "confirm in your wallet",
+  pending: "waiting for Sepolia",
+  done: "done",
+  failed: "failed",
+};
+
+/** The steps of a transaction flow, each with its status and hash (Etherscan link when live). */
+export function TxSteps({ steps, live }: { steps: StepState[]; live: boolean }) {
+  if (steps.length === 0) return null;
+  return (
+    <ol className="mt-3 space-y-1 text-sm">
+      {steps.map((s, i) => (
+        <li key={`${s.label}-${i}`} className="flex flex-wrap items-center gap-2">
+          {/* Decorative: the status text beside it already says it, so the mark's own role="img" label stays hidden. */}
+          <span aria-hidden className="flex shrink-0">
+            <StatusMark status={MARK[s.status]} />
+          </span>
+          <span className="font-medium">{s.label}</span>
+          <span className="text-xs text-fg-subtle">
+            {s.note ?? (!live && s.status === "signing" ? "simulated signature" : !live && s.status === "pending" ? "simulated block" : TEXT[s.status])}
+          </span>
+          {s.hash ? <TxLink hash={s.hash} live={live} /> : null}
+          {s.error ? <span className="text-xs text-danger">{s.error}</span> : null}
+        </li>
+      ))}
+    </ol>
+  );
+}

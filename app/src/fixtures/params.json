@@ -1,0 +1,11 @@
+{
+  "fixture": true,
+  "pStar": 0.2,
+  "etaE4": 41760,
+  "sqrtHalfDtE6": 2449490,
+  "feeMinPips": 500,
+  "feeMaxPips": 15000,
+  "feeSafePips": 3000,
+  "tauKillSec": 180,
+  "decidedBy": "fixture in app/src/fixtures/params.json until the lab writes shared/params.json"
+}

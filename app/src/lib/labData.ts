@@ -1,0 +1,11 @@
+import band from "../../public/data/lab/ptrade-band.json";
+import replay from "../../public/data/lab/replay-2026-02-04.json";
+import summary from "../../public/data/lab/summary.json";
+import { parsePTradeBand, parseReplay, parseSummary } from "./lab";
+
+// public/data/lab/* is written by `npm run sync` from lab/out (or src/fixtures/lab until the lab runs).
+// The same files are served at /data/lab/*.json so anyone can download the numbers behind the charts.
+// Server components only: importing this module in a client component would ship the replay to the browser.
+export const labSummary = parseSummary(summary);
+export const labReplay = parseReplay(replay);
+export const labBand = parsePTradeBand(band);

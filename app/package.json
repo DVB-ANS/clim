@@ -1,0 +1,44 @@
+{
+  "name": "clim-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "sync": "node scripts/sync-data.mjs",
+    "fixtures": "tsx scripts/make-fixtures.ts",
+    "snapshot": "tsx scripts/snapshot.ts",
+    "dither": "node scripts/make-dither.mjs"
+  },
+  "dependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.11",
+    "@tanstack/react-query": "^5.104.1",
+    "motion": "^14.0.0",
+    "next": "16.3.8",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-markdown": "^10.1.0",
+    "recharts": "^3.10.1",
+    "remark-gfm": "^4.0.1",
+    "viem": "^2.57.3",
+    "wagmi": "^2.19.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@web3icons/core": "^4.0.58",
+    "dotted-map": "^2.2.3",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^5.0.3"
+  }
+}
