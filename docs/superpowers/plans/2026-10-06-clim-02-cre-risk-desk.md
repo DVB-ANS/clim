@@ -29,7 +29,7 @@
 | Quotas | cron at most once per 30 s; 15 HTTP calls, 250 KB per response, 10 s connection timeout; 15 EVM reads; HTTP trigger 1 run per 30 s with burst 1, which the simulator also enforces by default (`--limits default`); log line at most 1 KB; private registry 3 workflows per organization | docs.chain.link/cre/service-quotas (2026-09-16), cre-cli `limits.json` |
 | `simulate` flags | `--broadcast`, `--non-interactive`, `--trigger-index`, `--target`, `--wasm` (prebuilt binary, skips compilation; a relative path resolves from the workflow folder, not the current directory, so the loop passes an absolute path: Task 9), `--listen` (HTTP and log triggers only, not cron), `--http-payload` (required for the HTTP trigger in non-interactive mode), `--http-trigger-port` (default 2000), `--limits` | cre-cli v1.37.0 docs and source |
 | Listen mode | serves `POST http://localhost:2000/trigger` and reads the payload from the body `{"input": ...}`. The docs page shows a POST of the raw JSON to `http://localhost:2000`. | cre-cli source `cmd/workflow/simulate/simulate.go` |
-| Mock forwarder | `report()` never reverts when the receiver's `onReport` reverts: it emits `ReportProcessed(receiver, executionId, reportId, false)`. With `--broadcast`, the simulator then still returns `receiverContractExecutionStatus = SUCCESS`. | chainlink-evm `MockKeystoneForwarder.sol`; chainlink `core/capabilities/fakes/evm_chain.go`; on Sepolia, tx `0x276dacda91143cb6b8ace8c4d11c8ed8df837620afc01e9fea81c1338a8aa13d` has status 1 with `ReportProcessed(..., false)` |
+| Mock forwarder | `report()` never reverts when the receiver's `onReport` reverts: it emits `ReportProcessed(receiver, executionId, reportId, false)`. With `--broadcast`, the simulator then still returns `receiverContractExecutionStatus = SUCCESS`. | chainlink-evm `MockKeystoneForwarder.sol`; chainlink `core/capabilities/fakes/evm_chain.go`; on Sepolia, clim's own forged report, tx `0x34ee46a6947d2831fdb3e5a09f831008589efd9cf099f61dca86dc4cdadc53d9` (`bots/src/scripts/forge-report.ts`, 2026-10-06), has status 1, `ReportProcessed(..., false)` and no `RiskReported` (`cast receipt`) |
 | Dry run | `eth_call` of `forwarder.report`, so it always "succeeds" and returns no tx hash | chainlink `fakes/evm_chain.go` (`dryRunWriteReport`) |
 | Endpoints | all six answered HTTP 200 from Singapore. Response shapes are in the fixtures of Task 4. | curl |
 | Sepolia gas | about 1.06 gwei. Mock-forwarder report transactions use 100k to 285k gas, depending on the receiver. | `cast gas-price`, `cast receipt` |
@@ -163,7 +163,7 @@ clim: a CRE risk desk for Uniswap v4 LPs. A cron workflow (every 30 s) fetches 1
 
 Expected: `✓ Access request submitted successfully!`
 
-- [ ] **Step 6: Only when delegating simulation work: invite teammates**
+- [ ] **Step 6: Only when delegating simulation work: invite teammates** **Cut (2026-10-07):** solo project (`docs/submission/team.json` lists one member); no simulation work was delegated, so nobody was invited to the CRE organization.
 
 Invite them from the organization page of the CRE UI (https://app.chain.link/cre/discover; the flow is described in https://docs.chain.link/cre/account/creating-account, "Join an existing organization"). Each teammate then runs Steps 1, 2 and 4. Without an account, they can still run `bun test` and `cre workflow build`.
 
@@ -196,7 +196,7 @@ Replace the whole row that starts with `| 5 |` with:
 Append these rows at the end of the table:
 
 ```markdown
-| 9 | Simulation write status | With `--broadcast`, `WriteReportReply.receiverContractExecutionStatus` is SUCCESS whenever the forwarder tx is mined, but `MockKeystoneForwarder.report` never reverts when the consumer's `onReport` reverts (it emits `ReportProcessed(..., false)`). A rejected report looks like a success to the workflow. Example on Sepolia: tx `0x276dacda91143cb6b8ace8c4d11c8ed8df837620afc01e9fea81c1338a8aa13d`, status 1, `ReportProcessed` false. Workaround in clim: re-read `RiskDesk.state()` after each write. | Decode `ReportProcessed` in the simulator's EVM chain and return REVERTED; say it in the onchain-write guide. | seen in source (chainlink `core/capabilities/fakes/evm_chain.go`), to confirm with our own desk |
+| 9 | Simulation write status | With `--broadcast`, `WriteReportReply.receiverContractExecutionStatus` is SUCCESS whenever the forwarder tx is mined, but `MockKeystoneForwarder.report` never reverts when the consumer's `onReport` reverts (it emits `ReportProcessed(..., false)`). A rejected report looks like a success to the workflow. Example on Sepolia: our forged report, tx `0x34ee46a6947d2831fdb3e5a09f831008589efd9cf099f61dca86dc4cdadc53d9`, status 1, `ReportProcessed` false, no `RiskReported`. Workaround in clim: re-read `RiskDesk.state()` after each write. | Decode `ReportProcessed` in the simulator's EVM chain and return REVERTED; say it in the onchain-write guide. | `confirmed` on Sepolia 2026-10-06 with our forged report (also on a Sepolia fork in `contracts/test/fork/MockForwarder.fork.t.sol`) |
 | 10 | Dry run | The dry run `eth_call`s the mock forwarder, which swallows consumer reverts, so a dry run cannot tell whether the consumer would accept the report. | Dry-run the consumer call itself, or decode the forwarder's return value. | seen in source (`dryRunWriteReport`) |
 | 11 | Listen mode docs | The docs say to POST the raw JSON to `http://localhost:2000`. cre-cli v1.37.0 serves `POST /trigger` and reads the payload from `{"input": ...}`. Non-interactive listen also requires `--http-payload` for the first run. | Align "Testing HTTP Triggers in Simulation" with the code. | seen in source, to confirm (Task 9) |
 | 12 | Simulation limits | By default the simulator enforces the production HTTP-trigger rate (one run per 30 s, burst 1), so a 30 s POST loop can hit "Trigger rate limited". | Mention it next to `--listen`; `--limits none` lifts it. | seen in source, to confirm (Task 9) |
@@ -204,6 +204,8 @@ Append these rows at the end of the table:
 | 14 | SDK exports | `TxStatus` is exported from `@chainlink/cre-sdk`, but the EVM `ReceiverContractExecutionStatus` enum is only reachable through `@chainlink/cre-sdk/pb` (`EVM_PB`). | Export it next to `TxStatus`. | observed (SDK 1.23.0) |
 | 15 | Docs | The macOS/Linux install page shows empty version strings ("The recommended version at the time of writing is ****.", expected output "CRE CLI version "). | Fix the version variable on the page. | observed 2026-10-06 |
 ```
+
+Row 9 first cited tx `0x276dacda91143cb6b8ace8c4d11c8ed8df837620afc01e9fea81c1338a8aa13d`, which is another team's report (sender `0xb0D05849267b6a4bcC388DDA679047006de8c309`, consumer `0x059eef3dd2c40aac9ab63f9d2a4e8322d75035f0`), mined before clim was deployed; the row above and the friction log now cite clim's own forged report. The friction log's rows carry their final status and wording (audit r1, 2026-10-07).
 
 - [x] **Step 8: Commit**
 
@@ -2818,6 +2820,8 @@ git commit -m "feat(cre): feed the replay RiskDesk from the plan 04 replay serve
 
 ### Task 13: Deploy to a CRE DON (only if deploy access is granted)
 
+**Status (2026-10-07): cut.** Deploy access was never enabled (Step 1), so this task did not run (master cut list item 1).
+
 **Delegable:** no (organization access, deployer key)
 **Depends on:** Task 10; `cre whoami` shows `Deploy Access: Enabled`; plan 01's desk deployment script
 
@@ -2826,7 +2830,7 @@ A DON deployment brings real multi-node consensus and real forwarder signatures,
 **Files:**
 - Modify: `cre/risk-desk/config.production.json`, `shared/deployments/sepolia.json` (one new key), today's session log, `docs/feedback/cre-friction-log.md`
 
-- [ ] **Step 1: Check access and the registry**
+- [ ] **Step 1: Check access and the registry** **Cut (2026-10-07):** `cre whoami` printed `Deploy Access: Not enabled` for organization `org_5FPbh9KQQJLGWcEh` at about 05:35 SGT and again at 07:14 SGT (23:14 UTC on 2026-10-06), over 8 h after the request of 2026-10-06 22:56 SGT; DON deployment cut (master cut list item 1), clim stays on `simulate --broadcast` through `MockKeystoneForwarder`, friction row 6.
 
 ```bash
 cre whoami
@@ -2837,7 +2841,7 @@ Expected: `Deploy Access:   Enabled`, and a registry with `ID:   private` and `T
 
 If there is no private registry, stop here: the onchain registry needs a linked key and mainnet ETH. Log it as a friction row.
 
-- [ ] **Step 2: Deploy the DON desk and record it**
+- [ ] **Step 2: Deploy the DON desk and record it** **Cut (2026-10-07):** no deploy access (Step 1); no DON desk was deployed, `riskDesks.don` stays `null` in `shared/deployments/sepolia.json` and `config.production.json` keeps the `0x…dEaD` placeholder.
 
 Run plan 01 Task 19 (the `don` suite of `01_DeployDesk`: production forwarder `0xF8344CFd5c43616a4366C34E3EEE75af79a74482`, `disableSim()` in the same broadcast, then `05_WriteDeployments`, which records it as `riskDesks.don`):
 
@@ -2856,7 +2860,7 @@ Expected: `ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.`, `Script ran successfully.`
 
 Expected: `config.production.json: deskAddress=0x<don desk> token0IsEth=<...>`
 
-- [ ] **Step 3: Authorize the operator address for the HTTP trigger** (the CLI rejects deploying an HTTP trigger without keys)
+- [ ] **Step 3: Authorize the operator address for the HTTP trigger** (the CLI rejects deploying an HTTP trigger without keys) **Cut (2026-10-07):** no deploy access (Step 1); `httpAuthorizedKeys` stays `[]`.
 
 ```bash
 ADDR=$(cast wallet address --private-key "$(grep '^CRE_ETH_PRIVATE_KEY=' cre/.env | cut -d= -f2)")
@@ -2866,7 +2870,7 @@ jq .httpAuthorizedKeys cre/risk-desk/config.production.json
 
 Expected: a one-element array holding the operator address.
 
-- [ ] **Step 4: Deploy**
+- [ ] **Step 4: Deploy** **Cut (2026-10-07):** no deploy access (Step 1), so `cre workflow deploy` was never run.
 
 ```bash
 (cd cre && cre workflow deploy risk-desk --target production-settings --yes)
@@ -2887,14 +2891,14 @@ Details:
    Status:           Active
 ```
 
-- [ ] **Step 5: Lock the DON desk to this workflow** (every redeploy changes the ID: redo this step after each one)
+- [ ] **Step 5: Lock the DON desk to this workflow** (every redeploy changes the ID: redo this step after each one) **Cut (2026-10-07):** no DON desk and no workflow ID (Steps 2 and 4 cut).
 
 ```bash
 DESK=$(jq -r .riskDesks.don shared/deployments/sepolia.json); KEY=$(grep '^PRIVATE_KEY=' contracts/.env | cut -d= -f2)
 cast send $DESK "setExpectedWorkflowId(bytes32)" 0x<workflow id printed by Step 4> --private-key $KEY --rpc-url https://ethereum-sepolia-rpc.publicnode.com
 ```
 
-- [ ] **Step 6: Watch it run**
+- [ ] **Step 6: Watch it run** **Cut (2026-10-07):** nothing deployed on a DON (Step 4 cut); friction row 8 (DON egress) stays `not hit`.
 
 ```bash
 (cd cre && cre workflow get ./risk-desk --target production-settings)
@@ -2913,7 +2917,7 @@ Expected:
 
 If executions fail, read `cre execution logs`. A `source dropped: binance: ...` line answers friction row 8 (DON egress).
 
-- [ ] **Step 7: Log the evidence**
+- [ ] **Step 7: Log the evidence** **Cut (2026-10-07):** no DON evidence to log; the access status is in friction row 6 and the cut in the 2026-10-07 session log.
 
 Session log:
 
@@ -2925,7 +2929,7 @@ Friction log: in row 6, set the Status to `access granted after <hours> h`. In r
 
 Cutting the live desk over to the DON (`setForwarderAddress(0xF8344CFd...)`, `setExpectedWorkflowId`, `disableSim()` on the live desk, then redeploying with the live desk's address in `config.production.json`) is irreversible for simulation. Do it only if the maintainer decides so after at least one clean hour on the DON desk, and log the decision.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 8: Commit** **Cut (2026-10-07):** no DON deployment files to commit (Steps 2 to 7 cut).
 
 ```bash
 git add cre/risk-desk/config.production.json shared/deployments/sepolia.json contracts/deployments/11155111/desk-don.json contracts/broadcast docs/sessions/ docs/feedback/cre-friction-log.md
