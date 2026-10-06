@@ -209,3 +209,55 @@ def test_summary_json_plan05_shape():
     for pair in (d["replay"]["arbChangeRangePct"], d["lpGain"]["fullRangeEthPctPerYear"], d["modelSeverityRatio"]):
         assert len(pair) == 2 and pair[0] <= pair[1]
     assert len(d["inPoolVolGainSharePct"]) == 2
+
+
+def test_validation_json():
+    d = _load(OUT_DIR / "validation.json")
+    _keys(d, ["schema", "generatedAt", "pStar", "windowBlocks", "nSimsWindow", "nSimsTotal", "seed", "samples"])
+    s = d["samples"][0]
+    _keys(
+        s,
+        [
+            "name",
+            "blocks",
+            "exceptions",
+            "pTradeObserved",
+            "pTradePredicted",
+            "pTradeSimulatedMean",
+            "kupiecLR",
+            "kupiecPValueIid",
+            "simPValueTwoSided",
+            "clustering",
+            "zones",
+            "windows",
+        ],
+    )
+    _keys(s["zones"], ["binomial", "simulated", "severity"])
+    _keys(
+        s["windows"][0],
+        [
+            "start",
+            "exceptions",
+            "predicted",
+            "binomialYellowFrom",
+            "binomialRedFrom",
+            "binomialZone",
+            "simulatedYellowFrom",
+            "simulatedRedFrom",
+            "simulatedZone",
+            "simulatedMeanExceptions",
+            "severity",
+            "severitySimYellowFrom",
+            "severitySimRedFrom",
+            "severityZone",
+        ],
+    )
+
+
+def test_ptrade_band_json_plan05_shape():
+    d = _load(OUT_DIR / "ptrade-band.json")
+    _keys(d, ["schema", "generatedAt", "windowBlocks", "method", "grid"])
+    assert d["windowBlocks"] == 300 and len(d["grid"]) == 56
+    _keys(d["grid"][0], ["p", "lo95", "hi95", "lo99", "hi99"])
+    ps = [r["p"] for r in d["grid"]]
+    assert ps == sorted(ps) and ps[0] == 0.05 and ps[-1] == 0.6
