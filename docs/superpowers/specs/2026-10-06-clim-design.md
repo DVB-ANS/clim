@@ -16,12 +16,12 @@ clim is storm insurance for Uniswap v4 liquidity providers (LPs). When the marke
 - **The quoting engine** is a Uniswap v4 hook (`ClimHook`). On every swap it reads `RiskDesk` and returns a symmetric LP fee with `OVERRIDE_FEE_FLAG`.
 - **The rule** comes from Milionis, Moallemi and Roughgarden (2023) and Nezlobin and Tassy (2025). Above the floor, it sets the fee so that a target share P\* of blocks is arbitraged. That gives a falsifiable prediction, and the desk checks it continuously.
 
-**Parameters.** All of them are immutable in the hook. P\* is decided in the lab before the hook is deployed (§2.6).
+**Parameters.** All of them are immutable in the hook. P\* = 0.3 (decided by the lab: `lab/out/pstar_decision.json`, `shared/params.json`, etaE4 = 25,093), before the hook is deployed (§2.6).
 
 | Name | Value | Meaning |
 |---|---|---|
-| `pStar` | 0.20 or 0.30 (lab decision) | Target share of arbitraged blocks above the floor |
-| `etaE4` | 41,760 (P\* = 20%) or 25,093 (P\* = 30%) | η\* = 1/P\* − 0.824, × 10⁴ |
+| `pStar` | 0.3 (decided by the lab: `lab/out/pstar_decision.json`, `shared/params.json`, etaE4 = 25,093) | Target share of arbitraged blocks above the floor |
+| `etaE4` | 25,093 (P\* = 0.3, decided by the lab) | η\* = 1/P\* − 0.824, × 10⁴ |
 | `sqrtHalfDtE6` | 2,449,490 | √(12 s / 2) × 10⁶ (Sepolia block time 12 s) |
 | `feeMinPips` | 500 | 5 bp floor, the ETH/USDC market fee tier |
 | `feeMaxPips` | 15,000 | 150 bp cap |
@@ -167,7 +167,7 @@ In the floor regime, P_trade falls below P\*. For example, at P\* = 30%, σ = 30
 
 ### 2.6 Deciding P\*
 
-P\* is decided in the lab (plan 03) **before** `ClimHook` is deployed, because the hook's parameters are immutable.
+P\* = 0.3 (decided by the lab: `lab/out/pstar_decision.json`, `shared/params.json`, etaE4 = 25,093). The lab (plan 03) decides P\* **before** `ClimHook` is deployed, because the hook's parameters are immutable.
 
 1. **Simulation.** Simulate pool V (clim) at P\* = 20% and P\* = 30% against a competing static 5 bp pool and a router. The router sends each retail order to the pool with the lower all-in cost: fee plus price impact.
 2. **Data.** Use Binance ETHUSDT 1 s data for February 2026 and October 2026, and 1-minute data over one year.
@@ -179,8 +179,8 @@ P\* is decided in the lab (plan 03) **before** `ClimHook` is deployed, because t
 
 | Field | Type | Value |
 |---|---|---|
-| `pStar` | number | 0.2 or 0.3 |
-| `etaE4` | integer | 41760 or 25093 |
+| `pStar` | number | 0.3 (decided by the lab: `lab/out/pstar_decision.json`, `shared/params.json`, etaE4 = 25,093) |
+| `etaE4` | integer | 25093 (P\* = 0.3) |
 | `sqrtHalfDtE6` | integer | 2449490 |
 | `feeMinPips` | integer | 500 |
 | `feeMaxPips` | integer | 15000 |
@@ -419,7 +419,7 @@ return (base, 0)                                                       // normal
 
 **Pool S.** A static fee with `hooks = address(0)`.
 - **Comparison fairness:** S charges the same time-average fee as V. S's fee is immutable once the pool is initialized, so it must be chosen beforehand.
-- **Replay pair:** S's fee is the exact time-average of V's fee over the replay window, which the lab computes from the replay path before deployment. At the old P\* = 10% setting this was 55.7 bp; it is recomputed at the final P\*.
+- **Replay pair:** S's fee is the exact time-average of V's fee over the replay window, which the lab computes from the replay path before deployment. At the old P\* = 10% setting this was 55.7 bp; at P\* = 0.3 (decided by the lab: `lab/out/pstar_decision.json`, `shared/params.json`, etaE4 = 25,093) it is 15.03 bp (`replayStaticFeePips` = 1,503).
 - **Live pair:** S's fee is the lab's forecast of V's time-average fee over the demo window, from the last 7 days of volatility. Under the post-audit calibration in a calm market, V sits at the 5 bp floor almost all the time, so S is close to 5 bp.
 - **Reporting:** the dashboard shows V's realized time-average fee next to S's fee. If they differ by more than 10%, the live comparison is labeled "not at equal fee", and the lab's comparison is the reference.
 
@@ -734,7 +734,7 @@ The observed frequency is the share of blocks containing an arbitrage swap. A ro
 
 ### 7.2 Results so far
 
-These are on real data, at the old P\* = 10% setting, and will be recomputed at the final P\*:
+These are on real data, at the old P\* = 10% setting; the values at P\* = 0.3 (decided by the lab: `lab/out/pstar_decision.json`, `shared/params.json`, etaE4 = 25,093) follow the table:
 
 | Period | Observed P_trade | Predicted P_trade |
 |---|---|---|
@@ -742,6 +742,8 @@ These are on real data, at the old P\* = 10% setting, and will be recomputed at 
 | October 2026 | 0.097 | 0.094 |
 
 The **frequency** holds. The **severity** does not: observed ARB/LVR is 1.1 to 4 times above the model, because real returns have fat tails and jumps.
+
+At P\* = 0.3 with the CRE-faithful desk (`lab/out/validation.json`): observed 0.279 against predicted 0.299 in February, 0.171 against 0.156 in October; with clustering simulated from the model the gap is significant (p < 0.001), and the severity ratio is 1.29 to 1.33.
 
 ### 7.3 Clustering: thresholds by simulation, not from the textbook
 
@@ -811,7 +813,8 @@ The acts follow plan 06's demo script: live first (the plumbing and the safety d
 **Act 2: Feb 4, 2026 replay (the highlight; P1, with the lab's curves as plan B)**
 - **The window:** Binance ETHUSDT 1 s, 12:00 to 16:00 UTC. The lab's replay (CRE-faithful RV15) goes from about 60 %/yr at 12:00 to a peak near 296 %/yr, with a low near 34 % (`lab/out/summary.json`, `replay.sigmaMinPct` and `sigmaMaxPct`).
 - **On screen:** V's fee climbs out of the floor while S stays flat, and the two pools' arbitrage losses diverge.
-- **Old-setting figures** (P\* = 10%, recomputed at the final P\*): V's fee goes from 12 to 128 bp; V's ARB is 25% below S's at equal average fee (55.7 bp); P_trade is 0.069 observed against 0.092 predicted.
+- **Old-setting figures** (P\* = 10%, recomputed at P\* = 0.3 in the next item): V's fee goes from 12 to 128 bp; V's ARB is 25% below S's at equal average fee (55.7 bp); P_trade is 0.069 observed against 0.092 predicted.
+- **At P\* = 0.3 (lab):** V's fee goes from 5.0 to 32.4 bp while S charges 15.03 bp; V's ARB is 18.6 % below S's; P_trade is 0.285 observed against 0.298 predicted; across the 92 rolling 4 h windows of the February storm the change ranges from −18.4 % to +3.1 % (median −2.1 %, 66 of 92 better than the static pool), so the replay window is the most favorable one.
 - **Against cherry-picking:** the window was picked during design, at P\* = 10 %, around the sharpest rise in hourly volatility of the storm, after comparing three candidate windows (`lab/scratch/replay_pick*.py`). At P\* = 0.3 it turns out to be the most favorable 4 h window of the storm sample, so every slide that shows it also shows the range over the 92 hourly windows, their median and how many beat the static pool (`lab/out/backtest-summary.json`).
 
 **Act 3: the lab on real data (P0)**
@@ -857,8 +860,8 @@ The acts follow plan 06's demo script: live first (the plumbing and the safety d
 ## 10. Limits (kept in the deck)
 
 1. **Latency.** The desk is at least 30 s behind, plus inclusion time: 40 to 90 s in the simulation loop. The first leg of a jump is arbitraged at the old fee.
-2. **A modest average gain.** At the tested setting, at equal time-average fee: −20% ARB in February and −24.5% in October. At equal cost to traders: from −14% (better) to +7% (worse). These come from backtests on one path with a frictionless arbitrageur. The audit's recalibrated estimate is +0.1 to +0.5%/yr of capital for a full-range ETH LP, up to +1% on volatile assets, with half of the gain in the 5 most turbulent weeks of the year. It is insurance, not income. All of this is recomputed at the final P\*.
-3. **The model is optimistic about severity.** ARB/LVR is 1.1 to 4 times above the model; only the frequency holds. η\* is a calibrated policy, not an optimum: MMR ignore how retail volume responds to the fee.
+2. **A modest average gain.** At P\* = 0.3, at equal time-average fee, ARB falls by 15.3 % in the February 2026 storm, 5.5 % in calm October 2026 and 26.9 % over the year; at equal cost to traders, by 2.9 %, 2.3 % and 12.7 % (`lab/out/summary.json`). Against a four times deeper static 5 bp pool with aggregator routing, the LP gains −0.10 to +0.70 %/yr of capital across five retail scenarios (base +0.39 %), +0.40 % on a path twice as volatile, and 53 % of the gain comes from the 5 most turbulent weeks. These are simulations on one price path with a frictionless arbitrageur. It is insurance, not income. The audit's earlier figures at P\* = 10 % (−20 % / −24.5 %, and −14 % to +7 % at equal trader cost) are superseded: the lab reproduces −22.3 % / −25.0 % at P\* = 10 % but not the trader-cost range.
+3. **The model is optimistic about severity.** At P\* = 0.3, observed ARB/LVR is 1.29 to 1.33 times the model (`lab/out/summary.json`); only the frequency is predicted well, within 10 % (the gap is still statistically significant, `lab/out/validation.json`). η\* is a calibrated policy, not an optimum: MMR ignore how retail volume responds to the fee.
 4. **CRE simulation.** One node and a permissionless mock forwarder; authenticity rests on the `tx.origin` guard (§6.8). Consensus is shown only by a real deployment, which needs deploy access (`cre account access`).
 5. **The demo's economics.** Our own bots run the twin pools, there is no mainnet pool validation, volume leakage is measured only roughly (P1), and JIT liquidity is not handled.
 6. **DVOL.** It is a single source and carries little short-term information. No variance premium is visible at 1 minute (DVOL²/RV² ≈ 0.98).
@@ -890,7 +893,7 @@ Angstrom (Sorella) attacks LVR differently, through app-specific sequencing on v
 4. The LP's **P&L explain** can be recomputed from logs alone (`RiskReported` and `Swap`).
 5. A **negative result** on oracle-referenced directional tolls, tested during design and stated qualitatively (§2.9).
 
-**Why Chainlink.** The lab finds that a volatility computed from the pool itself captures 85 to 97% of the same gain, so the answer is about robustness, not accuracy:
+**Why Chainlink.** The lab finds that the same fee fed by the pool's own RV15 captures most of the gain (96 % over the year, 54 to 103 % across samples, `lab/out/backtest-summary.json`), so the answer is about robustness, not accuracy:
 - four exchanges must agree, so fake trades on the pool cannot move σ;
 - the report is signed;
 - one figure serves many pools and chains;
@@ -979,5 +982,5 @@ These go in the session log or the friction log when they are answered.
 3. Can the simulator reach a localhost replay server? If not, use a public tunnel.
 4. Does `uniswap-hooks` v1.2.1 or `main` compile with the chosen v4-core and v4-periphery commits? Which `HookMiner` path applies (§3.6)? **Answered while planning (plan 01): v1.2.1 with its own pins (v4-core `d153b04`, v4-periphery `7ebd04b`) compiles with solc 0.8.26 / cancun, and `HookMiner` is `@uniswap/v4-periphery/src/utils/HookMiner.sol`.**
 5. Should OKX back up Binance in case of HTTP 451 in the DON? **Assigned:** plan 02 Task 10 Step 7 measures how often Binance is dropped; OKX is added only above 10 % of runs.
-6. Which P\*, 20% or 30% (§2.6)? The lab plan's validated run chose **0.3** (+39.2 against +28.0 bp/yr of TVL); the decision becomes final when plan 03 Task 14 runs in the repository and writes `shared/params.json`.
-7. What are the simulated Basel thresholds at the final P\* (§7.3)?
+6. Which P\*, 20% or 30% (§2.6)? **Answered: P\* = 0.3 (decided by the lab: `lab/out/pstar_decision.json`, `shared/params.json`, etaE4 = 25,093)**, +39.2 against +28.0 bp/yr of TVL; plan 03 Task 14 wrote `shared/params.json`.
+7. What are the simulated Basel thresholds at P\* = 0.3 (§7.3)? **Answered (plan 03 Task 19): per window in `lab/out/validation.json`.**
