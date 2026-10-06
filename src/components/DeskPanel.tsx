@@ -4,6 +4,7 @@ import type { ClimData } from "@/hooks/useClimData";
 import { params } from "@/lib/config";
 import { FLAG_DEGRADED, FLAG_REPLAY, quoteFee } from "@/lib/feeMath";
 import { dvolE2ToPct, formatAge, formatPct, sigmaE9ToAnnualPct } from "@/lib/units";
+import { AnimatedCounter } from "./AnimatedCounter";
 import { ModeBadge, Panel, Stat, TxLink } from "./ui";
 
 // RiskReported.zone (spec §3.4): the model-control traffic light, 0 in the hackathon build.
@@ -20,7 +21,7 @@ export function DeskPanel({ data }: { data: ClimData }) {
   return (
     <Panel title="Risk desk (Chainlink CRE)" subtitle="4 venues, quorum 3, DON median, signed report to RiskDesk.onReport every 30 s">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="σ applied (hook input)" value={formatPct(sigmaE9ToAnnualPct(desk.sigmaE9))} hint={`reported ${formatPct(sigmaE9ToAnnualPct(last.sigmaReported))}`} />
+        <Stat label="σ applied (hook input)" value={<AnimatedCounter value={sigmaE9ToAnnualPct(desk.sigmaE9)} decimals={1} suffix="%" className="-my-[0.25em]" />} hint={`reported ${formatPct(sigmaE9ToAnnualPct(last.sigmaReported))}`} />
         <Stat label="RV15" value={formatPct(sigmaE9ToAnnualPct(last.rv15E9))} />
         <Stat label="DVOL (Deribit)" value={last.dvolE2 === 0 ? "n/a" : formatPct(dvolE2ToPct(last.dvolE2))} />
         <Stat label="Venue dispersion" value={`${last.dispBp} bp`} hint={last.dispBp > 25 ? "above 25 bp: degraded" : "limit 25 bp"} />

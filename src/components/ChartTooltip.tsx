@@ -24,7 +24,7 @@ export function ChartTooltip({ active, payload, label, only, labelFormat, valueF
     .filter((e): e is Entry => !!e && (isNum(e.value) || (Array.isArray(e.value) && e.value.length === 2 && e.value.every(isNum))));
   if (!rows.length) return null;
   return (
-    <div className="pointer-events-none min-w-40 rounded-md border border-line bg-surface/90 px-3 py-2 text-xs shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur">
+    <div className="pointer-events-none min-w-40 rounded-md border border-line bg-surface px-3 py-2 text-xs shadow-[0_8px_24px_rgba(14,17,25,0.1)]">
       {labelFormat ? <p className="mb-1 text-fg-subtle">{labelFormat(label)}</p> : null}
       <ul className="space-y-0.5">
         {rows.map((e) => (
