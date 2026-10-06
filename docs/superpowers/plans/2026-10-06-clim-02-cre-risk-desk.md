@@ -227,7 +227,7 @@ git commit -m "docs(cre): log CRE toolchain, deploy-access request and planning-
 - Create: `cre/risk-desk/config.staging.json`, `cre/risk-desk/config.replay.json`, `cre/risk-desk/config.production.json`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Create `cre/project.yaml`**
+- [x] **Step 1: Create `cre/project.yaml`**
 
 ```yaml
 # clim CRE project settings (cre CLI >= 1.37).
@@ -247,7 +247,7 @@ production-settings:
       url: https://ethereum-sepolia-rpc.publicnode.com
 ```
 
-- [ ] **Step 2: Create `cre/secrets.example.yaml` and `cre/.env.example`**
+- [x] **Step 2: Create `cre/secrets.example.yaml` and `cre/.env.example`**
 
 `cre/secrets.example.yaml`:
 
@@ -270,7 +270,7 @@ CRE_ETH_PRIVATE_KEY=
 SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
 ```
 
-- [ ] **Step 3: Create `cre/risk-desk/package.json`, `cre/risk-desk/tsconfig.json` and `cre/risk-desk/workflow.yaml`**
+- [x] **Step 3: Create `cre/risk-desk/package.json`, `cre/risk-desk/tsconfig.json` and `cre/risk-desk/workflow.yaml`**
 
 `cre/risk-desk/package.json`:
 
@@ -344,7 +344,7 @@ production-settings:
     secrets-path: ""
 ```
 
-- [ ] **Step 4: Create the three workflow configs**
+- [x] **Step 4: Create the three workflow configs**
 
 `deskAddress` is a placeholder burn address (no code) until plan 01 deploys a desk. Task 10 overwrites it with `scripts/sync-config.ts`.
 
@@ -417,7 +417,7 @@ production-settings:
 }
 ```
 
-- [ ] **Step 5: Ignore WASM builds and simulation logs**
+- [x] **Step 5: Ignore WASM builds and simulation logs**
 
 In `.gitignore`, replace the line `cre/**/.cre_build_tmp.js` with these four lines:
 
@@ -428,7 +428,7 @@ cre/**/*.wasm.br.b64
 cre/logs/
 ```
 
-- [ ] **Step 6: Install the dependencies**
+- [x] **Step 6: Install the dependencies**
 
 ```bash
 (cd cre/risk-desk && bun install)
@@ -445,7 +445,7 @@ Expected (last lines; bun may append `(vX available)` to a line, and the timing 
 39 packages installed [<time>]
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add .gitignore cre/project.yaml cre/secrets.example.yaml cre/.env.example cre/risk-desk/package.json cre/risk-desk/bun.lock cre/risk-desk/tsconfig.json cre/risk-desk/workflow.yaml cre/risk-desk/config.staging.json cre/risk-desk/config.replay.json cre/risk-desk/config.production.json
@@ -465,7 +465,7 @@ The estimator is the scientific core: the numbers it produces go on chain and in
 - Create: `cre/risk-desk/estimator.ts`
 - Test: `cre/risk-desk/estimator.test.ts`
 
-- [ ] **Step 1: Write the failing test** at `cre/risk-desk/estimator.test.ts`
+- [x] **Step 1: Write the failing test** at `cre/risk-desk/estimator.test.ts`
 
 ```ts
 import { describe, expect, test } from 'bun:test'
@@ -602,7 +602,7 @@ describe('estimate', () => {
 })
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 (cd cre/risk-desk && bun test estimator.test.ts)
@@ -610,7 +610,7 @@ describe('estimate', () => {
 
 Expected: `error: Cannot find module './estimator' from '.../cre/risk-desk/estimator.test.ts'`, then `0 pass`, `1 fail`, `1 error`.
 
-- [ ] **Step 3: Minimal implementation** at `cre/risk-desk/estimator.ts`
+- [x] **Step 3: Minimal implementation** at `cre/risk-desk/estimator.ts`
 
 ```ts
 // Pure risk-desk estimator: no SDK imports, no I/O, no clock. Every input is passed in.
@@ -782,7 +782,7 @@ export function estimate(input: EstimatorInput): Estimate {
 }
 ```
 
-- [ ] **Step 4: Run it, expected PASS**
+- [x] **Step 4: Run it, expected PASS**
 
 ```bash
 (cd cre/risk-desk && bun test estimator.test.ts)
@@ -790,7 +790,7 @@ export function estimate(input: EstimatorInput): Estimate {
 
 Expected: `13 pass`, `0 fail`, `32 expect() calls`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add cre/risk-desk/estimator.ts cre/risk-desk/estimator.test.ts
@@ -810,7 +810,7 @@ The fixtures below were captured from the six live endpoints at `1791282309` (20
 - Create: `cre/risk-desk/scripts/capture-fixtures.sh`
 - Create: `cre/risk-desk/fixtures/now.txt`, `coinbase.json`, `kraken.json`, `binance.json`, `hyperliquid.json`, `deribit.json`, `kraken_usdt.json`
 
-- [ ] **Step 1: Create the capture script** at `cre/risk-desk/scripts/capture-fixtures.sh`
+- [x] **Step 1: Create the capture script** at `cre/risk-desk/scripts/capture-fixtures.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -834,7 +834,7 @@ curl -sf -m 10 "https://api.kraken.com/0/public/Ticker?pair=USDTUSD" -o "$OUT"/k
 echo "captured at $NOW into $OUT"; wc -c "$OUT"/*.json
 ```
 
-- [ ] **Step 2: Run it into a temporary directory (health check of the six endpoints from this machine)**
+- [x] **Step 2: Run it into a temporary directory (health check of the six endpoints from this machine)**
 
 ```bash
 (cd cre/risk-desk && chmod +x scripts/capture-fixtures.sh && bash scripts/capture-fixtures.sh "$(mktemp -d)")
@@ -844,7 +844,7 @@ Expected: `captured at <unix time> into /var/folders/.../tmp.XXXX`, then six JSO
 
 The script exits non-zero on the first failing endpoint. If one fails (for example Binance HTTP 451), note which one in the session log. The workflow still works with 3 venues.
 
-- [ ] **Step 3: Write the committed fixtures exactly as below**
+- [x] **Step 3: Write the committed fixtures exactly as below**
 
 ```bash
 mkdir -p cre/risk-desk/fixtures
@@ -892,7 +892,7 @@ mkdir -p cre/risk-desk/fixtures
 {"error":[],"result":{"USDTZUSD":{"a":["0.99967000","1923929","1923929.000"],"b":["0.99966000","322231","322231.000"],"c":["0.99967000","584.25689800"],"v":["85221528.19729484","255050800.45003680"],"p":["0.99971343","0.99978489"],"t":[11698,34958],"l":["0.99959000","0.99944000"],"h":["0.99992000","1.00010000"],"o":"0.99987000"}}}
 ```
 
-- [ ] **Step 4: Check that every fixture parses**
+- [x] **Step 4: Check that every fixture parses**
 
 ```bash
 (cd cre/risk-desk && for f in fixtures/*.json; do python3 -m json.tool "$f" > /dev/null && echo "ok $f"; done)
@@ -900,7 +900,7 @@ mkdir -p cre/risk-desk/fixtures
 
 Expected: six `ok fixtures/<name>.json` lines.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add cre/risk-desk/scripts/capture-fixtures.sh cre/risk-desk/fixtures
@@ -918,7 +918,7 @@ git commit -m "test(cre): capture script and real responses of the six risk-desk
 - Create: `cre/risk-desk/venues.ts` (pure part; Task 7 adds the node-mode fetch)
 - Test: `cre/risk-desk/venues.test.ts`
 
-- [ ] **Step 1: Write the failing test** at `cre/risk-desk/venues.test.ts`
+- [x] **Step 1: Write the failing test** at `cre/risk-desk/venues.test.ts`
 
 ```ts
 import { describe, expect, test } from 'bun:test'
@@ -1034,7 +1034,7 @@ describe('replayVenueRequest', () => {
 })
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 (cd cre/risk-desk && bun test venues.test.ts)
@@ -1042,7 +1042,7 @@ describe('replayVenueRequest', () => {
 
 Expected: `error: Cannot find module './venues' from '.../cre/risk-desk/venues.test.ts'`, then `0 pass`, `1 fail`, `1 error`.
 
-- [ ] **Step 3: Minimal implementation** at `cre/risk-desk/venues.ts`
+- [x] **Step 3: Minimal implementation** at `cre/risk-desk/venues.ts`
 
 ```ts
 // Venue requests and response parsers (pure), tested on fixtures captured from the real
@@ -1227,7 +1227,7 @@ export interface DeskInput {
 }
 ```
 
-- [ ] **Step 4: Run it, expected PASS**
+- [x] **Step 4: Run it, expected PASS**
 
 ```bash
 (cd cre/risk-desk && bun test venues.test.ts)
@@ -1235,7 +1235,7 @@ export interface DeskInput {
 
 Expected: `9 pass`, `0 fail`, `22 expect() calls`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add cre/risk-desk/venues.ts cre/risk-desk/venues.test.ts
@@ -1255,7 +1255,7 @@ The golden hex is what `cast abi-encode` (Foundry, an encoder independent of vie
 - Create: `cre/risk-desk/report.ts`
 - Test: `cre/risk-desk/report.test.ts`
 
-- [ ] **Step 1: Write the failing test** at `cre/risk-desk/report.test.ts`
+- [x] **Step 1: Write the failing test** at `cre/risk-desk/report.test.ts`
 
 ```ts
 import { describe, expect, test } from 'bun:test'
@@ -1326,7 +1326,7 @@ describe('buildReport', () => {
 })
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 (cd cre/risk-desk && bun test report.test.ts)
@@ -1334,7 +1334,7 @@ describe('buildReport', () => {
 
 Expected: `error: Cannot find module './report' from '.../cre/risk-desk/report.test.ts'`, then `0 pass`, `1 fail`, `1 error`.
 
-- [ ] **Step 3: Minimal implementation** at `cre/risk-desk/report.ts`
+- [x] **Step 3: Minimal implementation** at `cre/risk-desk/report.ts`
 
 ```ts
 // Canonical CRE report (the contract between this workflow and RiskDesk._processReport) and the
@@ -1430,7 +1430,7 @@ export function decodeRiskReport(data: Hex): RiskReport {
 }
 ```
 
-- [ ] **Step 4: Run it, expected PASS, and re-derive the golden value with Foundry**
+- [x] **Step 4: Run it, expected PASS, and re-derive the golden value with Foundry**
 
 ```bash
 (cd cre/risk-desk && bun test report.test.ts)
@@ -1439,7 +1439,7 @@ cast abi-encode "f(uint40,uint32,uint32,uint16,int24,uint16,uint8,uint16,uint8)"
 
 Expected: `5 pass`, `0 fail`, `7 expect() calls`. The `cast` output equals `GOLDEN` in the test: `0x...6ac4cc85`, `...e864`, `...e864`, `...1293`, `...134d9`, `...02`, `...04`, `...2710`, `...00`, nine 32-byte words.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add cre/risk-desk/report.ts cre/risk-desk/report.test.ts
@@ -1467,7 +1467,7 @@ How the SDK pieces are used, as read in the SDK source and `cre-templates` (`cus
 - Create: `cre/risk-desk/workflow.ts`, `cre/risk-desk/main.ts`
 - Test: `cre/risk-desk/workflow.test.ts`
 
-- [ ] **Step 1: Write the failing test** at `cre/risk-desk/workflow.test.ts`
+- [x] **Step 1: Write the failing test** at `cre/risk-desk/workflow.test.ts`
 
 ```ts
 import { describe, expect } from 'bun:test'
@@ -1671,7 +1671,7 @@ describe('initWorkflow', () => {
 })
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 (cd cre/risk-desk && bun test workflow.test.ts)
@@ -1679,7 +1679,7 @@ describe('initWorkflow', () => {
 
 Expected: `error: Cannot find module './workflow' from '.../cre/risk-desk/workflow.test.ts'`, then `0 pass`, `1 fail`, `1 error`.
 
-- [ ] **Step 3: Replace `cre/risk-desk/venues.ts` entirely** (the pure part is unchanged; the SDK import and the node-mode fetch are added)
+- [x] **Step 3: Replace `cre/risk-desk/venues.ts` entirely** (the pure part is unchanged; the SDK import and the node-mode fetch are added)
 
 ```ts
 // Venue requests, response parsers and the node-mode fetch. Parsers are pure and tested on
@@ -1955,7 +1955,7 @@ export function fetchReplay(
 }
 ```
 
-- [ ] **Step 4: Create `cre/risk-desk/workflow.ts` and `cre/risk-desk/main.ts`**
+- [x] **Step 4: Create `cre/risk-desk/workflow.ts` and `cre/risk-desk/main.ts`**
 
 `cre/risk-desk/workflow.ts`:
 
@@ -2196,7 +2196,7 @@ export async function main() {
 main()
 ```
 
-- [ ] **Step 5: Run every test, expected PASS**
+- [x] **Step 5: Run every test, expected PASS**
 
 ```bash
 (cd cre/risk-desk && bun test)
@@ -2204,7 +2204,7 @@ main()
 
 Expected: `36 pass`, `0 fail`, `Ran 36 tests across 4 files.`
 
-- [ ] **Step 6: Typecheck and compile to WASM (no login needed)**
+- [x] **Step 6: Typecheck and compile to WASM (no login needed)**
 
 ```bash
 (cd cre/risk-desk && bun run typecheck)
@@ -2222,7 +2222,7 @@ Expected: `$ tsc --noEmit` with no error lines. Then:
 
 `cre-compile` also rejects APIs that are unavailable in the WASM runtime (`fetch`, `setTimeout`, `node:*`). If it reports one, replace it with a CRE capability rather than skipping the checks.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add cre/risk-desk/venues.ts cre/risk-desk/workflow.ts cre/risk-desk/main.ts cre/risk-desk/workflow.test.ts
