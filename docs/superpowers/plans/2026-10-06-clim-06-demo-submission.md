@@ -1258,7 +1258,7 @@ Glue only (the checks themselves are tested in Task 2), so no new unit test.
 **Files:**
 - Create: `docs/submission/src/check-inputs.mjs`
 
-- [ ] **Step 1: Write the CLI**
+- [x] **Step 1: Write the CLI**
 
 `docs/submission/src/check-inputs.mjs`:
 ```js
@@ -1308,7 +1308,7 @@ for (const [file, validate] of items) {
 process.exit(bad ? 1 : 0);
 ```
 
-- [ ] **Step 2: Run it on the real repo**
+- [x] **Step 2: Run it on the real repo**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run check; echo "exit=$?"`
 Expected before Gate C: one line per input (OK, MISSING, or INVALID followed by the reasons) and `exit=1`. For example after plan 04 Task 6 (infrastructure addresses and the provisional `params.json` committed) and before plan 01 deploys:
@@ -1326,7 +1326,7 @@ MISSING docs/evidence/cre-reports-sepolia.json
 exit=1
 ```
 
-- [ ] **Step 3: Check the final mode**
+- [x] **Step 3: Check the final mode**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run check:final | grep -A3 links.json`
 Expected:
@@ -1337,7 +1337,7 @@ INVALID docs/submission/links.json
   - links.videoUrl: must be an https:// URL before submission, got ""
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/submission/src/check-inputs.mjs && git commit -m "feat(submission): input checker CLI"
