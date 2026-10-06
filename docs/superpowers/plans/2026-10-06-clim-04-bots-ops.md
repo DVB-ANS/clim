@@ -2099,7 +2099,7 @@ git commit -m "feat(bots): PoolSwapTest swap arguments and retail amounts"
 - Create: `bots/src/lib/arb.ts`
 - Test: `bots/test/arb.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `bots/test/arb.test.ts`:
 ```ts
@@ -2176,12 +2176,12 @@ describe("myopic arbitrageur", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd bots && bun test test/arb.test.ts`
 Expected: `error: Cannot find module '../src/lib/arb'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `bots/src/lib/arb.ts`:
 ```ts
@@ -2229,12 +2229,12 @@ export function decideArb(i: ArbInput): ArbDecision {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd bots && bun test test/arb.test.ts && bun run typecheck`
 Expected: ` 8 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add bots/src/lib/arb.ts bots/test/arb.test.ts
