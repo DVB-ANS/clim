@@ -1,0 +1,36 @@
+{
+  "schema": "clim.lab.backtest/1",
+  "generatedAt": "fixture",
+  "pStar": 0.1,
+  "feeMinBp": 5,
+  "periods": [
+    {
+      "id": "feb-2026",
+      "label": "Feb 2026",
+      "source": "Binance ETHUSDT 1 s",
+      "blocks": 21600,
+      "equalTimeAvgFee": { "staticFeeBp": 19.2, "dynMeanFeeBp": 19.2, "arbChangePct": -20.0 },
+      "equalTraderCost": { "staticFeeBp": 21.0, "dynVolWeightedFeeBp": 21.0, "arbChangePct": -14.0 },
+      "pTrade": { "observed": 0.08, "predicted": 0.1 },
+      "arbOverLvr": { "observed": 0.387, "model": 0.3 }
+    },
+    {
+      "id": "oct-2026",
+      "label": "Oct 2026",
+      "source": "Binance ETHUSDT 1 s",
+      "blocks": 21600,
+      "equalTimeAvgFee": { "staticFeeBp": 12.0, "dynMeanFeeBp": 12.0, "arbChangePct": -24.5 },
+      "equalTraderCost": { "staticFeeBp": 13.0, "dynVolWeightedFeeBp": 13.0, "arbChangePct": 7.0 },
+      "pTrade": { "observed": 0.097, "predicted": 0.094 },
+      "arbOverLvr": { "observed": 0.399, "model": 0.3 }
+    }
+  ],
+  "replayWindows": [
+    { "id": "feb04", "label": "4 Feb 2026 12:00-16:00 UTC", "arbChangePct": -25.0 },
+    { "id": "feb04-late", "label": "4 Feb 2026 16:00-20:00 UTC", "arbChangePct": -8.0 }
+  ],
+  "replayWindowsMedianPct": -16.5,
+  "replayWindowsBetterCount": 2,
+  "lpGainPctPerYear": { "low": 0.1, "high": 0.5, "note": "full-range ETH LP", "volatileAssetHigh": 1.0, "top5WeeksSharePct": 52.87945 },
+  "inPoolVolGainSharePct": { "low": 53.686573, "high": 103.34705 }
+}

@@ -226,7 +226,7 @@ The two lab schemas are the ones plan 03 writes (its "Output contracts": `backte
 - Create: `docs/submission/test/fixtures/sepolia.json`, `params.json`, `backtest-summary.json`, `replay.json`, `validation.json`, `links.json`, `team.json`, `evidence.json`
 - Test: `docs/submission/test/inputs.test.mjs`, `docs/submission/test/lab.test.mjs`
 
-- [ ] **Step 1: Write the fixtures and the failing test**
+- [x] **Step 1: Write the fixtures and the failing test**
 
 `docs/submission/test/fixtures/sepolia.json`:
 ```json
@@ -531,12 +531,12 @@ test("replayChoiceNote says when the replay window is the most favorable one", (
 });
 ```
 
-- [ ] **Step 2: Run them, expect FAIL**
+- [x] **Step 2: Run them, expect FAIL**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/inputs.test.mjs test/lab.test.mjs`
 Expected: FAIL with `Cannot find module '.../docs/submission/src/inputs.mjs'` (`ERR_MODULE_NOT_FOUND`).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `docs/submission/src/paths.mjs`:
 ```js
@@ -819,12 +819,12 @@ export function replayChoiceNote(stats, pStar) {
 }
 ```
 
-- [ ] **Step 4: Run, expect PASS**
+- [x] **Step 4: Run, expect PASS**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/inputs.test.mjs test/lab.test.mjs`
 Expected: `# pass 13`, `# fail 0`.
 
-- [ ] **Step 5: Ask plan 03 for the three extra fields, then commit**
+- [x] **Step 5: Ask plan 03 for the three extra fields, then commit**
 
 Append to today's session log:
 ```markdown

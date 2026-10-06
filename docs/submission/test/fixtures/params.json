@@ -1,0 +1,10 @@
+{
+  "pStar": 0.3,
+  "etaE4": 25093,
+  "sqrtHalfDtE6": 2449490,
+  "feeMinPips": 500,
+  "feeMaxPips": 15000,
+  "feeSafePips": 3000,
+  "tauKillSec": 180,
+  "decidedBy": "fixture"
+}

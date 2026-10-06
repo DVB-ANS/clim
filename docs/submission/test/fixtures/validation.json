@@ -1,0 +1,25 @@
+{
+  "schema": "clim.lab.validation/1",
+  "generatedAt": "fixture",
+  "pStar": 0.3,
+  "windowBlocks": 300,
+  "nSimsTotal": 2000,
+  "samples": [
+    {
+      "name": "feb",
+      "blocks": 28716,
+      "pTradeObserved": 0.2795,
+      "pTradePredicted": 0.2989,
+      "simPValueTwoSided": 0.0,
+      "zones": { "simulated": { "green": 94, "yellow": 1, "red": 0 } }
+    },
+    {
+      "name": "oct",
+      "blocks": 21557,
+      "pTradeObserved": 0.1711,
+      "pTradePredicted": 0.1558,
+      "simPValueTwoSided": 0.0,
+      "zones": { "simulated": { "green": 62, "yellow": 7, "red": 2 } }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "chainId": 11155111,
+  "deployBlock": 11850000,
+  "uniswap": {
+    "poolManager": "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543",
+    "stateView": "0xE1Dd9c3fA50EDB962E442f60DfBc432e24537E4C"
+  },
+  "cre": { "mockForwarder": "0x15fC6ae953E024d975e77382eEeC56A9101f9F88", "keystoneForwarder": "0xF8344CFd5c43616a4366C34E3EEE75af79a74482" },
+  "tokens": {
+    "tETH": { "address": "0x1111111111111111111111111111111111111111", "symbol": "tETH", "decimals": 18 },
+    "tUSD": { "address": "0x2222222222222222222222222222222222222222", "symbol": "tUSD", "decimals": 18 }
+  },
+  "riskDesks": { "live": "0x3333333333333333333333333333333333333333", "replay": null },
+  "hooks": { "live": "0x4444444444444444444444444444444444444080", "replay": null },
+  "pools": {
+    "liveV": {
+      "key": {
+        "currency0": "0x1111111111111111111111111111111111111111",
+        "currency1": "0x2222222222222222222222222222222222222222",
+        "fee": 8388608,
+        "tickSpacing": 60,
+        "hooks": "0x4444444444444444444444444444444444444080"
+      },
+      "poolId": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "token0IsEth": true
+    },
+    "liveS": null,
+    "replayV": null,
+    "replayS": null
+  }
+}

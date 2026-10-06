@@ -1,0 +1,15 @@
+{
+  "schema": "clim.lab.replay/1",
+  "generatedAt": "fixture",
+  "window": { "id": "feb04", "label": "4 Feb 2026", "startUtc": "2026-02-04T12:00:00Z", "endUtc": "2026-02-04T16:00:00Z", "source": "Binance ETHUSDT 1 s" },
+  "params": { "pStar": 0.3, "etaE4": 25093, "sqrtHalfDtE6": 2449490, "feeMinPips": 500, "feeMaxPips": 15000, "staticFeePips": 5570 },
+  "units": { "arb": "USD per $1M of liquidity" },
+  "points": [
+    { "t": 1770206400, "price": 2650, "sigmaAnnualPct": 74, "feeVBp": 12, "feeSBp": 55.7, "cumArbV": 0, "cumArbS": 0 },
+    { "t": 1770210000, "price": 2610, "sigmaAnnualPct": 110, "feeVBp": 30, "feeSBp": 55.7, "cumArbV": 120, "cumArbS": 200 },
+    { "t": 1770213600, "price": 2480, "sigmaAnnualPct": 225, "feeVBp": 128, "feeSBp": 55.7, "cumArbV": 900, "cumArbS": 1300 },
+    { "t": 1770217200, "price": 2530, "sigmaAnnualPct": 160, "feeVBp": 80, "feeSBp": 55.7, "cumArbV": 1300, "cumArbS": 1800 },
+    { "t": 1770220800, "price": 2560, "sigmaAnnualPct": 120, "feeVBp": 45, "feeSBp": 55.7, "cumArbV": 1500, "cumArbS": 2000 }
+  ],
+  "summary": { "meanFeeVBp": 55.7, "meanFeeSBp": 55.7, "arbV": 1500, "arbS": 2000, "arbChangePct": -25.0, "pTradeObsV": 0.069, "pTradePredV": 0.092, "pTradeObsS": 0.11 }
+}

@@ -1,0 +1,16 @@
+{
+  "chainId": 11155111,
+  "collectedAt": "2026-10-07T10:00:00.000Z",
+  "fromBlock": 11850000,
+  "toBlock": 11860000,
+  "desks": [
+    {
+      "label": "riskDesks.live",
+      "address": "0x3333333333333333333333333333333333333333",
+      "reports": [
+        { "seq": 1, "txHash": "0x1000000000000000000000000000000000000000000000000000000000000001", "blockNumber": 11850010, "tObs": 1791300000, "sigmaApplied": 53419, "sigmaReported": 53419, "rv15E9": 53419, "dvolE2": 4800, "refTick": -200000, "nSources": 4, "dispBp": 3, "kE4": 10000, "zone": 0 },
+        { "seq": 2, "txHash": "0x1000000000000000000000000000000000000000000000000000000000000002", "blockNumber": 11850013, "tObs": 1791300030, "sigmaApplied": 55000, "sigmaReported": 55000, "rv15E9": 55000, "dvolE2": 4810, "refTick": -199990, "nSources": 3, "dispBp": 4, "kE4": 10000, "zone": 0 }
+      ]
+    }
+  ]
+}
