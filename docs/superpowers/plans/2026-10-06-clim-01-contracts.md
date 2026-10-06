@@ -1141,7 +1141,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/src/RiskDesk.s
 - Test: `contracts/test/fork/MockForwarder.fork.t.sol`
 - Modify: `docs/feedback/cre-friction-log.md`, `docs/sessions/2026-10-06.md`
 
-- [ ] **Step 1: Write the test**
+- [x] **Step 1: Write the test**
 
 This is a characterization test of external code, and the code under test already exists, so it passes at once. Without `SEPOLIA_RPC_URL` it skips itself. `contracts/test/fork/MockForwarder.fork.t.sol`:
 ```solidity
@@ -1224,14 +1224,14 @@ contract MockForwarderForkTest is DeskHelpers {
 }
 ```
 
-- [ ] **Step 2: Run, expected PASS**
+- [x] **Step 2: Run, expected PASS**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path 'test/fork/*' -vv
 ```
 Expected (`.env` holds `SEPOLIA_RPC_URL`): `[PASS] test_OperatorReportIsDelivered()`, `[PASS] test_ThirdPartyReportIsSwallowedNotReverted()`, `Suite result: ok. 2 passed`. Without the variable: `[SKIP: skipped] setUp()`. From now on, `forge test` includes these two fork tests whenever `.env` sets `SEPOLIA_RPC_URL`; add `--no-match-path 'test/fork/*'` to stay offline.
 
-- [ ] **Step 3: Update the CRE friction log**
+- [x] **Step 3: Update the CRE friction log**
 
 In `docs/feedback/cre-friction-log.md`:
 - Row 1 (Simulation trust model): set its Status cell to `confirmed on a Sepolia fork (contracts/test/fork/MockForwarder.fork.t.sol): report() is permissionless; clim's tx.origin guard rejects third parties`.
@@ -1245,7 +1245,7 @@ In `docs/feedback/cre-friction-log.md`:
 | <next> | Receiver template | `starter-templates/sports-resolution/.../ReceiverTemplate.sol` (cre-templates `d0223f3`) requires `metadata.length == 62`, but KeystoneForwarder and MockKeystoneForwarder pass `rawReport[45:109]` = 64 bytes (workflow id 32, name 10, owner 20, report id 2). As soon as `setExpectedWorkflowId` / `Author` / `Name` is set, every report reverts `InvalidMetadataLength(64, 62)`. Reproduced with a forge test feeding real forwarder metadata. The other templates (circuit-breaker, event-reactor, …) have no length check. | Set `METADATA_LENGTH` to 64 and add a test with real forwarder metadata. Candidate upstream PR. | verified (forge test) |
 ```
 
-- [ ] **Step 4: Log it**
+- [x] **Step 4: Log it**
 
 Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
 ```markdown
@@ -1254,7 +1254,7 @@ Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
   - Bots and the CRE loop must check `RiskReported` or `state().seq`, not the tx status.
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/test/fork/MockForwarder.fork.t.sol docs/feedback/cre-friction-log.md docs/sessions/2026-10-06.md && git commit -m "test(contracts): fork test of the Sepolia MockKeystoneForwarder against RiskDesk"
