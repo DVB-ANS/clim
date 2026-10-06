@@ -24,7 +24,7 @@
   --clim-fg-muted: #4e5560; /* gray 600: secondary and long-form text */
   --clim-fg-subtle: #6c7585; /* gray 500: captions, 4.7:1 on white */
   --clim-link: #0e1119; /* links keep the text colour, with a blue underline */
-  --clim-danger: #c8281e; /* a true red, kept apart from the pinks */
+  --clim-danger: #b3241b; /* a true red, kept apart from the pinks; 5:1 on its own tint */
   --clim-notice-bg: #eff6ff; /* fixture and mock notices */
   --clim-notice-fg: #00299a;
   --clim-accent: #0847f7; /* Chainlink Blue: primary actions, wallet modal */
@@ -54,10 +54,11 @@
   --clim-band: #dcebff; /* P_trade simulated band: blue 100 */
   --clim-ink: #4e5560; /* predicted line, ETH/USD price */
 
-  /* Hook modes: always shown with an icon and a label, as tinted pills */
-  --clim-normal: #267e46;
-  --clim-degraded: #a16207;
-  --clim-blind: #c8281e;
+  /* Hook modes: always shown with an icon and a label, as tinted pills (text on its own 12-15 % tint
+     stays at 4.7:1 or more on white, surface-2 and wash) */
+  --clim-normal: #1f6e3c;
+  --clim-degraded: #845605;
+  --clim-blind: #b3241b;
 
   /* The CL-1's screen: a dark instrument on the white page */
   --clim-lcd-bg: #0e1119;
