@@ -634,7 +634,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/src/interfaces
 - Create: `contracts/src/RiskDesk.sol`
 - Test: `contracts/test/utils/DeskHelpers.sol`, `contracts/test/RiskDesk.t.sol`
 
-- [ ] **Step 1: Write the test fixtures and the failing test**
+- [x] **Step 1: Write the test fixtures and the failing test**
 
 `contracts/test/utils/DeskHelpers.sol`:
 ```solidity
@@ -978,14 +978,14 @@ contract RiskDeskTest is DeskHelpers {
 }
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path test/RiskDesk.t.sol
 ```
 Expected: `Error (6275): Source "src/RiskDesk.sol" not found`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `contracts/src/RiskDesk.sol`. The event is emitted from a separate private function because the 11-field emit inside `_processReport` hits "stack too deep" without `via_ir`.
 ```solidity
@@ -1108,14 +1108,14 @@ contract RiskDesk is ReceiverTemplate, IRiskDesk {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path test/RiskDesk.t.sol
 ```
 Expected: `Suite result: ok. 30 passed; 0 failed; 0 skipped`.
 
-- [ ] **Step 5: Log the desk constants**
+- [x] **Step 5: Log the desk constants**
 
 Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
 ```markdown
@@ -1126,7 +1126,7 @@ Append under `## Contracts (plan 01)` in `docs/sessions/2026-10-06.md`:
   - `zone` is logged only (0 not validated, 1 green, 2 yellow, 3 red, as in spec §3.4 and plan 02).
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/src/RiskDesk.sol contracts/test/utils/DeskHelpers.sol contracts/test/RiskDesk.t.sol docs/sessions/2026-10-06.md && git commit -m "feat(contracts): RiskDesk CRE consumer with sim guard, freshness, quorum, envelope and flags"
