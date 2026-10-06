@@ -69,7 +69,7 @@ export default function HowPage() {
       </Panel>
       <ContractsPanel />
       <Panel id="faq" title="FAQ">
-        <div className="text-sm [&_code]:text-xs [&_code]:wrap-anywhere [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-semibold [&_hr]:my-4 [&_li]:ml-5 [&_li]:list-disc [&_p]:mt-2 [&_td]:pr-4 [&_th]:pr-4 [&_th]:text-left">
+        <div className="text-sm [&_pre]:mt-2 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:rounded-sm [&_pre]:bg-surface-2 [&_pre]:p-2 [&_code]:text-xs [&_code]:wrap-anywhere [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-semibold [&_hr]:my-4 [&_li]:ml-5 [&_li]:list-disc [&_p]:mt-2 [&_td]:pr-4 [&_th]:pr-4 [&_th]:text-left">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{FAQ_MD}</ReactMarkdown>
         </div>
       </Panel>
