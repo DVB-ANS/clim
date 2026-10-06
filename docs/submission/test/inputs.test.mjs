@@ -37,9 +37,13 @@ test("schemaErrors names the expected schema", () => {
   assert.deepEqual(schemaErrors({ schema: "x" }, REPLAY_SCHEMA), ['schema must be "clim.lab.replay/1", got "x"']);
 });
 
-test("final link check requires https URLs", () => {
+test("final link check requires https URLs and a dashboard wired to Sepolia", () => {
   assert.deepEqual(linkErrors(fx("links.json"), { final: false }), []);
   assert.equal(linkErrors(fx("links.json"), { final: true }).length, 3);
+  const live = { ...fx("links.json"), liveUrl: "https://a.example", deckUrl: "https://b.example", videoUrl: "https://c.example" };
+  assert.deepEqual(linkErrors(live, { final: true }), []);
+  assert.deepEqual(linkErrors({ ...live, liveMockData: true }, { final: true }), ["links.liveMockData: the dashboard still serves mock data; wire it to Sepolia (master Task 14) and remove the flag"]);
+  assert.deepEqual(linkErrors({ ...live, liveMockData: true }, { final: false }), []);
 });
 
 test("collectAddresses walks any shape, dedupes addresses, finds pool ids", () => {

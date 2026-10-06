@@ -6,19 +6,32 @@ import { renderLinks, renderDeployments, renderParams, renderFeeSchedule, render
 const fx = (name) => readJson(new URL(`./fixtures/${name}`, import.meta.url));
 
 test("links: one bold row, empty URLs marked, the CRE documents linked", () => {
-  const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example" });
+  const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example" }, { evidenceReady: true });
   assert.equal(out.split("\n").length, 1);
   assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* · /);
   assert.match(out, / · \*\*Video demo\*\* _\(added at submission\)_ · \*\*Deck\*\* _\(added at submission\)_ · /);
   assert.match(out, /\*\*\[CRE evidence\]\(docs\/evidence\/\)\*\*/);
   assert.match(out, /\*\*\[CRE DevEx report\]\(docs\/feedback\/cre-devex-report\.md\)\*\*/);
   assert.match(out, /\*\*\[CRE friction log\]\(docs\/feedback\/cre-friction-log\.md\)\*\*$/);
+  assert.doesNotMatch(out, /mock data/);
+});
+
+test("links: a mock dashboard says so; CRE evidence falls back to cre/README.md until docs/evidence exists", () => {
+  const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example", liveMockData: true });
+  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* _\(mock data until wired to Sepolia\)_ · /);
+  assert.match(out, /\*\*\[CRE evidence\]\(cre\/README\.md#evidence\)\*\*/);
+  assert.doesNotMatch(out, /docs\/evidence/);
+  assert.match(renderAll({ links: fx("links.json"), evidence: fx("evidence.json") }).links, /\[CRE evidence\]\(docs\/evidence\/\)/);
+  assert.match(renderAll({ links: fx("links.json"), evidence: null }).links, /\[CRE evidence\]\(cre\/README\.md#evidence\)/);
 });
 
 test("deployments: human labels, grouped, truncated Etherscan links, pools with their fee", () => {
   const out = renderDeployments(fx("sepolia.json"));
   assert.match(out, /^Everything runs on Ethereum Sepolia \(chain id 11155111\)\./);
-  assert.match(out, /\| \*\*clim\*\* \| `RiskDesk` \(live\) \| \[`0x33333333…3333`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0x3333333333333333333333333333333333333333\) \|/);
+  assert.match(out, /^\| \| Contract \| Address \| Source \| Role \|$/m);
+  assert.match(out, /\| \*\*clim\*\* \| `RiskDesk` \(live\) \| \[`0x33333333…3333`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0x3333333333333333333333333333333333333333\) \| \[Sourcify\]\(https:\/\/repo\.sourcify\.dev\/11155111\/0x3333333333333333333333333333333333333333\) \| receives the CRE report every 30 s \|/);
+  assert.match(out, /`PoolManager` \| \[`0xE03A1074…3543`\]\([^)]+\) \|  \| the v4 singleton/);
+  assert.equal(out.split("\n").filter((l) => l.includes("repo.sourcify.dev")).length, 4);
   assert.match(out, /\| \*\*Uniswap v4\*\* \| `PoolManager` \| \[`0xE03A1074…3543`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0xE03A1074c86CFeDd5C142C4F04F1a1536e203543\) \|/);
   assert.match(out, /\|  \| `StateView` \|/);
   const order = ["**clim**", "**Uniswap v4**", "**Chainlink**", "**Test tokens and bots**"].map((g) => out.indexOf(g));
@@ -61,11 +74,12 @@ test("results show both comparisons, the replay and the weak spots, rounded", ()
   assert.match(out, /same cost to traders\*\* \| -14\.0% \| \+7\.0% \|/);
   assert.match(out, /predicted \/ observed \| 10\.0% \/ 8\.0% \| 9\.4% \/ 9\.7% \|/);
   assert.match(out, /\(2026-02-04 12:00 to 16:00 UTC\): volatility 74% → 225%, clim's fee 12 → 128 bp/);
-  assert.match(out, /against a fixed 55\.7 bp pool/);
-  assert.match(out, /range over the 2 rolling 4 h windows of the storm: -25\.0% to -8\.0%\)/);
-  assert.match(out, /it is the most favorable of the 2 rolling 4 h windows of the storm \(median window -16\.5%, 2 of 2 better than the fixed pool\)/);
-  assert.match(out, /\+0\.10% to \+0\.50% of capital per year \(\$1,000 to \$5,000 a year per \$1M of liquidity; full-range ETH LP\), and \+1\.00% in the main scenario on an asset twice as volatile \(the same year with every return doubled\)/);
-  assert.match(out, /with about 53% of it earned/);
+  assert.match(out, /against a fixed 55\.7 bp pool with the same average fee; share of the clim pool's blocks arbitraged, predicted \/ observed: 9\.2% \/ 6\.9%\. The window was picked/);
+  assert.match(out, /At P\* = 10% no rolling 4 h window of the storm does better \(best -25\.0%\): the worst of the 2 is -8\.0%, the median -16\.5%, and 2 of 2 beat the fixed pool\./);
+  assert.doesNotMatch(out, /most favorable/);
+  assert.match(out, /\+0\.10% to \+0\.50% of capital per year \(\$1,000 to \$5,000 a year per \$1M of liquidity; full-range ETH LP\)\. In the main scenario \(an aggregator routes retail between clim and a deeper 5 bp pool\), ETH gains \+0\.39% a year, about 53% of it earned in the five stormiest weeks of the year; the same scenario on an asset twice as volatile \(the same year with every return doubled\) gains \+1\.00%\./);
+  const { yearAttribution, ...noAttribution } = fx("backtest-summary.json");
+  assert.match(renderResults(noAttribution, fx("replay.json"), fx("validation.json")), /\), about 53% of ETH's gain earned in the five stormiest weeks of the year; the same scenario/);
   assert.match(out, /1\.29 to 1\.33 times above the model/);
   assert.match(out, /lands within 10% of the prediction, but the gap is statistically significant \(p < 0\.0005/);
   assert.match(out, /capture 54% to 103% of the same gain \(see "Why Chainlink CRE"; above 100% means the in-pool estimate did slightly better in one sample\)/);

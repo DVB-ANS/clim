@@ -140,9 +140,9 @@ export function addSlides(pres, d) {
     ],
     chartBase({ x: 5.5, y: 1.45, w: 7.23, h: 4.6, chartColors: [C.amber, C.grey], lineSize: 2.5, lineDataSymbol: "none", title: `LP losses to arbitrage, cumulative (${r.arbUnit})`, showLegend: true, legendPos: "b", catAxisLabelFrequency: "20", valAxisLabelFormatCode: "#,##0", objectName: "s7-arb-chart" }),
   );
-  const chosen = r.windowsBeatingChosen === 0 ? "this window is the most favorable one" : `${r.windowsBeatingChosen} windows did better than this one`;
+  const chosen = r.windowsBeatingChosen === 0 ? "no rolling window does better than this one" : `${r.windowsBeatingChosen} rolling windows do better than this one`;
   note(s7, { x: 5.5, y: 6.15, w: 7.23, h: 0.75, size: 11, name: "s7-range", text: `Over the ${r.windowsCount} rolling 4 h windows of the storm: ${signed(r.arbChangeRangePct[0])} to ${signed(r.arbChangeRangePct[1])}, median ${signed(r.windowsMedianPct)}; ${chosen} (picked during design, at an earlier setting). Predicted / observed arbitraged blocks: ${pct(r.pTradePredicted)} / ${pct(r.pTradeObserved)}.` });
-  s7.addNotes("The replay feeds real Binance prices of the 4 February 2026 storm through the same desk and hook. Both pools have the same average fee, so the gain comes from charging at the right time, not from charging more. We picked this window during design, at the old setting, around the sharpest rise in volatility, after comparing three candidates; at the final setting it turns out to be the most favorable 4 h window of the storm, so the slide shows the range and the median of all the hourly windows next to it.");
+  s7.addNotes("The replay feeds real Binance prices of the 4 February 2026 storm through the same desk and hook. Both pools have the same average fee, so the gain comes from charging at the right time, not from charging more. We picked this window during design, at the old setting, around the sharpest rise in volatility, after comparing three candidates; at the final setting no rolling 4 h window of the storm does better, so the slide shows the range and the median of all the hourly windows next to it.");
 
   // 8. Proof: prediction
   const s8 = content(pres, "Proof", `How often the pool is arbitraged: predicted within ${model.maxGapPct}%`); // one line at 36 pt
@@ -204,9 +204,9 @@ export function addSlides(pres, d) {
   stat(s11, { x: M, y: 1.6, w: 4.6, value: `${Math.round(bt.inPoolVolGainSharePct.low)}–${Math.round(bt.inPoolVolGainSharePct.high)}%`, label: "of the desk's gain is also captured by a volatility measured inside the pool (our lab). So CRE is about trust, not about the number.", color: C.sky, valueSize: 54, name: "s11-honest" });
   [
     ["Four exchanges must agree", "Nobody moves the fee with fake trades on the pool."],
-    ["One signed report", "Delivered through the Chainlink forwarder, not a keeper key."],
+    ["One signed report", "On a DON it arrives through the KeystoneForwarder, with no keeper key. In simulation our operator key submits it."],
     ["One figure, many pools and chains", "CRE writes to EVM chains and to Solana."],
-    ["Model control off-chain", "The desk checks its own prediction and can raise k."],
+    ["Model control off-chain", "k can only make the fee more prudent. k = 1 in this build: the model check runs in the lab."],
   ].forEach(([h, b], i) => {
     card(pres, s11, { x: 5.7, y: 1.5 + i * 1.28, w: 7.03, h: 1.13, heading: h, body: b, color: C.amber, headSize: 17, bodySize: 14, name: `s11-row${i + 1}` });
   });
@@ -217,7 +217,7 @@ export function addSlides(pres, d) {
   const g = bt.lpGainPctPerYear;
   [
     ["Latency", "At least 30 s plus inclusion. The first move of a jump is still arbitraged at the old fee."],
-    ["Modest average gain", `${signed2(g.low)} to ${signed2(g.high)} of capital per year (${usdPerMillion(g.low)} to ${usdPerMillion(g.high)} per $1M), about ${Math.round(g.top5WeeksSharePct)}% of it in the 5 stormiest weeks.`],
+    ["Modest average gain", `${signed2(g.low)} to ${signed2(g.high)} of capital per year (${usdPerMillion(g.low)} to ${usdPerMillion(g.high)} per $1M). Main scenario: about ${Math.round(g.top5WeeksSharePct)}% of the gain in the 5 stormiest weeks.`],
     ["Severity", `Arbitrage costs ${severity[0].toFixed(2)} to ${severity[1].toFixed(2)} times more than the model says. Only the frequency is predicted well (within ${model.maxGapPct}%).`],
     ["Simulation", "One CRE node and a mock forwarder without signatures. RiskDesk accepts simulated reports only from our operator key."],
     ["Our own bots", "Sepolia proves the plumbing, not the market. No mainnet pool yet."],
@@ -251,7 +251,7 @@ export function addSlides(pres, d) {
   });
   const linkRows = [
     ["Code", links.repoUrl],
-    ["Live dashboard", links.liveUrl || "added at submission"],
+    ["Live dashboard", links.liveUrl && !links.liveMockData ? links.liveUrl : "added at submission"],
     ["CRE evidence", `${links.repoUrl}/tree/main/docs/evidence`],
   ];
   s14.addTable(
@@ -339,7 +339,7 @@ export function addSlides(pres, d) {
     "Kupiec (1995) test: LR = −2·ln[(1−P*)^(N−X)·P*^X] + 2·ln[(1−p̂)^(N−X)·p̂^X], compared with χ²(1).",
     "Arbitrage arrives in clusters: after an arbitraged block, the next one is arbitraged far more often. Textbook Basel traffic-light zones (BCBS, January 1996) assume independent exceptions, so they flag a correct model too often.",
     "Our alert thresholds are computed by simulating the model, and a severity check compares realized losses per arbitrage with the model.",
-    "In red, the desk raises the model-risk multiplier k = clamp(σ_arb / σ̂, 1, 2): it can only make the fee more prudent.",
+    "In red, the desk raises the model-risk multiplier k = clamp(σ_arb / σ̂, 1, 2): it can only make the fee more prudent. In this build k = 1 and the check runs in the lab; RiskDesk already clamps k to [1, 2], so turning it on is a workflow change.",
   ];
   a3.addText(
     ctrl.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < ctrl.length - 1 } })),

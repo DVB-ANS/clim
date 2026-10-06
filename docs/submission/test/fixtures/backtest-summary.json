@@ -32,5 +32,6 @@
   "replayWindowsMedianPct": -16.5,
   "replayWindowsBetterCount": 2,
   "lpGainPctPerYear": { "low": 0.1, "high": 0.5, "note": "full-range ETH LP", "volatileAssetHigh": 1.0, "top5WeeksSharePct": 52.87945 },
-  "inPoolVolGainSharePct": { "low": 53.686573, "high": 103.34705 }
+  "inPoolVolGainSharePct": { "low": 53.686573, "high": 103.34705 },
+  "yearAttribution": { "clim_p10": { "gainVsStatic5BpYr": 39.110205, "shareOfGainTop5TurbulentWeeks": 0.5287945, "weeksWithGain": 27, "weeks": 53 } }
 }

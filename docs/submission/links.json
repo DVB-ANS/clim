@@ -1,6 +1,7 @@
 {
   "repoUrl": "https://github.com/DVB-ANS/clim",
-  "liveUrl": "",
+  "liveUrl": "https://clim-zeta.vercel.app",
+  "liveMockData": true,
   "deckUrl": "",
   "videoUrl": ""
 }

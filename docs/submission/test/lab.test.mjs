@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readJson } from "../src/inputs.mjs";
-import { replayStats, severityRange, validationFacts, usdPerMillion, replayChoiceNote } from "../src/lab.mjs";
+import { replayStats, severityRange, validationFacts, usdPerMillion, replayChoiceNote, mainScenarioGainPct } from "../src/lab.mjs";
 
 const fx = (name) => readJson(new URL(`./fixtures/${name}`, import.meta.url));
 
@@ -47,11 +47,18 @@ test("usdPerMillion turns % of capital per year into dollars per $1M", () => {
   assert.equal(usdPerMillion(0.70240233), "$7,024");
 });
 
-test("replayChoiceNote says when the replay window is the most favorable one", () => {
+test("replayChoiceNote compares the replay window with the rolling windows, never ranks it among them", () => {
   const stats = replayStats(fx("replay.json"), fx("backtest-summary.json"));
   assert.equal(
     replayChoiceNote(stats, 0.3),
-    "The window was picked during design, at an earlier setting, around the sharpest rise in volatility of the storm, after comparing three candidate windows (lab/scratch/replay_pick*.py); at P* = 30% it is the most favorable of the 2 rolling 4 h windows of the storm (median window -16.5%, 2 of 2 better than the fixed pool).",
+    "The window was picked during design, at an earlier setting, around the sharpest rise in volatility of the storm, after comparing three candidate windows (lab/scratch/replay_pick*.py). At P* = 30% no rolling 4 h window of the storm does better (best -25.0%): the worst of the 2 is -8.0%, the median -16.5%, and 2 of 2 beat the fixed pool.",
   );
-  assert.match(replayChoiceNote({ ...stats, windowsBeatingChosen: 1 }, 0.3), /at P\* = 30% 1 of the 2 rolling 4 h windows of the storm did better/);
+  assert.match(replayChoiceNote({ ...stats, windowsBeatingChosen: 1 }, 0.3), /At P\* = 30% 1 of the 2 rolling 4 h windows of the storm does better \(best -25\.0%\)/);
+  assert.match(replayChoiceNote({ ...stats, windowsBeatingChosen: 2 }, 0.3), /2 of the 2 rolling 4 h windows of the storm do better/);
+});
+
+test("mainScenarioGainPct reads the year attribution at the deployed P*, in % of capital per year", () => {
+  assert.equal(mainScenarioGainPct(fx("backtest-summary.json")), 0.39110205);
+  assert.equal(mainScenarioGainPct({ ...fx("backtest-summary.json"), pStar: 0.3 }), null);
+  assert.equal(mainScenarioGainPct({ pStar: 0.1 }), null);
 });

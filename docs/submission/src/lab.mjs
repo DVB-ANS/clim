@@ -54,10 +54,22 @@ export function usdPerMillion(pctPerYear) {
   return `${pctPerYear < 0 ? "-" : ""}$${usd.toLocaleString("en-US")}`;
 }
 
-// The replay window against the rolling windows, said the same way in the README and the deck.
+// The replay window against the rolling windows, said the same way in the README and the deck. The 4 February
+// 12:00-16:00 window is not one of the rolling windows (those start at :16 past each hour): it is compared with
+// them, never ranked among them.
 export function replayChoiceNote(stats, pStar) {
-  const where = stats.windowsBeatingChosen === 0
-    ? `it is the most favorable of the ${stats.windowsCount} rolling 4 h windows of the storm`
-    : `${stats.windowsBeatingChosen} of the ${stats.windowsCount} rolling 4 h windows of the storm did better`;
-  return `The window was picked during design, at an earlier setting, around the sharpest rise in volatility of the storm, after comparing three candidate windows (lab/scratch/replay_pick*.py); at P* = ${Math.round(pStar * 100)}% ${where} (median window ${stats.windowsMedianPct > 0 ? "+" : ""}${stats.windowsMedianPct.toFixed(1)}%, ${stats.windowsBetterCount} of ${stats.windowsCount} better than the fixed pool).`;
+  const sign = (x) => `${x > 0 ? "+" : ""}${x.toFixed(1)}%`;
+  const [best, worst] = stats.arbChangeRangePct;
+  const n = stats.windowsBeatingChosen;
+  const where = n === 0
+    ? `no rolling 4 h window of the storm does better (best ${sign(best)})`
+    : `${n} of the ${stats.windowsCount} rolling 4 h windows of the storm ${n === 1 ? "does" : "do"} better (best ${sign(best)})`;
+  return `The window was picked during design, at an earlier setting, around the sharpest rise in volatility of the storm, after comparing three candidate windows (lab/scratch/replay_pick*.py). At P* = ${Math.round(pStar * 100)}% ${where}: the worst of the ${stats.windowsCount} is ${sign(worst)}, the median ${sign(stats.windowsMedianPct)}, and ${stats.windowsBetterCount} of ${stats.windowsCount} beat the fixed pool.`;
+}
+
+// The main (aggregator) scenario's year gain for ETH, in % of capital per year, from the lab's year attribution at the
+// deployed P* (the share earned in the five stormiest weeks, top5WeeksSharePct, is a share of this gain). Null if absent.
+export function mainScenarioGainPct(backtest) {
+  const bpYr = backtest.yearAttribution?.[`clim_p${Math.round(backtest.pStar * 100)}`]?.gainVsStatic5BpYr;
+  return typeof bpYr === "number" ? bpYr / 100 : null;
 }
