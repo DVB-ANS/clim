@@ -3032,7 +3032,7 @@ Append to `cre/README.md`:
 
 - Live RiskDesk: https://sepolia.etherscan.io/address/0x<live desk> (reports every 30 s from the simulation loop).
 - First simulated report: https://sepolia.etherscan.io/tx/0x<tx>; forged report that the desk ignored: https://sepolia.etherscan.io/tx/0x<forged tx>.
-- End-to-end latency, DON time to Sepolia block: median <b> s, p90 <c> s over <N> reports (`risk-desk/scripts/latency.ts`).
+- End-to-end latency, observation time (tObs) to block: median <b> s, p90 <c> s over <N> reports (`risk-desk/scripts/latency.ts`).
 - DON deployment (if done): workflow ID 0x<id>, DON desk https://sepolia.etherscan.io/address/0x<don desk>.
 ```
 

@@ -4941,7 +4941,7 @@ git commit -m "docs(session): /swap and /lp checked on Sepolia"
 **Delegable:** yes
 **Depends on:** master plan Task 14 Steps 1 to 4 (the app is in `app/`, `npm ci` done); plan 01 Task 7 (the `TestToken` faucet); plan 03 Task 17 (the `replay.windows*` fields of `lab/out/summary.json`; until they exist the replay note is simply not shown)
 
-The plan review (2026-10-06) found what the clim-front build could not know: lab numbers printed with 8 significant digits, a typed volatility range on `/replay` that contradicts the lab, no context for the replay window (at P\* = 0.3 it is the most favorable of 92), and no ABI fragment for the faucet's cooldown error. The fixes below were applied to a scratch import of clim-front at commit `c924078` and checked there (`tsc`, `eslint`, `vitest`, `next build`).
+The plan review (2026-10-06) found what the clim-front build could not know: lab numbers printed with 8 significant digits, a typed volatility range on `/replay` that contradicts the lab, no context for the replay window (at P\* = 0.3 no rolling 4 h window of the storm does better: best −18.4 %, median −2.1 %), and no ABI fragment for the faucet's cooldown error. The fixes below were applied to a scratch import of clim-front at commit `c924078` and checked there (`tsc`, `eslint`, `vitest`, `next build`).
 
 **Files:**
 - Create: `app/src/lib/labText.ts`, `app/src/lib/labText.test.ts`
@@ -4970,9 +4970,9 @@ describe("lab numbers as judges read them", () => {
   });
 
   it("puts the replay window in the context of the rolling windows", () => {
-    const r = { windowsMedianPct: -2.1181905, windowsBetterCount: 66, windowsCount: 92, windowsBeatingChosenCount: 0 };
+    const r = { arbChangeRangePct: [-18.366445, 3.1499447] as [number, number], windowsMedianPct: -2.1181905, windowsBetterCount: 66, windowsCount: 92, windowsBeatingChosenCount: 0 };
     expect(replayWindowNote(r)).toBe(
-      "Picked during design at an earlier setting, around the sharpest rise in volatility: at this P* it is the most favorable of the 92 rolling 4 h windows of the storm (median window -2.1%, 66 of 92 better than the static pool).",
+      "Picked during design at an earlier setting, around the sharpest rise in volatility: at this P* no rolling 4 h window of the storm does better (best -18.4%); median window -2.1%, 66 of 92 better than the static pool.",
     );
     expect(replayWindowNote({ ...r, windowsBeatingChosenCount: 3 })).toContain("3 of the 92 rolling 4 h windows of the storm did better");
     expect(replayWindowNote({})).toBeNull();
@@ -5009,6 +5009,7 @@ export function usdPerMillion(pctPerYear: number): string {
 }
 
 export type ReplayWindows = {
+  arbChangeRangePct?: [number, number];
   windowsMedianPct?: number;
   windowsBetterCount?: number;
   windowsCount?: number;
@@ -5019,10 +5020,12 @@ export type ReplayWindows = {
 export function replayWindowNote(r: ReplayWindows): string | null {
   const { windowsMedianPct: median, windowsBetterCount: better, windowsCount: n, windowsBeatingChosenCount: beating } = r;
   if (median === undefined || better === undefined || n === undefined || beating === undefined) return null;
+  const best = r.arbChangeRangePct?.[0];
+  // The replay window (12:00-16:00) is not one of the rolling windows (they start at :16), so the note says none does better.
   const where = beating === 0
-    ? `it is the most favorable of the ${n} rolling 4 h windows of the storm`
+    ? `no rolling 4 h window of the storm does better${best === undefined ? "" : ` (best ${signedPct(best, 1)})`}`
     : `${beating} of the ${n} rolling 4 h windows of the storm did better`;
-  return `Picked during design at an earlier setting, around the sharpest rise in volatility: at this P* ${where} (median window ${signedPct(median, 1)}, ${better} of ${n} better than the static pool).`;
+  return `Picked during design at an earlier setting, around the sharpest rise in volatility: at this P* ${where}; median window ${signedPct(median, 1)}, ${better} of ${n} better than the static pool.`;
 }
 ```
 

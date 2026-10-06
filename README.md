@@ -213,8 +213,9 @@ gain (see Results). CRE is not what makes the number possible. It is what makes 
   submits them through `MockKeystoneForwarder`.
 - **One figure for many pools and chains.** CRE can write the same report to other EVM chains and
   to Solana.
-- **Room for model control.** The desk can compare its own prediction with what happens on-chain
-  and raise k without anyone touching the hook (k = 1 in this build, see the fee above).
+- **Room for model control.** The desk could compare its own prediction with what happens on-chain
+  and raise k without anyone touching the hook, once the workflow sends k (k = 1 in this build, see
+  the fee above).
 
 A price feed with a 0.5% deviation threshold and a one-hour heartbeat is too coarse for this, and a
 pull oracle would let the swapper choose its report. Chainlink does list ETH realized-volatility
@@ -249,7 +250,7 @@ last updated on 2024-08-30): a storm that lasts an hour barely moves them ([FAQ]
 
 We logged every CRE friction as it happened: 25 rows in the
 [friction log](docs/feedback/cre-friction-log.md), summarized for the Chainlink team in the
-[DevEx report](docs/feedback/cre-devex-report.md). The three that cost us the most:
+[DevEx report](docs/feedback/cre-devex-report.md). The three most useful to Chainlink:
 
 - **The sports-resolution starter's receiver template rejects every report once identity checks
   are on.** Its `ReceiverTemplate.sol` (cre-templates `d0223f3`) requires 62 bytes of metadata, but
@@ -262,7 +263,9 @@ We logged every CRE friction as it happened: 25 rows in the
   whenever the forwarder transaction is mined, and `MockKeystoneForwarder` does not revert when the
   consumer does. A forged report on Sepolia
   ([`0x34ee46a6…53d9`](https://sepolia.etherscan.io/tx/0x34ee46a6947d2831fdb3e5a09f831008589efd9cf099f61dca86dc4cdadc53d9))
-  was mined with status 1, `ReportProcessed` false and no `RiskReported`. The workflow re-reads
+  was mined with status 1, `ReportProcessed` false and no `RiskReported`. The docs already say the
+  status is always `SUCCESS` in simulation, but give the wrong reason: that the mock does not call
+  the consumer's `onReport`, when it does (friction log row 2). The workflow re-reads
   `RiskDesk.state()` after each write to tell the two apart (friction log row 9).
 - **Simulation is one node, and it needs the network.** The Sepolia mock forwarder checks no
   signature, so `RiskDesk` only accepts simulated reports sent by the operator key (`tx.origin`),
