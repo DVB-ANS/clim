@@ -20,6 +20,8 @@
   --clim-danger: #b91c1c;
   --clim-notice-bg: #fffbeb; /* fixture and mock notices */
   --clim-notice-fg: #92400e;
+  --clim-accent: #2a78d6; /* buttons, wallet modal */
+  --clim-accent-fg: #ffffff;
 
   /* Entities: one colour per entity on every chart (dataviz reference palette, light) */
   --clim-v: #2a78d6; /* pool V, clim (dynamic fee) */
@@ -56,6 +58,8 @@
   --color-danger: var(--clim-danger);
   --color-notice-bg: var(--clim-notice-bg);
   --color-notice-fg: var(--clim-notice-fg);
+  --color-accent: var(--clim-accent);
+  --color-accent-fg: var(--clim-accent-fg);
   --color-v: var(--clim-v);
   --color-s: var(--clim-s);
   --color-sigma: var(--clim-sigma);

@@ -25,3 +25,11 @@ export const MODE_STYLE: Record<FeeMode, { label: string; icon: string; color: s
 export function utcTime(t: number): string {
   return new Date(t * 1000).toISOString().slice(11, 16);
 }
+
+/** RainbowKit theme options (lightTheme): the wallet modal and button follow the tokens too. */
+export const WALLET_THEME = {
+  accentColor: "var(--clim-accent)",
+  accentColorForeground: "var(--clim-accent-fg)",
+  borderRadius: "small",
+  fontStack: "system",
+} as const;
