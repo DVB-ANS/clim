@@ -2585,7 +2585,7 @@ Expected:
 
 Write the forged tx hash in the session log (demo evidence). Set friction row 9 to `confirmed <date>: forged tx 0x<hash> mined with status 1, ReportProcessed false, desk unchanged`.
 
-- [ ] **Step 7: Start the broadcast loop**
+- [x] **Step 7: Start the broadcast loop**
 
 Use the bare script until plan 04's `bun run cre-loop --pair live` is ready. Then stop this one (`pkill -f sim-loop.sh`) and start `cre-loop`, which runs the same script and records every run: two loops on one desk collide on the 20 s MIN_GAP.
 
