@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Doto, Inter, Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
+import { MotionProvider } from "@/components/MotionProvider";
 import { WalletProviders } from "@/components/WalletProviders";
 import "./globals.css";
 
@@ -20,7 +21,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     // In-page anchors glide (globals.css); a route change jumps to the top instead (Next 16 opt-in).
     <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${interTight.variable} ${doto.variable}`}>
       <body className="min-h-screen">
-        <WalletProviders>{children}</WalletProviders>
+        <WalletProviders>
+          <MotionProvider>{children}</MotionProvider>
+        </WalletProviders>
       </body>
     </html>
   );

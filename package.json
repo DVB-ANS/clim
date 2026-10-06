@@ -11,11 +11,13 @@
     "test": "vitest run",
     "sync": "node scripts/sync-data.mjs",
     "fixtures": "tsx scripts/make-fixtures.ts",
-    "snapshot": "tsx scripts/snapshot.ts"
+    "snapshot": "tsx scripts/snapshot.ts",
+    "dither": "node scripts/make-dither.mjs"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.11",
     "@tanstack/react-query": "^5.104.1",
+    "motion": "^14.0.0",
     "next": "16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",

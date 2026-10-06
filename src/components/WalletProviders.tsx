@@ -11,7 +11,7 @@ import { makeWagmiConfig } from "@/lib/wallet";
 
 const config = makeWagmiConfig();
 
-/** wagmi, TanStack Query and RainbowKit for every page (the connect button lives in the app, on the desk's dark theme). */
+/** wagmi, TanStack Query and RainbowKit for every page (the connect button lives in the app). */
 export function WalletProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
   return (
