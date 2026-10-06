@@ -166,6 +166,7 @@ exit=1
 {
   "name": "clim-submission",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -177,7 +178,9 @@ exit=1
     "evidence": "node src/collect-evidence.mjs",
     "readme": "node src/update-readme.mjs",
     "deck": "node deck/build-deck.mjs",
-    "scan": "node src/scan-secrets.mjs"
+    "scan": "node src/scan-secrets.mjs",
+    "deck:draft": "node deck/build-deck.mjs --allow-missing-video",
+    "evidence:text": "node src/cre-evidence-text.mjs"
   },
   "dependencies": {
     "pptxgenjs": "4.0.1",
@@ -1001,7 +1004,7 @@ test("deployments: human labels, grouped, truncated Etherscan links, pools with 
   assert.equal(out.split("\n").filter((l) => l.includes("repo.sourcify.dev")).length, 4);
   assert.match(out, /\| \*\*Uniswap v4\*\* \| `PoolManager` \| \[`0xE03A1074…3543`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0xE03A1074c86CFeDd5C142C4F04F1a1536e203543\) \|/);
   assert.match(out, /\|  \| `StateView` \|/);
-  assert.match(out, /the arbitrage router is Uniswap's unmodified `PoolSwapTest`\./);
+  assert.match(out, /tETH, tUSD and the arbitrage router, Uniswap's unmodified `PoolSwapTest`\) is verified on Sourcify\./);
   const order = ["**clim**", "**Uniswap v4**", "**Chainlink**", "**Test tokens and bots**"].map((g) => out.indexOf(g));
   assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), `groups out of order: ${order}`);
   assert.equal(out.split("\n").filter((l) => l.includes("etherscan")).length, 8);
@@ -1173,11 +1176,11 @@ const POOL_LABELS = {
 };
 const DYNAMIC_FEE_FLAG = 0x800000;
 
-// clim's own contracts whose source is verified on Sourcify, at the level "match" (partial: metadata hash differs),
-// checked with https://sourcify.dev/server/v2/contract/11155111/<address> on 2026-10-06. The Uniswap and Chainlink
-// contracts are their authors' deployments; the arbitrage router (Uniswap's unmodified PoolSwapTest, not verified)
-// and the operator have no Sourcify link.
-const SOURCIFY_VERIFIED = new Set(["riskDesks.live", "hooks.live", "riskDesks.replay", "hooks.replay", "tokens.tETH.address", "tokens.tUSD.address"]);
+// Contracts clim deployed whose source is verified on Sourcify, at the level "match" (partial: metadata hash differs),
+// checked with https://sourcify.dev/server/v2/contract/11155111/<address> on 2026-10-06 (the arbitrage router, Uniswap's
+// unmodified PoolSwapTest, on 2026-10-07). The Uniswap and Chainlink contracts are their authors' deployments and have
+// no Sourcify link here.
+const SOURCIFY_VERIFIED = new Set(["riskDesks.live", "hooks.live", "riskDesks.replay", "hooks.replay", "tokens.tETH.address", "tokens.tUSD.address", "routers.arb"]);
 
 export function renderDeployments(deployments) {
   const { addresses, poolIds } = collectAddresses(deployments);
@@ -1196,7 +1199,7 @@ export function renderDeployments(deployments) {
   );
   const chain = deployments.chainId ? ` (chain id ${deployments.chainId})` : "";
   const out = [
-    `Everything runs on Ethereum Sepolia${chain}. Each address links to Etherscan. The source of clim's own contracts (both desks, both hooks, tETH and tUSD) is verified on Sourcify; the arbitrage router is Uniswap's unmodified \`PoolSwapTest\`.`,
+    `Everything runs on Ethereum Sepolia${chain}. Each address links to Etherscan. The source of every contract clim deployed (both desks, both hooks, tETH, tUSD and the arbitrage router, Uniswap's unmodified \`PoolSwapTest\`) is verified on Sourcify.`,
     "",
     "| | Contract | Address | Source | Role |",
     "|---|---|---|---|---|",
@@ -1819,7 +1822,6 @@ import os
 from PIL import Image
 
 from fee_figure import make_fee_figure
-from video_cards import CAPTIONS, H, W, cards, main as make_cards
 
 HERE = os.path.dirname(__file__)
 
@@ -1830,21 +1832,8 @@ def test_fee_figure_is_1600x900(tmp_path):
     out = tmp_path / "fee.png"
     make_fee_figure(replay, str(out))
     assert Image.open(out).size == (1600, 900)
-
-
-def test_cards_and_captions(tmp_path):
-    with open(os.path.join(HERE, "..", "test", "fixtures", "replay.json")) as f:
-        replay = json.load(f)
-    make_cards(str(tmp_path), replay)
-    assert "74% to 225%" in cards(replay)["card-act2"][1]
-    for name in cards(replay):
-        img = Image.open(tmp_path / f"{name}.png")
-        assert img.size == (W, H) and img.mode == "RGB"
-    for name in CAPTIONS:
-        img = Image.open(tmp_path / f"{name}.png")
-        assert img.size == (W, H) and img.mode == "RGBA"
-        assert img.getpixel((10, 10))[3] == 0
 ```
+(Until `1a53016` this file also imported `video_cards` and had a second test, `test_cards_and_captions`, removed with the video cards.)
 
 - [x] **Step 2: Run it, expect FAIL**
 
@@ -2004,7 +1993,7 @@ if __name__ == "__main__":
 
 - [x] **Step 4: Run, expect PASS, and look at the fixture figure**
 
-Run the same pytest command as Step 2. Expected: `2 passed`.
+Run the same pytest command as Step 2. Expected: `1 passed` (`2 passed` before the video cards were removed in `1a53016`; checked again on 2026-10-07).
 
 Then draw the figure from the fixture and open it with the Read tool:
 ```bash
@@ -3527,7 +3516,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/faq.md docs/session
 **Files:**
 - Modify: `docs/submission/links.json`, `docs/submission/team.json` (if needed), `docs/sessions/<date>.md`
 
-- [ ] **Step 1: Ask the maintainer two questions and record the answers**
+- [ ] **Step 1: Ask the maintainer two questions and record the answers** **Maintainer's step.** Question 1 is answered: a solo project, Sofiane Ben Taleb, as `team.json` already says (session log 2026-10-07, Decisions "Team"). Question 2 (the organizers' answer on `.pptx` and the stage pitch length) is not recorded yet.
 
 1. "Who is on the registered Builderbase team?" Edit `docs/submission/team.json` to list exactly those people (`name`, `github` handle or `""`, one-line `role`, optional `linkedin` URL). Known candidates: Sofiane Ben Taleb (@gamween), Armand Séchon (@STOOOKEEE), Noé Wales.
 2. "Can you ask an organizer (help desk or Discord) whether a `.pptx` file is accepted for the '.ppt or .keynote' rule, and how long the top-5 stage pitch is?" Record the answers in today's session log:
@@ -3542,7 +3531,7 @@ If `.pptx` is refused, Task 17 Step 6 (Keynote) becomes mandatory.
 
 Done 2026-10-07: `liveMockData` removed, README regenerated (commit `4060cfc`); the flag's code in `src/inputs.mjs` and `src/readme-blocks.mjs` was removed afterwards as dead code (commit `1cd64cf`).
 
-- [ ] **Step 3: Check every input**
+- [x] **Step 3: Check every input**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run check; echo "exit=$?"`
 Expected:
@@ -3559,7 +3548,9 @@ exit=1
 ```
 Any INVALID line: fix the producing plan's output (or the spec in `src/inputs.mjs`), then log the interface change.
 
-- [ ] **Step 4: Check that `shared/params.json` matches the deployed hook**
+Done 2026-10-07 (07:16 SGT, at `6257b71`): exactly this output, seven `OK`, the evidence `MISSING` until Task 13, `exit=1`.
+
+- [x] **Step 4: Check that `shared/params.json` matches the deployed hook**
 
 Plan 04's `status` script compares the deployed hook's `quoteFee()` with the shared fee mirror computed from `shared/params.json` and the desk state:
 ```bash
@@ -3567,11 +3558,15 @@ cd /Users/fianso/Development/hackathons/clim/bots && bun run status --pair live;
 ```
 Expected: the pool, desk and hook lines and `exit=0`. A hook/mirror mismatch (exit code 1) means `shared/params.json` does not describe the deployed hook: stop and fix it before anything is generated.
 
-- [ ] **Step 5: Log the freeze and commit**
+Done 2026-10-07 (07:16 SGT): `exit=0`, no `PROBLEM` line; at block 11859036 the live desk was at seq 775, σ 10.0 %/yr, k 1, flags 0, and the hook quoted 500 pips (5.00 bp, normal), equal to the mirror from `shared/params.json` (P\* = 0.3, `etaE4` 25093, floor 500, cap 15000, safe 3000, kill 180 s); S fee 511 pips.
+
+- [x] **Step 5: Log the freeze and commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && P=$(node -p "require('./shared/params.json').pStar") && echo "- **Freeze:** deployments and parameters frozen for the submission at commit $(git rev-parse --short HEAD) (P* = $P). No redeploy after this line." >> docs/sessions/$(date +%F).md && git add docs/submission/links.json docs/submission/team.json docs/sessions && git commit -m "chore(submission): freeze deployments, set live URL and team"
 ```
+
+Done 2026-10-07: `links.json` (live URL, `4060cfc`) and `team.json` (solo, `ad0310c`) were already committed; the deployments last changed in `b791761` (replay suite) and the parameters in `62d01be` (P\* = 0.3). The freeze line, at commit `6257b71`, went into the session log with the plan checkbox pass rather than with the command above.
 
 ---
 
@@ -3583,18 +3578,21 @@ cd /Users/fianso/Development/hackathons/clim && P=$(node -p "require('./shared/p
 **Files:**
 - Create: `docs/evidence/cre-reports-sepolia.json`, `docs/evidence/cre-simulate-*.log` (generated), `docs/evidence/README.md`
 
-- [ ] **Step 1: Check the transcripts exist**
+- [x] **Step 1: Check the transcripts exist**
 
 Run: `ls -t /Users/fianso/Development/hackathons/clim/bots/out/cre-sim/*.log | head -5`
 Expected: recent `live-<run start>.log` files written by plan 04's `bun run cre-loop` (one transcript per `cre workflow simulate` run). The collector reads this folder by default; pass `--logs <path relative to the repo root>` in Step 2 if they are elsewhere.
 
-- [ ] **Step 2: Collect**
+Done 2026-10-07 (07:16 SGT): 1,246 transcripts in `bots/out/cre-sim/`, the newest `live-2026-10-06T23-16-18Z.log`, one every 30 s.
+
+- [ ] **Step 2: Collect** **End of session.**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && SEPOLIA_RPC_URL=https://sepolia.gateway.tenderly.co npm run evidence`
 (The Tenderly gateway serves the full log history; publicnode answers `pruned history unavailable` for logs older than about 10,000 blocks, about 33 h, measured by plan 05.)
 Expected (counts differ):
 ```
-riskDesk.live 0x...: <n> RiskReported events
+riskDesks.live 0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F: <n> RiskReported events
+riskDesks.replay 0x4b843dc3A7ec6202d2337cdeF8C67a0F10f24746: 459 RiskReported events
 wrote docs/evidence/cre-reports-sepolia.json
 copied docs/evidence/cre-simulate-<name>.log
 copied docs/evidence/cre-simulate-<name>.log
@@ -3602,11 +3600,11 @@ copied docs/evidence/cre-simulate-<name>.log
 ```
 If that RPC fails, rerun with another archive-capable Sepolia RPC in `SEPOLIA_RPC_URL`. A replay desk with zero events is skipped by design.
 
-- [ ] **Step 3: Read the copied transcripts**
+- [ ] **Step 3: Read the copied transcripts** **End of session.**
 
 Open each `docs/evidence/cre-simulate-*.log` with the Read tool. Each must show the venues fetched, the quorum, the volatility, and the line `Write report transaction succeeded: 0x...`. Nothing private: no key, no e-mail address, no home path (the collector already replaced the home directory with `~` and RPC keys with `<redacted>`). Delete any file that does not meet this and rerun with `--max-logs 5`.
 
-- [ ] **Step 4: Write `docs/evidence/README.md`**
+- [ ] **Step 4: Write `docs/evidence/README.md`** **End of session.**
 
 ```markdown
 # CRE evidence
@@ -3622,7 +3620,7 @@ What shows that the clim risk desk ran as a Chainlink CRE workflow:
 To reproduce, see "How to run" in the main README.
 ```
 
-- [ ] **Step 5: Regenerate the README and commit**
+- [ ] **Step 5: Regenerate the README and commit** **End of session.**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run readme`
 Expected: `README.md updated: links, results, params, fee-schedule, deployments, evidence, team`.
@@ -3648,13 +3646,13 @@ cd /Users/fianso/Development/hackathons/clim && mkdir -p docs/media && uv run --
 ```
 Expected: `wrote docs/media/fee-follows-weather.png`. Open it with the Read tool: the amber step line must rise and fall with the blue volatility line, and the grey dashed line must be flat. If the fee line sits on the floor the whole time, the replay was computed at other parameters than `shared/params.json`: ask plan 03 to recompute.
 
-- [ ] **Step 2: Regenerate and read the README as a judge would**
+- [ ] **Step 2: Regenerate and read the README as a judge would** **End of session.**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run readme && grep -c "_Pending:" /Users/fianso/Development/hackathons/clim/README.md`
 Expected: `README.md updated: ...` then `0`.
 Read the whole README once. The hand-written text must not contradict the generated numbers (for example "the pair's usual tier when it is calm" requires `feeMinPips` to be the market tier). Fix the prose, not the generated blocks.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 3: Commit** **End of session.**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/media/fee-follows-weather.png README.md && git commit -m "docs: README figure and numbers at the deployed parameters"
@@ -3669,7 +3667,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/media/fee-follows-w
 
 Rewritten on 2026-10-07: the maintainer decided that the video is him on camera, in his own words, then a live demo of the app, with no AI-generated video (session log 2026-10-07, Decisions "Demo video"). This replaces the screen-only 3-act recording and the shot-by-shot capture of the first version (Tasks 7 and 8 history). The script and the shot plan are in the maintainer's private notes (outside the repo); the section "Demo script" below gives their structure. One session gives two cuts: the full version, under 4 minutes (slide 20 and the Drive link), and a 30-second stage version (full-bleed on slide 10; live demos are not allowed on stage, so this is what the stage sees).
 
-- [ ] **Step 1 (maintainer): Prepare the machine**
+- [ ] **Step 1 (maintainer): Prepare the machine** **Maintainer's step.**
 
 1. Do Not Disturb on (Control Centre, Focus). Quit Slack, Telegram, Mail and anything that pops up.
 2. Browser: a Chrome **Guest** window (profile menu, Guest), so no bookmark, extension or e-mail address shows; zoom 110%. Open the dashboard, `https://clim-zeta.vercel.app/app`, and any other tab the shot plan lists (for example the live RiskDesk on Etherscan, `https://sepolia.etherscan.io/address/<riskDesks.live of shared/deployments/sepolia.json>`).
@@ -3680,22 +3678,22 @@ cd /Users/fianso/Development/hackathons/clim/bots && bun run status --pair live;
 ```
 Expected: the pool, desk and hook lines, the desk in mode normal, and `exit=0` (the same check as Task 12 Step 4). Anything else: fix the live system first (run-book), do not record a broken demo.
 
-- [ ] **Step 2 (maintainer): Record the on-camera part**
+- [ ] **Step 2 (maintainer): Record the on-camera part** **Maintainer's step.**
 
 Following his notes, in his own words: how it works, the math and the logic of the fee, why this idea, and how it would be rolled out (the desk's output handed to the Fables keeper that updates fees, Chainlink CRE, Uniswap v4). Any recorder with the camera and the microphone, for example QuickTime Player, File, New Movie Recording.
 
-- [ ] **Step 3 (maintainer): Record the live demo**
+- [ ] **Step 3 (maintainer): Record the live demo** **Maintainer's step.**
 
 The app on Sepolia, as the shot plan says. Screen recording with sound: Cmd+Shift+5, "Record Selected Portion" (or "Record Entire Screen"), Options: Microphone on, Show Mouse Clicks on. Nothing private on screen.
 
-- [ ] **Step 4 (maintainer): Edit the two cuts and export them as MP4**
+- [ ] **Step 4 (maintainer): Edit the two cuts and export them as MP4** **Maintainer's step.**
 
 1. Full version: the on-camera part, then the live demo, **under 4 minutes**.
 2. Stage version: **about 30 seconds**, cut from the same material.
 
 Export both as MP4 **with sound** (H.264 and AAC when the editor offers it; 1080p is enough). Another codec (for example HEVC from QuickTime) is accepted: `npm run deck` re-encodes to H.264 and AAC when needed (Task 17 Step 4).
 
-- [ ] **Step 5: Log**
+- [ ] **Step 5: Log** **Maintainer's step.**
 
 Append under "## Build notes" of today's session log:
 ```markdown
@@ -3714,7 +3712,7 @@ Rewritten on 2026-10-07: there is no video build any more (Task 8 history). The 
 **Files:**
 - Create (gitignored, never committed): `docs/submission/out/video/demo-stage.mp4`, `docs/submission/out/video/demo-full.mp4`
 
-- [ ] **Step 1 (maintainer): Drop both files in under their exact names**
+- [ ] **Step 1 (maintainer): Drop both files in under their exact names** **Maintainer's step.**
 
 ```bash
 mkdir -p /Users/fianso/Development/hackathons/clim/docs/submission/out/video
@@ -3723,7 +3721,7 @@ cp "<full export>.mp4" /Users/fianso/Development/hackathons/clim/docs/submission
 ```
 The names matter: `deck/build-deck.mjs` embeds `demo-stage.mp4` on slide 10 and `demo-full.mp4` on slide 20, and refuses to build the final deck without both.
 
-- [ ] **Step 2: Check duration, sound and format**
+- [ ] **Step 2: Check duration, sound and format** **End of session.**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/docs/submission/out/video && for f in demo-stage.mp4 demo-full.mp4; do printf '%s  %.1f s  audio=%s  video=%s  %s MB\n' "$f" "$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$f")" "$(ffprobe -v error -select_streams a -show_entries stream=codec_name -of csv=p=0 "$f" | head -1)" "$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,pix_fmt -of csv=p=0 "$f")" "$(du -m "$f" | cut -f1)"; done
@@ -3735,7 +3733,7 @@ demo-full.mp4  225.0 s  audio=aac  video=h264,1920,1080,yuv420p  96 MB
 ```
 Check: the stage cut is about 30 s; the full cut is under 240 s; `audio=` is not empty on both lines (empty means no sound track: back to Task 15 Step 4 and export with sound). Any video codec, size or file size is accepted: the builder copies an H.264 yuv420p file that fits its share of the 95 MB budget and re-encodes the others (the budget is split between the two videos in proportion to their durations).
 
-- [ ] **Step 3: Watch both**
+- [ ] **Step 3: Watch both** **Maintainer's step.**
 
 `open /Users/fianso/Development/hackathons/clim/docs/submission/out/video/demo-stage.mp4` (QuickTime), then `demo-full.mp4`. Check: the sound is clear from start to end; nothing private is visible (no key, no e-mail address, no notification, no browser profile); the live part shows the risk desk reporting on Sepolia, the fee following the weather and the dashboard reading the chain (what slide 10's notes announce). A bad take: back to Task 15 Steps 2 to 4, then Step 1 here.
 
@@ -3760,7 +3758,7 @@ cd /Users/fianso/Development/hackathons/clim/docs/submission && npm test 2>&1 | 
 ```
 Expected: `# pass 40`, `# fail 0`.
 
-- [ ] **Step 2: Read the live report count and write `deck/v2/live.json`**
+- [ ] **Step 2: Read the live report count and write `deck/v2/live.json`** **End of session.**
 
 Do this right before the final build: the count grows by about 120 an hour while the loop runs. The fifth value of `state()` is `seq`, the number of reports the live desk applied.
 ```bash
@@ -3772,7 +3770,7 @@ cd /Users/fianso/Development/hackathons/clim && D=$(jq -r .riskDesks.live shared
 ```
 Expected: `{ "seq": <n>, "readUtc": "<d Mon HH:MM UTC>" }`, for example `"seq": 624` and `"readUtc": "6 Oct 22:00 UTC"`. The builder fills `{{LIVE_SEQ}}` (with a thousands comma, for example `1,234`) and `{{LIVE_SEQ_READ}}` in the slide text and notes of `slides.json` from this file.
 
-- [ ] **Step 3: Update slides 09 and 19 in Figma and re-export them**
+- [ ] **Step 3: Update slides 09 and 19 in Figma and re-export them** **End of session.**
 
 In Figma file `LyeDZ1KdOYws6nTzD8dI76` (section `162:2`), put the same two values as `live.json` in these text nodes, keeping the rest of each text and the number format of Step 2:
 - slide 09 (frame `166:11`, "09 · What is live"): `172:10` "LIVE seq" (the count) and `172:11` "LIVE seq read" (the read time);
@@ -3784,7 +3782,7 @@ sips -g pixelWidth -g pixelHeight /Users/fianso/Development/hackathons/clim/docs
 ```
 Expected: `pixelWidth: 3840` and `pixelHeight: 2160` for both. Open both with the Read tool: the count and the read time match `live.json`.
 
-- [ ] **Step 4: Build, check the size, render every slide, commit**
+- [ ] **Step 4: Build, check the size, render every slide, commit** **End of session.**
 
 1. Build:
 ```bash
@@ -3812,7 +3810,7 @@ Expected: 20 images, `slide-01.jpg` to `slide-20.jpg`. Open every image with the
 cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck/v2/live.json docs/submission/deck/v2/png/09-live.png docs/submission/deck/v2/png/19-a5-cre-evidence.png && git commit -m "chore(deck): live report count on slides 09 and 19"
 ```
 
-- [ ] **Step 5 (maintainer): Play it in PowerPoint (or Keynote) and set the stage video to start by itself**
+- [ ] **Step 5 (maintainer): Play it in PowerPoint (or Keynote) and set the stage video to start by itself** **Maintainer's step.**
 
 1. `open -a "Microsoft PowerPoint" /Users/fianso/Development/hackathons/clim/docs/submission/out/clim.pptx` (or `open -a Keynote` with the same path if PowerPoint is not at hand).
 2. Slide Show from slide 10: the stage video plays over the whole slide, with sound. Then slide 20: the full video plays, with sound.
@@ -3825,7 +3823,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck/v2/
 
 After this step, do not rebuild the deck with `npm run deck` (it overwrites `out/clim.pptx`), or redo this step.
 
-- [ ] **Step 6 (only if `.pptx` is refused): Keynote copy**
+- [ ] **Step 6 (only if `.pptx` is refused): Keynote copy** **Maintainer's step.**
 
 Install Keynote from the Mac App Store (free), open `out/clim.pptx` in Keynote, play both videos (slides 10 and 20), then File, Save, `out/clim.key`. Upload it next to the `.pptx` in Task 18 and submit the `.key` link.
 
@@ -3839,19 +3837,19 @@ Install Keynote from the Mac App Store (free), open `out/clim.pptx` in Keynote, 
 **Files:**
 - Modify: `docs/submission/links.json`, `README.md` (generated)
 
-- [ ] **Step 1: Upload**
+- [ ] **Step 1: Upload** **Maintainer's step.**
 
 In https://drive.google.com: New, New folder, `clim · TOKEN2049 Origins 2026`. Open it and drag in `docs/submission/out/clim.pptx` and `docs/submission/out/video/demo-full.mp4` (plus `clim.key` if Task 17 Step 6 ran).
 
-- [ ] **Step 2: Share**
+- [ ] **Step 2: Share** **Maintainer's step.**
 
 For each file and for the folder: right click, Share, Share, General access "Anyone with the link", role "Viewer", Copy link, Done.
 
-- [ ] **Step 3: Test the links logged out**
+- [ ] **Step 3: Test the links logged out** **Maintainer's step.**
 
 Open each link in a Chrome Incognito window. The `.pptx` shows a preview or a download button; the `.mp4` plays or downloads. A "request access" page means Step 2 failed.
 
-- [ ] **Step 4: Record the links and regenerate the README**
+- [ ] **Step 4: Record the links and regenerate the README** **Maintainer's step.**
 
 Put the `.pptx` link in `deckUrl` and the `.mp4` link in `videoUrl` of `docs/submission/links.json`. Then:
 ```bash
@@ -3859,7 +3857,7 @@ cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run readme &
 ```
 Expected: `README.md updated: ...`, then every line `OK`, then `exit=0`.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Commit** **Maintainer's step.**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/submission/links.json README.md && git commit -m "docs: deck and demo video links"
@@ -3874,19 +3872,19 @@ To change the deck before submitting, keep the same link: right click the file, 
 **Delegable:** yes
 **Depends on:** Task 18
 
-- [ ] **Step 1: Tests and generated content**
+- [ ] **Step 1: Tests and generated content** **End of session.**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/docs/submission && npm test 2>&1 | grep -E "^# (pass|fail)" && grep -c -E "_Pending:|added at submission" /Users/fianso/Development/hackathons/clim/README.md
 ```
 Expected: `# pass 40`, `# fail 0`, `0`.
 
-- [ ] **Step 2: Secret scan**
+- [ ] **Step 2: Secret scan** **End of session.**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run scan`
 Expected: `no .env secret in <n> tracked files (<m> secret values checked)`. Also run `cd /Users/fianso/Development/hackathons/clim && git status --short | grep -E "\.env$|secrets\.yaml$"` and expect no output. Any leak: remove the value, rotate that testnet key, and rewrite the commit before pushing.
 
-- [ ] **Step 3: Clean-clone smoke test of "How to run"**
+- [ ] **Step 3: Clean-clone smoke test of "How to run"** **End of session.**
 
 ```bash
 T=$(mktemp -d) && git clone --recurse-submodules /Users/fianso/Development/hackathons/clim $T/clim && cd $T/clim
@@ -3902,7 +3900,7 @@ Expected: forge reports all tests passed, pytest passes, the simulation prints a
 - **README how-to-run:** fixed `<command>` (clean-clone test).
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Commit** **End of session.**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add -A README.md docs && git commit -m "docs: README commands checked on a clean clone" || echo "nothing to commit"
@@ -3915,7 +3913,7 @@ cd /Users/fianso/Development/hackathons/clim && git add -A README.md docs && git
 **Delegable:** no (the maintainer approves pushes)
 **Depends on:** Task 19
 
-- [ ] **Step 1: Ask before pushing**
+- [ ] **Step 1: Ask before pushing** **End of session.**
 
 Ask the maintainer: "Everything is committed and checked. May I push `main` to `origin` (github.com/DVB-ANS/clim, public)?" Push only after an explicit yes:
 ```bash
@@ -3931,7 +3929,7 @@ gh repo view DVB-ANS/clim --json visibility,description,homepageUrl,repositoryTo
 ```
 Expected: `"visibility":"PUBLIC"`, the event line, `https://clim-zeta.vercel.app` and the 14 topics.
 
-- [ ] **Step 3: Look at the README on GitHub**
+- [ ] **Step 3: Look at the README on GitHub** **End of session.**
 
 Open https://github.com/DVB-ANS/clim: both mermaid diagrams render, the figure shows, every Etherscan and Sourcify link opens the right address or transaction, the table of contents and the docs/faq.md anchors work.
 
@@ -3942,7 +3940,7 @@ Open https://github.com/DVB-ANS/clim: both mermaid diagrams render, the figure s
 **Delegable:** no (the maintainer's account)
 **Depends on:** Task 20; before 2026-10-07 23:59 SGT. Slides lock at submission, so submit once, with the final deck.
 
-- [ ] **Step 1: Re-read the rules**
+- [ ] **Step 1: Re-read the rules** **Maintainer's step.**
 
 ```bash
 curl -s https://edge.builderbase.com/super-events/public/token2049-origins-hackathon | python3 -c "import json,sys; d=json.load(sys.stdin)['data']['super_event']; print(d['updated_at'], d['submission_deadline'])"
@@ -3950,26 +3948,26 @@ curl -s https://edge.builderbase.com/events/public/chainlink-best-workflow-with-
 ```
 Expected: `2026-10-04T08:00:30...` / `2026-10-06T00:36:27...` and `2026-10-07T15:59:00+00:00` twice. A newer `updated_at` means the page changed: re-read it and adjust this checklist.
 
-- [ ] **Step 2: Get the CRE evidence figures**
+- [ ] **Step 2: Get the CRE evidence figures** **Maintainer's step.**
 
 ```bash
 node -e 'const e=require("/Users/fianso/Development/hackathons/clim/docs/evidence/cre-reports-sepolia.json"); for (const d of e.desks) { console.log(d.label, d.address, d.reports.length, "reports"); for (const r of d.reports.slice(-3)) console.log("https://sepolia.etherscan.io/tx/" + r.txHash); }'
 ```
 
-- [ ] **Step 3: Fill the main-track submission**
+- [ ] **Step 3: Fill the main-track submission** **Maintainer's step.**
 
 On Builderbase (TOKEN2049 Origins dashboard), create the project submission with the texts of the section "Submission texts" below:
 - GitHub repository: `https://github.com/DVB-ANS/clim`
 - Project link: `liveUrl` from `docs/submission/links.json`
 - Presentation slides: `deckUrl` (or the `.key` link if `.pptx` was refused)
 Check the checklist before pressing submit:
-- [ ] repo public and pushed (Task 20)
-- [ ] live URL opens logged out and shows live data
-- [ ] Drive link opens logged out; the deck embeds the stage video on slide 10 and the full video on slide 20 (no YouTube link)
-- [ ] team members on Builderbase match `docs/submission/team.json`
-- [ ] README has no "Pending" block
+- [ ] repo public and pushed (Task 20) **Maintainer's step.**
+- [ ] live URL opens logged out and shows live data **Maintainer's step.**
+- [ ] Drive link opens logged out; the deck embeds the stage video on slide 10 and the full video on slide 20 (no YouTube link) **Maintainer's step.**
+- [ ] team members on Builderbase match `docs/submission/team.json` **Maintainer's step.**
+- [ ] README has no "Pending" block **Maintainer's step.**
 
-- [ ] **Step 4: Add the Chainlink "Best workflow with CRE" track**
+- [ ] **Step 4: Add the Chainlink "Best workflow with CRE" track** **Maintainer's step.**
 
 Add the track to the same submission. In "Evidence of a successful CRE simulation or deployment", paste the text printed by:
 ```bash
@@ -3977,7 +3975,7 @@ cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run evidence
 ```
 Expected: the evidence text (see "Submission texts"), with the live and replay report counts read on-chain at run time, then `(<n> of 1500 characters)`; it refuses a text over 1,500 characters and adds the demo video link once `videoUrl` is in `links.json` (Task 18). If plan 02 deployed the workflow to a DON, add the workflow ID and the deployment transaction.
 
-- [ ] **Step 5: Submit, then log**
+- [ ] **Step 5: Submit, then log** **Maintainer's step.**
 
 Submit. Do not change the Drive files afterwards. Append to today's session log:
 ```markdown
@@ -4050,14 +4048,14 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/feedback/cre-fricti
 **Delegable:** no
 **Depends on:** Task 21
 
-- [ ] **Step 1: Session log**
+- [ ] **Step 1: Session log** **End of session.**
 
 Append to today's session log every mentor, judge or organizer feedback received while demoing or submitting that is not logged yet (one line each, `- **<who>:** <what>, <what we did>`). Commit:
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/sessions && git commit -m "docs(session): feedback from submission day" || echo "nothing to commit"
 ```
 
-- [ ] **Step 2: Private vault notes (never committed)**
+- [ ] **Step 2: Private vault notes (never committed)** **End of session.**
 
 Read `CLAUDE.local.md` (gitignored) for the vault paths and writing rules, then update, in French:
 - the hackathon Overview note: `result` in the front matter (submitted, tracks), the links (repo, live URL, Drive folder, demo video), and its "Dans ce dossier" section;
@@ -4065,7 +4063,7 @@ Read `CLAUDE.local.md` (gitignored) for the vault paths and writing rules, then 
 - the one-pagers `clim - FR.md` (French) and `clim - EN.md` (English), kept identical: the final numbers of the README's Results block (P\* = 0.3, both comparisons, the replay with its median window, the LP gain in % and in dollars per $1M) and the links. Plan 03 Task 17 Step 6b did a first pass; check nothing older is left (for example "−14 % to +7 %", "+0.1 to +0.5 %", "up to +1 %", "85-97 %").
 Follow the vault rules in `CLAUDE.local.md` (no em dashes, no contractions in English, wiki links only to notes that exist). Do not copy any vault path or content into the repository.
 
-- [ ] **Step 3 (only if selected for the top 5): stage preparation**
+- [ ] **Step 3 (only if selected for the top 5): stage preparation** **Maintainer's step.**
 
 Rehearse with the deck and the stage video until the talk fits the length the organizers gave (Task 12): the main deck, slides 01 to 13 (the stage video on slide 10), and the appendix (14 to 20) on demand. Learn the Q&A answer bank below. Keep the `.pptx` on a USB stick as well as on Drive.
 
