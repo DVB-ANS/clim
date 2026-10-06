@@ -1,6 +1,7 @@
 "use client";
 
 import { CartesianGrid, Line, LineChart, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ChartTooltip, TOOLTIP } from "./ChartTooltip";
 import { params } from "@/lib/config";
 import { feePips } from "@/lib/feeMath";
 import { COLORS } from "@/lib/theme";
@@ -23,7 +24,7 @@ export function FeeCurveChart({ sigmaNowPct, feeNowBp, staticFeeBp }: { sigmaNow
           <CartesianGrid stroke={COLORS.grid} vertical={false} />
           <XAxis dataKey="sigmaPct" type="number" domain={[0, 250]} ticks={[0, 50, 100, 150, 200, 250]} unit="%" tick={{ fontSize: 11, fill: COLORS.muted }} label={{ value: "σ (annualised)", position: "insideBottom", offset: -8, fontSize: 11 }} />
           <YAxis unit=" bp" tick={{ fontSize: 11, fill: COLORS.muted }} width={56} />
-          <Tooltip formatter={(v) => `${Number(v).toFixed(1)} bp`} labelFormatter={(l) => `σ ${l}%/yr`} />
+          <Tooltip {...TOOLTIP} content={<ChartTooltip only={["feeBp"]} labelFormat={(l) => `σ ${l}%/yr`} valueFormat={(v) => `${v.toFixed(1)} bp`} />} />
           <ReferenceLine y={staticFeeBp} stroke={COLORS.S} strokeDasharray="4 4" label={{ value: "S (static)", position: "right", fontSize: 11 }} />
           <ReferenceLine y={pipsToBp(params.feeSafePips)} stroke={COLORS.muted} strokeDasharray="2 4" label={{ value: "blind / degraded floor", position: "insideTopLeft", fontSize: 10 }} />
           <Line type="monotone" dataKey="feeBp" name="V (clim)" stroke={COLORS.V} strokeWidth={2} dot={false} isAnimationActive={false} />

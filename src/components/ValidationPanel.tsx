@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Area, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ChartTooltip, TOOLTIP } from "./ChartTooltip";
 import type { ClimData } from "@/hooks/useClimData";
 import { params } from "@/lib/config";
 import type { LabPTradeBand } from "@/lib/lab";
@@ -67,7 +68,7 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
                   <CartesianGrid stroke={COLORS.grid} vertical={false} />
                   <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} tickFormatter={utcTime} tick={{ fontSize: 11, fill: COLORS.muted }} />
                   <YAxis tickFormatter={(v) => pct(Number(v))} tick={{ fontSize: 11, fill: COLORS.muted }} width={56} />
-                  <Tooltip labelFormatter={(t) => `${utcTime(Number(t))} UTC`} formatter={(v) => (Array.isArray(v) ? v.map((x) => pct(Number(x))).join(" to ") : pct(Number(v)))} />
+                  <Tooltip {...TOOLTIP} content={<ChartTooltip only={["observed", "predicted", "band95"]} labelFormat={(t) => `${utcTime(Number(t))} UTC`} valueFormat={(v) => pct(v)} />} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Area dataKey="band95" name="95% band (model)" stroke="none" fill={COLORS.band} isAnimationActive={false} />
                   <Line dataKey="predicted" name="Predicted" stroke={COLORS.ink} strokeDasharray="4 3" strokeWidth={2} dot={false} isAnimationActive={false} />
