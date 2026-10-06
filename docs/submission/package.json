@@ -1,0 +1,21 @@
+{
+  "name": "clim-submission",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node src/check-inputs.mjs",
+    "check:final": "node src/check-inputs.mjs --final",
+    "evidence": "node src/collect-evidence.mjs",
+    "readme": "node src/update-readme.mjs",
+    "deck": "node deck/build-deck.mjs",
+    "scan": "node src/scan-secrets.mjs"
+  },
+  "dependencies": {
+    "pptxgenjs": "4.0.1",
+    "viem": "2.57.3"
+  }
+}

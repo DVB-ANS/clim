@@ -128,7 +128,7 @@ The test fixtures contain the numbers known on 2026-10-06 (P* = 10% runs; the pe
 - Create: `docs/submission/package.json`, `docs/submission/links.json`, `docs/submission/team.json`
 - Create (generated): `docs/submission/package-lock.json`
 
-- [ ] **Step 1: See what `.gitignore` does today**
+- [x] **Step 1: See what `.gitignore` does today**
 
 Run:
 ```bash
@@ -137,11 +137,11 @@ cd /Users/fianso/Development/hackathons/clim && grep -n -E "^out/$|^app/out/$|^b
 - If the output contains `out/` alone: plan 04 Task 1 has not run. Apply plan 04 Task 1 Step 4 exactly now (replace `out/` with `app/out/` in the `# Node / Next / Bun` block, and insert before `# OS` the block `# Bots: run logs stay local, except the CRE run log and the security demo records (submission evidence)` / `bots/out/*` / `!bots/out/cre-runs.jsonl` / `!bots/out/security-demos.jsonl`), and log it as plan 04 asks.
 - If it already shows `app/out/` and `bots/out/*`: go on.
 
-- [ ] **Step 2: Ignore the deck and video output**
+- [x] **Step 2: Ignore the deck and video output**
 
 In the `# Node / Next / Bun` block, add the line `docs/submission/out/` right after `app/out/`.
 
-- [ ] **Step 3: Check the result**
+- [x] **Step 3: Check the result**
 
 Run:
 ```bash
@@ -156,7 +156,7 @@ exit=1
 ```
 (`exit=1` means not ignored: `lab/out/` and `bots/out/cre-runs.jsonl` are tracked; `<n>` are line numbers.)
 
-- [ ] **Step 4: Create the package and the two small data files**
+- [x] **Step 4: Create the package and the two small data files**
 
 `docs/submission/package.json`:
 ```json
@@ -206,7 +206,7 @@ cd /Users/fianso/Development/hackathons/clim/docs/submission && npm install
 ```
 Expected: `added <n> packages` and no error. `node_modules/` is already ignored by the root `.gitignore`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add .gitignore docs/submission/package.json docs/submission/package-lock.json docs/submission/links.json docs/submission/team.json && git commit -m "chore(submission): scaffold submission tooling, ignore its build output"
