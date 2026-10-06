@@ -1253,7 +1253,7 @@ The golden hex is what `cast abi-encode` (Foundry, an encoder independent of vie
 - Create: `cre/risk-desk/report.ts`
 - Test: `cre/risk-desk/report.test.ts`
 
-- [ ] **Step 1: Write the failing test** at `cre/risk-desk/report.test.ts`
+- [x] **Step 1: Write the failing test** at `cre/risk-desk/report.test.ts`
 
 ```ts
 import { describe, expect, test } from 'bun:test'
@@ -1324,7 +1324,7 @@ describe('buildReport', () => {
 })
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 (cd cre/risk-desk && bun test report.test.ts)
@@ -1332,7 +1332,7 @@ describe('buildReport', () => {
 
 Expected: `error: Cannot find module './report' from '.../cre/risk-desk/report.test.ts'`, then `0 pass`, `1 fail`, `1 error`.
 
-- [ ] **Step 3: Minimal implementation** at `cre/risk-desk/report.ts`
+- [x] **Step 3: Minimal implementation** at `cre/risk-desk/report.ts`
 
 ```ts
 // Canonical CRE report (the contract between this workflow and RiskDesk._processReport) and the
@@ -1428,7 +1428,7 @@ export function decodeRiskReport(data: Hex): RiskReport {
 }
 ```
 
-- [ ] **Step 4: Run it, expected PASS, and re-derive the golden value with Foundry**
+- [x] **Step 4: Run it, expected PASS, and re-derive the golden value with Foundry**
 
 ```bash
 (cd cre/risk-desk && bun test report.test.ts)
@@ -1437,7 +1437,7 @@ cast abi-encode "f(uint40,uint32,uint32,uint16,int24,uint16,uint8,uint16,uint8)"
 
 Expected: `5 pass`, `0 fail`, `7 expect() calls`. The `cast` output equals `GOLDEN` in the test: `0x...6ac4cc85`, `...e864`, `...e864`, `...1293`, `...134d9`, `...02`, `...04`, `...2710`, `...00`, nine 32-byte words.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add cre/risk-desk/report.ts cre/risk-desk/report.test.ts
