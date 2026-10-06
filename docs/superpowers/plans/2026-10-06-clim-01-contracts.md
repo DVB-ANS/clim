@@ -12,7 +12,7 @@
 
 ## Read this first
 
-Every code block below was compiled and run before this plan was written (scratch project, same pins, same files). Results: 69 unit and integration tests pass, plus 2 fork tests against the real Sepolia `MockKeystoneForwarder`. The deploy scripts 00 to 05 ran end to end on an anvil fork of Sepolia for the live, replay and DON suites (re-run in the fixer pass with the `TestToken` faucet, the `SIM_OPERATOR` option, 100,000 tETH per pool and the `ok` error guard below). A report delivered through the real mock forwarder moved `quoteFee()` from `(3000, 2)` to `(526, 0)`, and the swaps then paid 526 pips on V and the static fee on S. If reality differs, change this plan and log the difference in `docs/sessions/2026-10-06.md` (repo rule: living docs).
+Every code block below was compiled and run before this plan was written (scratch project, same pins, same files). Results: 69 unit and integration tests pass, plus 2 fork tests against the real Sepolia `MockKeystoneForwarder` (76 on 2026-10-07: 73 offline plus 3 Sepolia fork tests, after `contracts/test/ReceiverTemplateMetadata.t.sol` was added in `57933bc`). The deploy scripts 00 to 05 ran end to end on an anvil fork of Sepolia for the live, replay and DON suites (re-run in the fixer pass with the `TestToken` faucet, the `SIM_OPERATOR` option, 100,000 tETH per pool and the `ok` error guard below). A report delivered through the real mock forwarder moved `quoteFee()` from `(3000, 2)` to `(526, 0)`, and the swaps then paid 526 pips on V and the static fee on S. If reality differs, change this plan and log the difference in `docs/sessions/2026-10-06.md` (repo rule: living docs).
 
 ### Units and the fee (canonical, do not change)
 - `sigmaE9` = volatility per square-root second × 1e9 = annual σ / √31,536,000 × 1e9, rounded to the nearest integer. Examples: 10 %/yr = 17,807; 48 % = 85,475; 100 % = 178,072; 225 % = 400,663; 300 % = 534,217.
@@ -1229,7 +1229,7 @@ contract MockForwarderForkTest is DeskHelpers {
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path 'test/fork/*' -vv
 ```
-Expected (`.env` holds `SEPOLIA_RPC_URL`): `[PASS] test_OperatorReportIsDelivered()`, `[PASS] test_ThirdPartyReportIsSwallowedNotReverted()`, `Suite result: ok. 2 passed`. Without the variable: `[SKIP: skipped] setUp()`. From now on, `forge test` includes these two fork tests whenever `.env` sets `SEPOLIA_RPC_URL`; add `--no-match-path 'test/fork/*'` to stay offline.
+Expected (`.env` holds `SEPOLIA_RPC_URL`): `[PASS] test_OperatorReportIsDelivered()`, `[PASS] test_ThirdPartyReportIsSwallowedNotReverted()`, `Suite result: ok. 2 passed`. Without the variable: `[SKIP: skipped] setUp()`. From now on, `forge test` includes these fork tests whenever `.env` sets `SEPOLIA_RPC_URL`. A third Sepolia fork test, `test_Fork_MockForwarder_WorkflowIdCheck_ReportRejected` in `contracts/test/ReceiverTemplateMetadata.t.sol` (added on 2026-10-07 in `57933bc`), lives outside `test/fork/`, so `--no-match-path 'test/fork/*'` no longer keeps the run fully offline. Measured on 2026-10-07: `forge test` with `.env` gives `76 tests passed, 0 failed, 0 skipped (76 total tests)` (73 offline plus 3 fork tests); `SEPOLIA_RPC_URL= forge test` stays offline and gives `73 tests passed, 0 failed, 2 skipped (75 total tests)` (the skipped `setUp()` of this suite counts as one).
 
 - [x] **Step 3: Update the CRE friction log**
 
@@ -2691,7 +2691,7 @@ contract WriteDeployments is ClimScript {
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge build && forge test --no-match-path 'test/fork/*'
 ```
-Expected: `Compiler run successful!`, then `69 tests passed, 0 failed, 0 skipped (69 total tests)`.
+Expected: `Compiler run successful!`, then `69 tests passed, 0 failed, 0 skipped (69 total tests)`. On 2026-10-07 the same command gives `74 tests passed, 0 failed, 0 skipped (74 total tests)` with `.env`'s `SEPOLIA_RPC_URL` (the fork test of `ReceiverTemplateMetadata.t.sol` sits outside `test/fork/`), or `73 tests passed, 0 failed, 1 skipped (74 total tests)` with `SEPOLIA_RPC_URL=`.
 
 - [x] **Step 4: Commit**
 
@@ -2709,7 +2709,7 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/script/04_AddL
 
 - [x] **Step 1: Write the exporter**
 
-`contracts/script/export-abis.sh`. It writes the same `shared/abis/<Name>.json` files as plan 04's `bun run --cwd shared export-abis`, plus five more. Either exporter can run; the outputs are identical.
+`contracts/script/export-abis.sh`, the only ABI exporter: it writes the eight `shared/abis/<Name>.json` files. Plan 04's `shared/scripts/export-abis.ts` (`bun run --cwd shared export-abis`, a three-contract subset of the same files) was removed on 2026-10-07 in `5ed36a8`.
 ```bash
 #!/usr/bin/env bash
 # Copies the ABIs that cre/, bots/ and app/ consume from Foundry artifacts to shared/abis/.
@@ -2886,7 +2886,7 @@ jq -e '.staticFeePips > 0 and .replayStaticFeePips != .staticFeePips and .feeMin
 cast balance $(cast wallet address --private-key $PRIVATE_KEY) --rpc-url $SEPOLIA_RPC_URL --ether && \
 forge test 2>&1 | tail -1
 ```
-Expected: `true`, `true`, a balance of at least `0.05`, and `71 tests passed, 0 failed, 0 skipped (71 total tests)`. Stop on any other output. `02_DeployHook` also refuses non-decided params on chain 11155111: a second, independent guard.
+Expected: `true`, `true`, a balance of at least `0.05`, and `76 tests passed, 0 failed, 0 skipped (76 total tests)`: 73 offline plus 3 Sepolia fork tests, measured on 2026-10-07 (71 when the live suite was deployed on 2026-10-06, before `ReceiverTemplateMetadata.t.sol` was added in `57933bc`). Stop on any other output. `02_DeployHook` also refuses non-decided params on chain 11155111: a second, independent guard.
 
 - [x] **Step 2: Deploy tokens, desk and hook**
 
@@ -3025,14 +3025,14 @@ cd /Users/fianso/Development/hackathons/clim && git add contracts/deployments/11
 - Create: `contracts/deployments/11155111/desk-don.json`
 - Modify: `shared/deployments/sepolia.json`
 
-- [ ] **Step 1: Deploy the DON desk (production forwarder; simulation mode is switched off in the same broadcast)**
+- [ ] **Step 1: Deploy the DON desk (production forwarder; simulation mode is switched off in the same broadcast)** **Cut (2026-10-07):** the DON deployment is cut with plan 02 Task 13 (master cut list item 1): `cre whoami` still printed `Deploy Access: Not enabled` about 6.5 h after the access request (friction log row 6), so no DON can write to a DON desk and clim stays on `simulate --broadcast` through `MockKeystoneForwarder`; `riskDesks.don` stays null in `shared/deployments/sepolia.json` and no `desk-don.json` exists.
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && ok(){ out=$("$@" 2>&1); echo "$out" | grep -E "ONCHAIN EXECUTION COMPLETE|Error" || echo "$out" | grep -E "Script ran successfully"; ! echo "$out" | grep -q "Error"; } && SUITE=don ok forge script script/01_DeployDesk.s.sol --rpc-url sepolia --broadcast --slow --skip-simulation && ok forge script script/05_WriteDeployments.s.sol --rpc-url sepolia && cat deployments/11155111/desk-don.json
 ```
 Expected: `ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.`, `Script ran successfully.`, and a fragment with `"forwarder": "0xF8344CFd5c43616a4366C34E3EEE75af79a74482"` and `"simMode": false`. `riskDesks.don` is now set in `shared/deployments/sepolia.json`. Plan 02's later `cast send <don desk> "disableSim()"` is then a harmless no-op.
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 2: Commit** **Cut (2026-10-07):** nothing to commit, Step 1 is cut with plan 02 Task 13 (master cut list item 1, CRE deploy access never enabled).
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/deployments/11155111/desk-don.json contracts/broadcast shared/deployments/sepolia.json && git commit -m "deploy(contracts): DON RiskDesk on the production KeystoneForwarder"
