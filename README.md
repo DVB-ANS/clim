@@ -2,9 +2,9 @@
 
 The public terminal of clim's risk desk: storm insurance for Uniswap v4 LPs. A Chainlink CRE workflow publishes ETH volatility to `RiskDesk` every 30 s, and `ClimHook` sets pool V's fee on every swap from it. Pool S, the same pair with a fixed fee, is the control.
 
-Pages: `/` (landing), `/app` (dashboard), `/replay`, `/lab`, `/how`, `/swap` (see the fee before you pay it), `/lp` (faucet, full-range liquidity, your position). Live: https://clim-zeta.vercel.app
+Pages: `/` (landing), `/app` (dashboard), `/replay`, `/lab`, `/how`, `/swap` (see the fee before you pay it), `/lp` (faucet, full-range liquidity, your position), `/credits` (third-party notices). Live: https://clim-zeta.vercel.app
 
-The look follows refero's Ventriloc style; every colour, radius and font is a token in `src/app/globals.css` and `src/lib/theme.ts`.
+The look follows refero's Ventriloc style (layout and type) in pink, blue and white: Chainlink Blue for actions and pool V, Uniswap's pink for σ and the storm. Every colour, radius and font is a token in `src/app/globals.css` and `src/lib/theme.ts`.
 
 This repo is the `app/` folder of DVB-ANS/clim (plan 05), built on its own and merged there as is.
 
@@ -39,4 +39,8 @@ Until the contracts are deployed, everything runs on a deterministic mock chain.
 
 After the merge into DVB-ANS/clim, set the Vercel project's **Root Directory** to `app/`.
 
-Decisions and deviations from plan 05 are logged in `docs/sessions/2026-10-06.md`.
+Decisions and deviations from plan 05 are logged in `docs/sessions/2026-10-06.md` and `docs/sessions/2026-10-07.md`.
+
+## Credits
+
+Components adapted from [React Bits](https://reactbits.dev), [Rare UI](https://rareui.com) and [ObsidianUI](https://www.obsidianui.dev); patterns after [Aceternity UI](https://ui.aceternity.com); ordered dithering after [Dither it!](https://ditheritv3.netlify.app). Sources, commits and licences: `THIRD_PARTY_NOTICES.md` (also served at `/credits`).
