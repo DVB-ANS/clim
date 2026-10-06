@@ -2,7 +2,9 @@
 
 The public terminal of clim's risk desk: storm insurance for Uniswap v4 LPs. A Chainlink CRE workflow publishes ETH volatility to `RiskDesk` every 30 s, and `ClimHook` sets pool V's fee on every swap from it. Pool S, the same pair with a fixed fee, is the control.
 
-Pages: `/` (dashboard), `/replay`, `/lab`, `/how`, `/swap` (see the fee before you pay it), `/lp` (faucet, full-range liquidity, your position). Live: https://clim-zeta.vercel.app
+Pages: `/` (landing), `/app` (dashboard), `/replay`, `/lab`, `/how`, `/swap` (see the fee before you pay it), `/lp` (faucet, full-range liquidity, your position). Live: https://clim-zeta.vercel.app
+
+The look follows refero's Ventriloc style; every colour, radius and font is a token in `src/app/globals.css` and `src/lib/theme.ts`.
 
 This repo is the `app/` folder of DVB-ANS/clim (plan 05), built on its own and merged there as is.
 
