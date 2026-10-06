@@ -2952,7 +2952,7 @@ Expected: the commit lists `contracts/deployments/11155111/{tokens,desk-live,hoo
 **Files:**
 - Modify: `docs/sessions/2026-10-06.md`
 
-- [ ] **Step 1: Verify the four contracts**
+- [x] **Step 1: Verify the four contracts**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && set -a && source .env && set +a && D=../shared/deployments/sepolia.json && P=../shared/params.json && DEPLOYER=$(jq -r .deployer $D) && \
@@ -2961,9 +2961,9 @@ forge verify-contract $(jq -r .tokens.tUSD.address $D) src/test-tokens/TestToken
 forge verify-contract $(jq -r .riskDesks.live $D) src/RiskDesk.sol:RiskDesk --chain sepolia --etherscan-api-key $ETHERSCAN_API_KEY --watch --constructor-args $(cast abi-encode "constructor(address,address,bool)" $(jq -r .cre.mockForwarder $D) $DEPLOYER false) && \
 forge verify-contract $(jq -r .hooks.live $D) src/ClimHook.sol:ClimHook --chain sepolia --etherscan-api-key $ETHERSCAN_API_KEY --watch --constructor-args $(cast abi-encode "constructor(address,address,uint32,uint32,uint24,uint24,uint24,uint32)" $(jq -r .uniswap.poolManager $D) $(jq -r .riskDesks.live $D) $(jq -r .etaE4 $P) $(jq -r .sqrtHalfDtE6 $P) $(jq -r .feeMinPips $P) $(jq -r .feeMaxPips $P) $(jq -r .feeSafePips $P) $(jq -r .tauKillSec $P))
 ```
-Expected: each command ends with `Pass - Verified` (or `Contract source code already verified`). Without an Etherscan key, replace `--etherscan-api-key $ETHERSCAN_API_KEY` with `--verifier sourcify`. Expected then: `Contract successfully verified`.
+Expected: each command ends with `Pass - Verified` (or `Contract source code already verified`). Without an Etherscan key, replace `--etherscan-api-key $ETHERSCAN_API_KEY --watch` with `--verifier sourcify` (forge 1.4.2 rejects `--watch` with Sourcify and prints only its usage). Expected then: `Verification Job ID: ...` for each contract, and `curl -s https://sourcify.dev/server/v2/contract/11155111/<address> | jq -r .match` prints `match` (done this way on 2026-10-06: no Etherscan key).
 
-- [ ] **Step 2: Log and commit**
+- [x] **Step 2: Log and commit**
 
 Append under `## Contracts (plan 01)`:
 ```markdown
