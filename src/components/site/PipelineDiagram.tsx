@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Cursor } from "./Cursor";
 
 type Live = { seq?: number; sigmaPct?: number; dispBp?: number; sources?: number; feeVBp?: number; feeSBp?: number };
@@ -30,13 +30,24 @@ function Icon({ kind, x, y }: { kind: "venue" | "don" | "desk" | "hook" | "pool"
 }
 
 /**
- * The risk desk's pipeline as a live architecture canvas: four venues and Deribit's DVOL feed the
- * Chainlink CRE DON, which signs one report to RiskDesk; ClimHook reads it inside each swap and
- * prices pools V and S. A packet runs the rails on every new report.
+ * The risk desk's pipeline as a live architecture canvas: four venues feed the Chainlink CRE DON
+ * (Deribit's DVOL is logged alongside, dashed: it does not enter σ), which signs one report to
+ * RiskDesk; ClimHook reads it inside each swap and prices pools V and S. A packet runs the rails on
+ * every new report. Narrower than the drawing, it scrolls sideways and becomes a focusable region.
  */
-export function PipelineDiagram({ live }: { live: Live }) {
+export function PipelineDiagram({ live, simulated = false }: { live: Live; simulated?: boolean }) {
   const paths = useRef<(SVGPathElement | null)[]>([]);
   const dots = useRef<(SVGCircleElement | null)[]>([]);
+  const scroller = useRef<HTMLDivElement>(null);
+  const [scrollable, setScrollable] = useState(false);
+
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setScrollable(el.scrollWidth > el.clientWidth + 1));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     if (live.seq === undefined || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -70,14 +81,17 @@ export function PipelineDiagram({ live }: { live: Live }) {
   return (
     <div className="relative rounded-md border border-line bg-surface">
       <div className="flex items-center justify-between border-b border-line px-4 py-2.5 text-xs text-fg-subtle">
-        <span>clim · risk desk pipeline</span>
-        <span className="flex items-center gap-2">
-          <span className="size-4 rounded-full bg-wash ring-1 ring-line" />
-          100%
-        </span>
+        <span>clim · risk desk pipeline{simulated ? " · simulated" : ""}</span>
+        {scrollable ? <span aria-hidden>scroll →</span> : null}
       </div>
-      <div className="overflow-x-auto">
-        <svg viewBox="0 0 770 350" className="block h-auto w-full min-w-[560px]" role="img" aria-label="Four venues and Deribit feed the Chainlink CRE network, which writes RiskDesk; ClimHook reads it and prices pools V and S">
+      <div
+        ref={scroller}
+        className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-accent"
+        tabIndex={scrollable ? 0 : undefined}
+        role={scrollable ? "region" : undefined}
+        aria-label={scrollable ? "Risk desk pipeline, scrolls sideways" : undefined}
+      >
+        <svg viewBox="0 0 770 350" className="block h-auto w-full min-w-[560px]" role="img" aria-label="Four venues feed the Chainlink CRE network (Deribit DVOL is logged alongside), which writes RiskDesk; ClimHook reads it and prices pools V and S">
           <defs>
             <marker id="clim-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0 0l8 4-8 4z" fill="var(--clim-deep)" />
@@ -91,7 +105,7 @@ export function PipelineDiagram({ live }: { live: Live }) {
               fill="none"
               stroke="var(--clim-deep)"
               strokeWidth={1.2}
-              strokeDasharray={i === RAILS.length - 1 ? "5 4" : undefined}
+              strokeDasharray={i === 4 || i === RAILS.length - 1 ? "5 4" : undefined}
               markerEnd="url(#clim-arrow)"
             />
           ))}
@@ -107,7 +121,7 @@ export function PipelineDiagram({ live }: { live: Live }) {
             <rect x={12} y={286} width={140} height={50} rx={6} fill="var(--clim-wash)" stroke="var(--clim-line)" />
             <Icon kind="venue" x={22} y={295} />
             <text x={42} y={307}>Deribit DVOL</text>
-            <text x={42} y={324} fontSize={10.5} fill="var(--clim-fg-subtle)">the market&apos;s forecast</text>
+            <text x={42} y={324} fontSize={10.5} fill="var(--clim-fg-subtle)">logged, not in σ</text>
 
             <rect x={196} y={131} width={160} height={110} rx={8} fill="var(--clim-fg)" />
             <text x={210} y={157} fill="var(--clim-surface)">Chainlink CRE</text>

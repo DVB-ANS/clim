@@ -15,7 +15,7 @@ import type { TickerItem } from "./LiveTicker";
 const feeAt = (r: DeskReport) => pipsToBp(quoteFee(deskStateOf(r), r.tObs, params).feePips);
 
 /**
- * Everything the landing shows, from the desk's logs (simulated until the contracts are deployed):
+ * Everything the landing shows, from the desk's logs (simulated while the app reads the mock chain):
  * the numbers now, the last two hours for the hero, and the window's story (the storm, V against S,
  * the safe modes). The story moves with the reports, so it is recomputed every 30 s, not every second.
  */
@@ -34,7 +34,14 @@ export function useLandingData() {
     const from = (reports.at(-1)?.blockTimestamp ?? 0) - 2 * 3600;
     return downsample(weatherSeries(reports.filter((r) => r.blockTimestamp >= from), params, nowSec), 160);
   }, [reports, nowSec]);
-  const windowPoints = useMemo(() => downsample(weatherSeries(reports, params, slow), 240), [reports, slow]);
+  const windowPoints = useMemo(() => {
+    // downsampled for the chart, but the storm's peak step is kept, so its pink ring sits on the line
+    const full = weatherSeries(reports, params, slow);
+    const kept = new Set(downsample(full, 240));
+    const peak = full.reduce((best, p, i) => (p.sigmaPct > full[best].sigmaPct ? i : best), 0);
+    for (const i of [peak, peak + 1]) if (full[i]) kept.add(full[i]);
+    return full.filter((p) => kept.has(p));
+  }, [reports, slow]);
 
   const ticker: TickerItem[] = useMemo(
     () =>

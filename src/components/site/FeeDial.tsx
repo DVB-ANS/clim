@@ -4,30 +4,38 @@ import { useId, useState } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { params } from "@/lib/config";
 import { feePips } from "@/lib/feeMath";
-import { sigmaAtFee } from "@/lib/story";
-import { annualPctToSigmaE9, pipsToBp } from "@/lib/units";
+import { reachableFeeMaxBp, SIGMA_DESK_MAX_E9, sigmaAtFee } from "@/lib/story";
+import { annualPctToSigmaE9, pipsToBp, sigmaE9ToAnnualPct } from "@/lib/units";
 
-const SIGMA_MAX = 900; // %/yr at the slider's end (the cap needs about 824 with the fixture parameters)
-const STEPS = 1000;
+const SIGMA_MAX = Math.round(sigmaE9ToAnnualPct(SIGMA_DESK_MAX_E9)); // 1000 %/yr: the most the desk publishes
+const STEPS = 200; // about 2 %/yr per arrow key near the live σ
 // a square-root scale gives calm and stormy markets most of the travel
 const toSigma = (step: number) => SIGMA_MAX * (step / STEPS) ** 2;
 const toStep = (sigma: number) => Math.round(Math.sqrt(Math.min(SIGMA_MAX, Math.max(0, sigma)) / SIGMA_MAX) * STEPS);
+const share = (sigma: number) => Math.sqrt(Math.min(SIGMA_MAX, Math.max(0, sigma)) / SIGMA_MAX);
 
-/** The hook's fee for a volatility, with the current parameters (ClimHook.quoteFee in normal mode). */
+/** The hook's normal-mode fee for a volatility, with the current parameters (ClimHook.quoteFee). */
 const feeAt = (sigmaPct: number, kE4: number) =>
   pipsToBp(feePips(annualPctToSigmaE9(sigmaPct), params.etaE4, params.sqrtHalfDtE6, kE4, params.feeMinPips, params.feeMaxPips));
 
 const W = 520, H = 200, PAD = 8;
 const FEE_MAX = pipsToBp(params.feeMaxPips);
-const x = (sigma: number) => PAD + (toStep(sigma) / STEPS) * (W - 2 * PAD);
+const x = (sigma: number) => PAD + share(sigma) * (W - 2 * PAD);
 const y = (bp: number) => H - PAD - (bp / FEE_MAX) * (H - 2 * PAD);
 
 /**
- * σ in, fee out: drag the volatility and read the fee the hook would charge, on the hook's own
- * formula. Two chips jump to the live σ and to the window's storm peak; pool S's fixed fee and the
- * safe-mode floor are drawn for scale. A native range input, so it works with keys and screen readers.
+ * σ in, fee out: drag the volatility and read the fee the hook would charge in normal mode, on its
+ * own formula. Two chips jump to the live σ and to the window's storm peak; pool S's fixed fee and
+ * the safe-mode floor are drawn for scale, labelled in HTML so the text keeps its size on any screen.
+ * A native range input, so it works with keys and screen readers.
  */
-export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000 }: { sigmaNow?: number; sigmaPeak?: number; feeSBp?: number; kE4?: number }) {
+export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000, simulated = false }: {
+  sigmaNow?: number;
+  sigmaPeak?: number;
+  feeSBp?: number;
+  kE4?: number;
+  simulated?: boolean;
+}) {
   const [picked, setPicked] = useState<number | null>(null);
   const sigma = picked ?? sigmaNow ?? 40;
   const fee = feeAt(sigma, kE4);
@@ -36,15 +44,17 @@ export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000 }: { sigmaNo
     .map((s, i) => `${i ? "L" : "M"}${x(s).toFixed(1)} ${y(feeAt(s, kE4)).toFixed(1)}`)
     .join("");
   const safe = pipsToBp(params.feeSafePips);
+  const reachable = reachableFeeMaxBp(params, kE4);
   const chip = "rounded-full border border-line px-3 py-1 text-xs text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-accent";
+  const pctY = (bp: number) => `${(y(bp) / H) * 100}%`;
 
   return (
     <div className="rounded-md bg-surface p-4 shadow-[0_0_0_1px_var(--clim-line)]">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <p className="leading-none">
-          <span className="block text-xs text-fg-subtle">σ {Math.round(sigma)} %/yr → fee on pool V</span>
+          <span className="block text-xs text-fg-subtle">σ {Math.round(sigma)} %/yr → pool V&apos;s fee, normal mode</span>
           <span className="mt-2 inline-flex items-baseline gap-1.5 font-display text-[34px] leading-none tracking-[-0.02em] tabular-nums">
-            <AnimatedCounter value={fee} decimals={2} />
+            <AnimatedCounter value={fee} decimals={2} className="-my-[0.25em]" />
             <span className="text-base text-fg-subtle">bp</span>
           </span>
         </p>
@@ -62,24 +72,26 @@ export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000 }: { sigmaNo
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="mt-4 h-auto w-full" aria-hidden>
-        <line x1={PAD} x2={W - PAD} y1={y(0)} y2={y(0)} stroke="var(--clim-line)" />
-        <line x1={PAD} x2={W - PAD} y1={y(safe)} y2={y(safe)} stroke="var(--clim-muted)" strokeDasharray="2 4" />
-        <text x={PAD + 2} y={y(safe) - 5} fontSize="11" fill="var(--clim-fg-subtle)">
+      <div className="relative mt-4">
+        <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" aria-hidden>
+          <line x1={PAD} x2={W - PAD} y1={y(0)} y2={y(0)} stroke="var(--clim-line)" vectorEffect="non-scaling-stroke" />
+          <line x1={PAD} x2={W - PAD} y1={y(safe)} y2={y(safe)} stroke="var(--clim-muted)" strokeDasharray="2 4" vectorEffect="non-scaling-stroke" />
+          {feeSBp !== undefined ? (
+            <line x1={PAD} x2={W - PAD} y1={y(feeSBp)} y2={y(feeSBp)} stroke="var(--clim-s)" strokeDasharray="5 4" vectorEffect="non-scaling-stroke" />
+          ) : null}
+          <path d={curve} fill="none" stroke="var(--clim-v)" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+          {sigmaNow !== undefined ? <circle cx={x(sigmaNow)} cy={y(feeAt(sigmaNow, kE4))} r={5} fill="var(--clim-pink)" stroke="var(--clim-surface)" strokeWidth={2} /> : null}
+          <circle cx={x(sigma)} cy={y(fee)} r={6.5} fill="var(--clim-v)" stroke="var(--clim-surface)" strokeWidth={2.5} />
+        </svg>
+        <span aria-hidden className="absolute left-1 -translate-y-full pb-0.5 text-[11px] text-fg-subtle" style={{ top: pctY(safe) }}>
           safe-mode floor · {safe} bp
-        </text>
+        </span>
         {feeSBp !== undefined ? (
-          <>
-            <line x1={PAD} x2={W - PAD} y1={y(feeSBp)} y2={y(feeSBp)} stroke="var(--clim-s)" strokeDasharray="5 4" />
-            <text x={W - PAD - 2} y={y(feeSBp) - 5} fontSize="11" textAnchor="end" fill="var(--clim-fg-subtle)">
-              pool S · {feeSBp.toFixed(2)} bp
-            </text>
-          </>
+          <span aria-hidden className="absolute right-1 -translate-y-full pb-0.5 text-[11px] text-fg-subtle" style={{ top: pctY(feeSBp) }}>
+            pool S · {feeSBp.toFixed(2)} bp
+          </span>
         ) : null}
-        <path d={curve} fill="none" stroke="var(--clim-v)" strokeWidth={2} />
-        {sigmaNow !== undefined ? <circle cx={x(sigmaNow)} cy={y(feeAt(sigmaNow, kE4))} r={5} fill="var(--clim-pink)" stroke="var(--clim-surface)" strokeWidth={2} /> : null}
-        <circle cx={x(sigma)} cy={y(fee)} r={6.5} fill="var(--clim-v)" stroke="var(--clim-surface)" strokeWidth={2.5} />
-      </svg>
+      </div>
 
       <label htmlFor={id} className="sr-only">
         Volatility σ, in percent per year
@@ -91,18 +103,25 @@ export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000 }: { sigmaNo
         max={STEPS}
         value={toStep(sigma)}
         onChange={(e) => setPicked(toSigma(Number(e.target.value)))}
-        aria-valuetext={`σ ${Math.round(sigma)} %/yr, fee ${fee.toFixed(2)} bp`}
+        aria-valuetext={`σ ${Math.round(sigma)} %/yr, fee ${fee.toFixed(2)} bp${fee <= pipsToBp(params.feeMinPips) ? " (floor)" : ""}`}
         className="mt-2 w-full accent-[var(--clim-accent)]"
       />
-      <div className="flex justify-between text-[11px] text-fg-subtle">
-        <span>calm</span>
-        <span>100 %</span>
-        <span>400 %</span>
-        <span>{SIGMA_MAX} %/yr</span>
+      <div aria-hidden className="relative h-4 text-[11px] text-fg-subtle">
+        <span className="absolute left-0">calm</span>
+        <span className="absolute -translate-x-1/2" style={{ left: `${share(100) * 100}%` }}>
+          100 %
+        </span>
+        <span className="absolute -translate-x-1/2" style={{ left: `${share(400) * 100}%` }}>
+          400 %
+        </span>
+        <span className="absolute right-0">{SIGMA_MAX} %/yr</span>
       </div>
       <p className="mt-3 text-xs text-fg-muted">
-        The hook&apos;s formula with the current parameters{params.fixture ? " (a fixture until the lab writes them)" : ""}. The {FEE_MAX} bp cap
-        needs σ ≈ {Math.round(sigmaAtFee(FEE_MAX, params, kE4))} %/yr; the pink dot is the desk&apos;s σ now.
+        The hook&apos;s formula with {params.fixture ? "fixture" : "the lab's"} parameters
+        {reachable < FEE_MAX
+          ? `: at the desk's ${SIGMA_MAX} %/yr ceiling it charges ${reachable.toFixed(2)} bp, so its ${FEE_MAX} bp cap is never reached`
+          : `; the ${FEE_MAX} bp cap needs σ ≈ ${Math.round(sigmaAtFee(FEE_MAX, params, kE4))} %/yr`}
+        . The pink dot is the desk&apos;s σ now{simulated ? " (simulated)" : ""}.
       </p>
     </div>
   );

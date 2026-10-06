@@ -1,9 +1,11 @@
 // Ordered (Bayer 8x8) dithering after Dither it! (https://ditheritv3.netlify.app, github.com/alexharris/ditherit, MIT License, Copyright (c) 2025 Nuxt UI Templates). Re-implemented from the textbook definition; palette from the tokens in src/app/globals.css.
 //
-// Writes public/textures/storm-front.png: the closing band's storm front, a diagonal ramp from the
-// band's blue through white to pink, Bayer-dithered on a 300 x 158 cell grid and shown at 4 x with
-// image-rendering: pixelated (.bg-storm-front in globals.css). A 3-colour palette PNG, written with
-// node:zlib only. Run: node scripts/make-dither.mjs
+// Writes the closing band's storm front, Bayer-dithered from the band's blue through white to pink and
+// shown at 4 x with image-rendering: pixelated (.bg-storm-front in globals.css):
+// - public/textures/storm-front.png, 300 x 158 cells, a diagonal front for the band's right-hand cell (lg up);
+// - public/textures/storm-front-strip.png, 300 x 40 cells, a wavy front running top to bottom for the strip
+//   under the band on smaller screens; it tiles sideways without a seam.
+// 3-colour palette PNGs, written with node:zlib only. Run: node scripts/make-dither.mjs
 import { mkdirSync, writeFileSync } from "node:fs";
 import { crc32, deflateSync } from "node:zlib";
 
@@ -40,22 +42,6 @@ function bayer(n) {
 const B8 = bayer(8);
 const ramp = (d, from, to) => Math.max(0, Math.min(1, (d - from) / (to - from)));
 
-// 2 bits per pixel, 4 pixels per byte; each row starts with filter byte 0 (none).
-const rowBytes = Math.ceil(W / 4);
-const raw = Buffer.alloc(H * (1 + rowBytes));
-const counts = [0, 0, 0];
-for (let y = 0; y < H; y++) {
-  for (let x = 0; x < W; x++) {
-    const d = x + LEAN * (y - (H - 1) / 2);
-    // first half: blue (0) or white (1); second half: white (1) or pink (2)
-    const pinkSide = d >= (WHITE_SOLID + PINK_START) / 2;
-    const f = pinkSide ? ramp(d, PINK_START, PINK_SOLID) : ramp(d, BLUE_SOLID, WHITE_SOLID);
-    const i = +pinkSide + +(f > (B8[y % 8][x % 8] + 0.5) / 64);
-    counts[i]++;
-    raw[y * (1 + rowBytes) + 1 + (x >> 2)] |= i << (6 - 2 * (x & 3));
-  }
-}
-
 function chunk(type, data) {
   const out = Buffer.alloc(12 + data.length);
   out.writeUInt32BE(data.length, 0);
@@ -65,21 +51,41 @@ function chunk(type, data) {
   return out;
 }
 
-const ihdr = Buffer.alloc(13);
-ihdr.writeUInt32BE(W, 0);
-ihdr.writeUInt32BE(H, 4);
-ihdr.set([2, 3, 0, 0, 0], 8); // bit depth 2, colour type 3 (palette), deflate, filter method 0, no interlace
-const plte = Buffer.from(PALETTE.flatMap((hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))));
+/** Dithers a w x h cell field whose ramp position (in cells, see the constants above) is `at(x, y)`, and writes it. */
+function texture(name, w, h, at) {
+  // 2 bits per pixel, 4 pixels per byte; each row starts with filter byte 0 (none).
+  const rowBytes = Math.ceil(w / 4);
+  const raw = Buffer.alloc(h * (1 + rowBytes));
+  const counts = [0, 0, 0];
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const d = at(x, y);
+      // first half: blue (0) or white (1); second half: white (1) or pink (2)
+      const pinkSide = d >= (WHITE_SOLID + PINK_START) / 2;
+      const f = pinkSide ? ramp(d, PINK_START, PINK_SOLID) : ramp(d, BLUE_SOLID, WHITE_SOLID);
+      const i = +pinkSide + +(f > (B8[y % 8][x % 8] + 0.5) / 64);
+      counts[i]++;
+      raw[y * (1 + rowBytes) + 1 + (x >> 2)] |= i << (6 - 2 * (x & 3));
+    }
+  }
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
+  ihdr.set([2, 3, 0, 0, 0], 8); // bit depth 2, colour type 3 (palette), deflate, filter method 0, no interlace
+  const plte = Buffer.from(PALETTE.flatMap((hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))));
+  const png = Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk("IHDR", ihdr),
+    chunk("PLTE", plte),
+    chunk("IDAT", deflateSync(raw, { level: 9 })),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
+  mkdirSync(new URL("../public/textures/", import.meta.url), { recursive: true });
+  writeFileSync(new URL(`../public/textures/${name}`, import.meta.url), png);
+  const share = counts.map((c, i) => `${PALETTE[i]} ${Math.round((100 * c) / (w * h))} %`).join(", ");
+  console.log(`public/textures/${name}: ${w}x${h} cells, ${png.length} B (${share})`);
+}
 
-const png = Buffer.concat([
-  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-  chunk("IHDR", ihdr),
-  chunk("PLTE", plte),
-  chunk("IDAT", deflateSync(raw, { level: 9 })),
-  chunk("IEND", Buffer.alloc(0)),
-]);
-
-mkdirSync(new URL("../public/textures/", import.meta.url), { recursive: true });
-writeFileSync(new URL("../public/textures/storm-front.png", import.meta.url), png);
-const share = counts.map((c, i) => `${PALETTE[i]} ${Math.round((100 * c) / (W * H))} %`).join(", ");
-console.log(`public/textures/storm-front.png: ${W}x${H} cells, ${png.length} B (${share})`);
+texture("storm-front.png", W, H, (x, y) => x + LEAN * (y - (H - 1) / 2));
+// top rows solid blue (they continue the band), bottom rows solid pink; the front waves once per tile
+texture("storm-front-strip.png", W, 40, (x, y) => y * 3.5 + 6 * Math.sin((2 * Math.PI * x) / W));

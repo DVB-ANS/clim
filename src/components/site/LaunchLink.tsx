@@ -7,8 +7,8 @@ import { cn } from "@/lib/cn";
 /**
  * A real link to /app tagged with the "launch" transition type: the button blooms into the app
  * (globals.css, "Launch transition"). On click it hands its box and its rounding to that CSS, and the
- * pink wave's origin: the centre of its [data-launch-dot] element when it has one (LaunchButton's pink
- * disc), else its own centre. A modified click opens a new tab as usual, and browsers without view
+ * pink wave's origin: its [data-launch-dot] element when it has one (LaunchButton's pink disc), else a
+ * point at its centre. A modified click opens a new tab as usual, and browsers without view
  * transitions simply navigate.
  */
 export function LaunchLink({ className, style, children, ...rest }: { className: string; style?: CSSProperties; children: ReactNode; "aria-label"?: string }) {
@@ -22,8 +22,12 @@ export function LaunchLink({ className, style, children, ...rest }: { className:
     s.setProperty("--launch-r", `${r.right}px`);
     s.setProperty("--launch-b", `${r.bottom}px`);
     s.setProperty("--launch-rad", `${Math.min(radius, r.height / 2)}px`);
-    s.setProperty("--launch-cx", `${dot.left + dot.width / 2}px`);
-    s.setProperty("--launch-cy", `${dot.top + dot.height / 2}px`);
+    // the disc's own box (a point at the centre for a link without one): the pink starts as the disc
+    const disc = dot === r ? { top: r.top + r.height / 2, left: r.left + r.width / 2, right: r.left + r.width / 2, bottom: r.top + r.height / 2 } : dot;
+    s.setProperty("--launch-dot-t", `${disc.top}px`);
+    s.setProperty("--launch-dot-l", `${disc.left}px`);
+    s.setProperty("--launch-dot-r", `${disc.right}px`);
+    s.setProperty("--launch-dot-b", `${disc.bottom}px`);
   };
   return (
     <Link href="/app" transitionTypes={["launch"]} onClick={onClick} className={className} style={style} {...rest}>

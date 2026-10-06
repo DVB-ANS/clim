@@ -75,7 +75,7 @@ export function LaunchButton({
       <span aria-hidden data-launch-dot className={cn("relative grid flex-none place-items-center rounded-full bg-pink text-accent-fg transition-transform", SWEEP, s.disc)}>
         <LaunchPending>
           <svg viewBox="0 0 24 24" className="size-[1em]" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7" />
+            <path d="M4.5 12h14.5M13 6.5 18.5 12 13 17.5" />
           </svg>
         </LaunchPending>
       </span>

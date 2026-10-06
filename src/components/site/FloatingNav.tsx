@@ -27,11 +27,13 @@ export function FloatingNav() {
   const [shown, setShown] = useState(false);
   const active = useActiveSection(ITEMS);
 
+  // the whole hero, not a marker at its end: any jump past it (an anchor, a reload mid-page, reduced
+  // motion's instant scroll) or back into it changes its intersection and fires the callback
   useEffect(() => {
-    const end = document.getElementById("hero-end");
-    if (!end) return;
+    const hero = document.getElementById("top");
+    if (!hero) return;
     const io = new IntersectionObserver(([e]) => setShown(!e.isIntersecting && e.boundingClientRect.top < 0));
-    io.observe(end);
+    io.observe(hero);
     return () => io.disconnect();
   }, []);
 

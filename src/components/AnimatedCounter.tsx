@@ -1,4 +1,4 @@
-// Adapted from Rare UI "Animated Counter" (https://rareui.com), github.com/swamimalode07/rare-ui at commit f64e5833 — MIT License, Copyright (c) 2026 Swami Malode (the licence in force at that commit). Full text in THIRD_PARTY_NOTICES.md.
+// Adapted from Rare UI "Animated Counter" (https://rareui.com), github.com/swamimalode07/rare-ui at commit 53956741 — MIT License, Copyright (c) 2026 Swami Malode (the licence in force at that commit). Full text in THIRD_PARTY_NOTICES.md.
 
 "use client";
 
@@ -219,7 +219,7 @@ const fades = (reduced: boolean) => ({
 
 function Fixed({ children, ...slot }: SlotProps & { children: ReactNode }) {
   return (
-    <motion.span {...shifts(slot)} className="inline-block">
+    <motion.span {...shifts(slot)} className="inline-block whitespace-pre">
       {children}
     </motion.span>
   );

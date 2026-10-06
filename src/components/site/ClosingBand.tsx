@@ -6,7 +6,7 @@ import { LaunchButton } from "./LaunchButton";
 
 const CHECKS = [
   `${pipsToBp(params.feeMinPips)} bp floor in calm markets`,
-  `Up to ${pipsToBp(params.feeMaxPips)} bp in a storm`,
+  `More as the storm builds, never above ${pipsToBp(params.feeMaxPips)} bp`,
   `${pipsToBp(params.feeSafePips)} bp or more if the venues disagree by over ${DISP_MAX_BP} bp or the desk goes quiet for ${params.tauKillSec} s`,
 ];
 

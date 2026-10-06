@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { windowLabel } from "@/lib/story";
 import { formatUsd } from "@/lib/units";
 import { AnimatedCounter } from "../AnimatedCounter";
 import { PoolsVersus } from "./PoolsVersus";
@@ -40,7 +41,7 @@ export function PoolsSection({ d }: { d: LandingData }) {
           <div className="min-w-0">
             <p className="text-[15px] font-medium">The window&apos;s storm</p>
             <p className="text-xs text-fg-subtle">
-              σ and the fee it set, last {storm ? `${storm.hours} h` : "hours"}
+              σ and the fee it set, last {storm ? windowLabel(storm.hours) : "hours"}
               {simulated ? " · simulated" : ""}
             </p>
             <WeatherMini
@@ -54,7 +55,7 @@ export function PoolsSection({ d }: { d: LandingData }) {
             <dl className="grid grid-cols-3 gap-4 lg:grid-cols-1 lg:gap-5">
               <div>
                 <dt className="text-xs text-fg-subtle">Peak σ</dt>
-                <dd className="font-display text-[22px] leading-tight sm:text-[28px] tracking-[-0.02em] text-sigma tabular-nums">
+                <dd className="font-display text-[22px] leading-tight tracking-[-0.02em] text-sigma-ink tabular-nums sm:text-[28px] sm:text-sigma">
                   {storm.peakSigma.toFixed(1)} <span className="text-sm text-fg-subtle">%/yr</span>
                 </dd>
               </div>
@@ -121,8 +122,9 @@ export function PoolsSection({ d }: { d: LandingData }) {
             <p className="mt-6 max-w-3xl font-display text-[24px] leading-snug tracking-[-0.01em]">
               {v.sameAvgFee ? (
                 <>
-                  Same average fee. Pool V charged it when the storm came: {v.arbChangePct <= 0 ? pct(v.arbChangePct) + " less" : pct(v.arbChangePct) + " more"} lost
-                  to arbitrage, {v.pnlChangePct >= 0 ? pct(v.pnlChangePct) + " more" : pct(v.pnlChangePct) + " less"} hedged LP P&amp;L.
+                  Same average fee. Pool V charged it when the storm came:{" "}
+                  {v.arbKnown ? `${pct(v.arbChangePct)} ${v.arbChangePct <= 0 ? "less" : "more"} lost to arbitrage, ` : ""}
+                  {pct(v.pnlChangePct)} {v.pnlChangePct >= 0 ? "more" : "less"} hedged LP P&amp;L.
                 </>
               ) : (
                 <>
@@ -132,7 +134,7 @@ export function PoolsSection({ d }: { d: LandingData }) {
               )}
             </p>
             <p className="mt-3 text-[13px] text-fg-muted">
-              {simulated ? `Simulated: the same swaps and arbitrage bot on both pools over the last ${v.hours} h, ` : `Over the last ${v.hours} h, `}
+              {simulated ? `Simulated: the same swaps and arbitrage bot on both pools over the last ${windowLabel(v.hours)}, ` : `Over the last ${windowLabel(v.hours)}, `}
               valued from the logs as in the app&apos;s P&amp;L explain (delta-hedged: retail fees − arbitrage).
             </p>
           </>

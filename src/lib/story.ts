@@ -42,6 +42,12 @@ export function stormSummary(reports: DeskReport[], params: FeeParams, o: { stat
   };
 }
 
+/** A window's length for display: hours from one hour, minutes below (Sepolia's first minutes). */
+export function windowLabel(hours: number): string {
+  if (hours >= 1) return `${hours} h`;
+  return hours >= 0.1 ? `${Math.round(hours * 60)} min` : "a few minutes";
+}
+
 /** PnlPanel's rule for a fair comparison: V's time-average fee within 10 % of S's fixed fee. */
 export function sameAverageFee(avgVBp: number, feeSBp: number): boolean {
   return Math.abs(avgVBp - feeSBp) <= 0.1 * feeSBp;
@@ -60,6 +66,7 @@ export type PoolsVerdict = {
   S: PoolStory;
   sameAvgFee: boolean; // sameAverageFee(V.avgFee, S.avgFee): only then may the copy say "same average fee"
   arbChangePct: number; // PnlPanel's "ARB on V vs S": V.arbUsd / S.arbUsd - 1, in % (negative: V lost less to arbitrage)
+  arbKnown: boolean; // the arbitrage router is known and S has seen arbitrage: only then may the copy compare it
   pnlChangePct: number; // V's hedged LP P&L against S's, in % of |S's| (positive: V's LPs made more)
   hours: number; // window length
 };
@@ -97,6 +104,7 @@ export function poolsVerdict(
     S,
     sameAvgFee: sameAverageFee(V.avgFee, S.avgFee),
     arbChangePct: S.arbUsd !== 0 ? (V.arbUsd / S.arbUsd - 1) * 100 : 0,
+    arbKnown: !!o.arbRouter && S.arbSwaps > 0 && S.arbUsd !== 0,
     pnlChangePct: S.netUsd !== 0 ? ((V.netUsd - S.netUsd) / Math.abs(S.netUsd)) * 100 : 0,
     hours,
   };
@@ -124,6 +132,14 @@ export function safetyCounts(reports: DeskReport[], params: FeeParams, nowSec: n
 
 /** Past this σE9 (about 617 million %/yr) the fee is taken as unreachable, e.g. with kE4 = 0. */
 const SIGMA_E9_LIMIT = 2 ** 40;
+
+/** RiskDesk.SIGMA_MAX_E9 (1,780,730): the highest σ the desk will publish, 1000 %/yr. */
+export const SIGMA_DESK_MAX_E9 = 1_780_730;
+
+/** The highest fee a report can make the hook charge in normal mode (bp): its cap, or less when the desk's σ ceiling comes first. */
+export function reachableFeeMaxBp(params: FeeParams, kE4 = 10_000): number {
+  return pipsToBp(feePips(SIGMA_DESK_MAX_E9, params.etaE4, params.sqrtHalfDtE6, kE4, params.feeMinPips, params.feeMaxPips));
+}
 
 /**
  * The lowest σ (%/yr) at which the hook's normal-mode fee reaches `feeBp`, by bisection on feePips:

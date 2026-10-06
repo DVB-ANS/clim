@@ -21,7 +21,7 @@ export function LogoStrip() {
   return (
     <section aria-label="Built on" className="rise-in mx-auto max-w-[1200px] px-4 py-12">
       <p className="text-[13px] text-deep">
-        Measured on four venues and Deribit · agreed by <span className="font-medium">Chainlink CRE</span> · charged in a{" "}
+        Measured on four venues (Deribit DVOL logged alongside) · agreed by <span className="font-medium">Chainlink CRE</span> · charged in a{" "}
         <span className="font-medium">Uniswap v4</span> hook on <span className="font-medium">Ethereum</span>
       </p>
       <ul className="mt-6 flex flex-wrap items-center justify-between gap-x-10 gap-y-5">

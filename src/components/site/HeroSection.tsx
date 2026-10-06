@@ -16,8 +16,7 @@ const HEADLINE = ["Your", "Liquidity.", "Our", "Risk", "Desk.", "Fees", "That", 
 /**
  * The hero, with no bar above it: the wordmark, the promise (its words rise one by one, then a pink box
  * draws around "Storm" with the desk's σ on its cursor), one sentence of mechanism, Launch app first
- * and largest, a live trust line, and the desk's cards on the right. "Scroll to learn more" closes it;
- * #hero-end tells the floating nav when to appear.
+ * and largest, a live trust line, and the desk's cards on the right. "Scroll to learn more" closes it.
  */
 export function HeroSection({ d }: { d: LandingData }) {
   const sigma = d.sigmaPct;
@@ -32,7 +31,7 @@ export function HeroSection({ d }: { d: LandingData }) {
         <div className="grid flex-1 items-center gap-12 pb-8 pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div>
             <p className="rise inline-flex rounded-full bg-pink-wash px-3 py-1 text-[13px] text-sigma-ink">Storm insurance for Uniswap v4 LPs</p>
-            <h1 id="hero-title" className="mt-6 font-display text-[44px] font-normal leading-[0.98] tracking-[-0.02em] sm:text-[58px] lg:text-[66px]">
+            <h1 id="hero-title" aria-label="Your Liquidity. Our Risk Desk. Fees That Follow The Storm." className="mt-6 font-display text-[44px] font-normal leading-[0.98] tracking-[-0.02em] sm:text-[58px] lg:text-[66px]">
               {HEADLINE.map((w, i) => (
                 <span key={i}>
                   <span className="rise-word" style={{ "--i": i } as CSSProperties}>
@@ -50,10 +49,8 @@ export function HeroSection({ d }: { d: LandingData }) {
             <p className="rise mt-10 max-w-[34rem] text-[18px] leading-[1.45] text-fg-muted" style={{ animationDelay: "250ms" }}>
               A Chainlink CRE risk desk reads ETH on Coinbase, Kraken, Binance and Hyperliquid every 30 seconds. A Uniswap v4 hook turns that
               volatility into the fee of every swap:{" "}
-              <span className="text-sigma-ink">
-                {pipsToBp(params.feeMinPips)} bp in calm markets, up to {pipsToBp(params.feeMaxPips)} bp in a storm
-              </span>
-              .
+              <span className="text-sigma-ink">{pipsToBp(params.feeMinPips)} bp in calm markets, more as the storm builds</span>, never above{" "}
+              {pipsToBp(params.feeMaxPips)} bp.
             </p>
             <div className="rise mt-8 flex flex-col gap-3 min-[480px]:flex-row min-[480px]:items-center" style={{ animationDelay: "350ms" }}>
               <Magnet className="w-full min-[480px]:w-auto">
@@ -80,7 +77,7 @@ export function HeroSection({ d }: { d: LandingData }) {
                   {sigma === undefined ? "…" : <AnimatedCounter value={sigma} decimals={1} className="-my-[0.25em]" />} %/yr
                 </span>
               ) : null}
-              {d.simulated ? <span>· simulated until the contracts are on Sepolia</span> : null}
+              {d.simulated ? <span>· simulated</span> : null}
             </p>
           </div>
           <HeroCards
@@ -98,7 +95,6 @@ export function HeroSection({ d }: { d: LandingData }) {
           </svg>
         </a>
       </div>
-      <div id="hero-end" aria-hidden className="h-px" />
     </section>
   );
 }

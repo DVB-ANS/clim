@@ -22,7 +22,7 @@ export function StatusBars({ statuses, className = "" }: { statuses: DeskStatus[
       <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-fg-subtle">
         <span>last {statuses.length} reports · one every 30 s</span>
         <span>
-          <span className="text-degraded">▲</span> degraded {degraded} · <span className="text-blind">■</span> blind {blind}
+          <span aria-hidden className="text-degraded">▲</span> degraded {degraded} · <span aria-hidden className="text-blind">■</span> blind {blind}
         </span>
       </div>
     </div>
@@ -38,7 +38,9 @@ export function DeskChecks({ checks, statuses, simulated }: { checks: DeskCheck[
           <p className="text-[15px] font-medium">Desk checks</p>
           <p className="text-xs text-fg-subtle">As the hook sees the desk now{simulated ? " · simulated" : ""}</p>
         </div>
-        <span className="rounded-full bg-normal/12 px-2 py-0.5 text-xs text-normal">● Live</span>
+        <span className="shrink-0 whitespace-nowrap rounded-full bg-normal/12 px-2 py-0.5 text-xs text-normal">
+          <span aria-hidden>●</span> Live
+        </span>
       </div>
       <ul className="mt-4 space-y-2.5">
         {checks.map((c) => (

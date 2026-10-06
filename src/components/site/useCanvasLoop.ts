@@ -31,7 +31,8 @@ export function useCanvasLoop(ref: RefObject<HTMLCanvasElement | null>, frame: C
         c.width = w;
         c.height = h;
       }
-      frameRef.current(g, w, h, dpr, performance.now());
+      // with reduced motion the clock stands still: the frame shows the data, never a drift or a spin
+      frameRef.current(g, w, h, dpr, reduceRef.current ? 0 : performance.now());
     };
     paintRef.current = paint;
     let raf = 0, last = 0, visible = true;

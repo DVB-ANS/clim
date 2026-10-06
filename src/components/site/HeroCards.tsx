@@ -38,8 +38,8 @@ function Spark({ points }: { points: WeatherPoint[] }) {
 export function HeroCards({ live }: { live: HeroLive }) {
   const bp = (x?: number) => (x === undefined ? "…" : x.toFixed(2));
   return (
-    <div className="relative flex flex-col gap-4 md:block md:h-[500px]">
-      <article className={`${card} rise relative p-4 md:absolute md:right-0 md:top-0 md:w-[86%]`} style={{ animationDelay: "120ms" }}>
+    <div className="relative flex flex-col gap-4 md:grid md:grid-cols-2 lg:block lg:h-[500px]">
+      <article className={`${card} rise relative p-4 md:col-span-2 lg:absolute lg:right-0 lg:top-0 lg:w-[86%]`} style={{ animationDelay: "120ms" }}>
         <div className="flex items-center gap-3">
           <Chip tone="sigma">
             <svg viewBox="0 0 14 14" className="size-3.5" aria-hidden><path d="M2 12V8M7 12V3M12 12V6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" /></svg>
@@ -53,7 +53,7 @@ export function HeroCards({ live }: { live: HeroLive }) {
         <Cursor label="Chainlink DON" className="left-[42%] top-[38%]" />
       </article>
 
-      <article className={`${card} rise relative p-4 md:absolute md:left-0 md:top-[262px] md:w-[50%]`} style={{ animationDelay: "240ms" }}>
+      <article className={`${card} rise relative p-4 lg:absolute lg:left-0 lg:top-[262px] lg:w-[50%]`} style={{ animationDelay: "240ms" }}>
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm font-medium">Fee now · pool V</p>
@@ -75,7 +75,7 @@ export function HeroCards({ live }: { live: HeroLive }) {
 
       <article
         aria-label="CL-1, the risk desk's screen"
-        className="rise relative overflow-hidden rounded-md bg-lcd-bg p-4 text-lcd-lit shadow-[0_10px_30px_rgba(14,17,25,0.22)] md:absolute md:right-[2%] md:top-[300px] md:w-[46%]"
+        className="rise relative overflow-hidden rounded-md bg-lcd-bg p-4 text-lcd-lit shadow-[0_10px_30px_rgba(14,17,25,0.22)] lg:absolute lg:right-[2%] lg:top-[300px] lg:w-[46%]"
         style={{ animationDelay: "360ms" }}
       >
         <div className="flex items-center justify-between text-[11px]">

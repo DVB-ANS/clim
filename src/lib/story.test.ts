@@ -5,7 +5,7 @@ import { FeeMode, type FeeParams, feePips } from "./feeMath";
 import { makeMockWorld, MOCK_STATIC_FEE_PIPS } from "./mock";
 import { pnlExplain } from "./pnl";
 import { timeAverageFeeBp, weatherSeries } from "./series";
-import { poolsVerdict, safetyCounts, sameAverageFee, sigmaAtFee, stormSummary } from "./story";
+import { poolsVerdict, reachableFeeMaxBp, safetyCounts, sameAverageFee, sigmaAtFee, stormSummary, windowLabel } from "./story";
 import { annualPctToSigmaE9, sigmaE9ToAnnualPct } from "./units";
 
 const params: FeeParams = { etaE4: 41_760, sqrtHalfDtE6: 2_449_490, feeMinPips: 500, feeMaxPips: 15_000, feeSafePips: 3_000, tauKillSec: 180 };
@@ -196,5 +196,25 @@ describe("short or empty windows", () => {
     // before the first report there is no desk price, so these swaps are unpriced
     expect(at([swap(world.pair.V.poolId, 1, 3_000), swap(world.pair.S.poolId, 1, 1_050)])).toBeUndefined();
     expect(at([swap(world.pair.V.poolId, 3, 1_822), swap(world.pair.S.poolId, 3, 1_050)])).toBeDefined();
+  });
+});
+
+describe("display helpers", () => {
+  it("labels windows in hours from one hour, in minutes below", () => {
+    expect(windowLabel(6)).toBe("6 h");
+    expect(windowLabel(1)).toBe("1 h");
+    expect(windowLabel(0.5)).toBe("30 min");
+    expect(windowLabel(0)).toBe("a few minutes");
+  });
+
+  it("reaches the 150 bp cap with the fixture parameters, not with the lab's (η 25,093): the desk stops at 1000 %/yr", () => {
+    expect(reachableFeeMaxBp(params)).toBe(150);
+    expect(reachableFeeMaxBp({ ...params, etaE4: 25_093 })).toBeLessThan(150);
+    expect(reachableFeeMaxBp({ ...params, etaE4: 25_093 })).toBeGreaterThan(100);
+  });
+
+  it("only compares arbitrage when the router is known and S has seen some", () => {
+    expect(poolsVerdict(reports, params, pools)?.arbKnown).toBe(true);
+    expect(poolsVerdict(reports, params, { ...pools, arbRouter: undefined })?.arbKnown).toBe(false);
   });
 });

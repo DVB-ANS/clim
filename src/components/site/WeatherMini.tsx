@@ -6,7 +6,8 @@ const W = 400, H = 170, TOP = 10, MID = 82, GAP = 14, BOTTOM = 154;
 /**
  * The weather in two stacked panels on one time axis: σ (pink) above, the fee it sets on pool V
  * (blue area) against pool S's fixed fee (dashed gray) below. Step lines, like the hook. `peak`
- * rings the storm's highest σ in pink.
+ * rings the storm's highest σ in pink. Labels are HTML and strokes do not scale, so both keep their
+ * size whatever the chart's width.
  */
 export function WeatherMini({ points, staticFeeBp, className = "", labels = true, peak }: {
   points: WeatherPoint[];
@@ -29,21 +30,27 @@ export function WeatherMini({ points, staticFeeBp, className = "", labels = true
   const sY = Yf(staticFeeBp).toFixed(1);
   const last = points.at(-1)!;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className={className} role="img" aria-label="Volatility and the fee it sets">
-      <path d={`M0 ${MID - GAP / 2}H${W}M0 ${BOTTOM}H${W}`} stroke={COLORS.grid} strokeWidth={1} fill="none" />
-      <path d={`${fee}V${BOTTOM}H0Z`} fill={COLORS.V} fillOpacity={0.1} />
-      <path d={`M0 ${sY}H${W}`} stroke={COLORS.S} strokeWidth={1.2} strokeDasharray="5 4" fill="none" />
-      <path d={fee} stroke={COLORS.V} strokeWidth={1.8} fill="none" />
-      <path d={sigma} stroke={COLORS.sigma} strokeWidth={1.8} fill="none" />
-      {peak ? <circle cx={X(peak.t)} cy={Ys(peak.sigmaPct)} r={7} fill="none" stroke={COLORS.pink} strokeWidth={2} /> : null}
-      <circle cx={W - 2} cy={Yf(last.feeVBp)} r={6} fill={COLORS.V} fillOpacity={0.18} />
-      <circle cx={W - 2} cy={Yf(last.feeVBp)} r={3} fill={COLORS.V} />
+    <div className={`relative ${className}`}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" role="img" aria-label="Volatility and the fee it sets">
+        <path d={`M0 ${MID - GAP / 2}H${W}M0 ${BOTTOM}H${W}`} stroke={COLORS.grid} strokeWidth={1} fill="none" vectorEffect="non-scaling-stroke" />
+        <path d={`${fee}V${BOTTOM}H0Z`} fill={COLORS.V} fillOpacity={0.1} />
+        <path d={`M0 ${sY}H${W}`} stroke={COLORS.S} strokeWidth={1.2} strokeDasharray="5 4" fill="none" vectorEffect="non-scaling-stroke" />
+        <path d={fee} stroke={COLORS.V} strokeWidth={1.8} fill="none" vectorEffect="non-scaling-stroke" />
+        <path d={sigma} stroke={COLORS.sigma} strokeWidth={1.8} fill="none" vectorEffect="non-scaling-stroke" />
+        {peak ? <circle cx={X(peak.t)} cy={Ys(peak.sigmaPct)} r={7} fill="none" stroke={COLORS.pink} strokeWidth={2} vectorEffect="non-scaling-stroke" /> : null}
+        <circle cx={W - 2} cy={Yf(last.feeVBp)} r={6} fill={COLORS.V} fillOpacity={0.18} />
+        <circle cx={W - 2} cy={Yf(last.feeVBp)} r={3} fill={COLORS.V} />
+      </svg>
       {labels ? (
-        <g fontSize={10} fill="var(--clim-fg-subtle)">
-          <text x={4} y={TOP + 9}>σ %/yr</text>
-          <text x={4} y={MID + GAP / 2 + 11}>fee bp</text>
-        </g>
+        <>
+          <span aria-hidden className="absolute left-1 top-0 text-[10px] text-fg-subtle">
+            σ %/yr
+          </span>
+          <span aria-hidden className="absolute left-1 text-[10px] text-fg-subtle" style={{ top: `${((MID + GAP / 2) / H) * 100}%` }}>
+            fee bp
+          </span>
+        </>
       ) : null}
-    </svg>
+    </div>
   );
 }

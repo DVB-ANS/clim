@@ -26,7 +26,8 @@ const DRAW_S = 1;
 
 /**
  * Marks an inline word: once it scrolls into view, and `delay` seconds later, a pink box draws itself
- * around it while clim's cursor, tagged `label`, drags the box's bottom-right corner into place.
+ * around it while clim's cursor, tagged `label`, drags the box's bottom-right corner into place; the
+ * tag hangs to the left of the corner, inside the word's width, so it never leaves the hero.
  * Spans only (it sits inside an h1); the box and the cursor are hidden from assistive tech and
  * left out of copied text.
  */
@@ -61,7 +62,7 @@ export function PointerHighlight({
           variants={pointer}
           transition={{ default: draw, scale: { delay, duration: 0.2, ease: "easeOut" } }}
         >
-          <Cursor label={label} still dot className="-left-px -top-px w-max" />
+          <Cursor label={label} still dot flip className="-right-px -top-px w-max" />
         </motion.span>
       </span>
     </motion.span>

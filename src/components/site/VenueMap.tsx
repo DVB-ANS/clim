@@ -37,14 +37,14 @@ export function VenueMap({ className = "" }: { className?: string }) {
               className="animate-[clim-dash_1.6s_linear_infinite]"
             />
             <circle cx={x} cy={y} r={1.15} fill="var(--clim-signal)" stroke="var(--clim-surface)" strokeWidth={0.4} />
-            <text x={x + p.lx} y={y + p.ly} textAnchor={p.anchor} fontSize={2.4} fill="var(--clim-fg)" fontFamily="var(--font-inter)">
+            <text x={x + p.lx} y={y + p.ly} textAnchor={p.anchor} fontSize={2.4} fill="var(--clim-fg)" fontFamily="var(--font-inter)" className="max-sm:hidden">
               {name === "Deribit" ? "Deribit DVOL" : name}
             </text>
           </g>
         );
       })}
       <circle cx={DON[0]} cy={DON[1]} r={2.1} fill="var(--clim-fg)" />
-      <text x={DON[0] + 3.2} y={DON[1] + 0.9} fontSize={2.4} fill="var(--clim-fg)" fontFamily="var(--font-inter)">
+      <text x={DON[0] + 3.2} y={DON[1] + 0.9} fontSize={2.4} fill="var(--clim-fg)" fontFamily="var(--font-inter)" className="max-sm:hidden">
         Chainlink CRE · signed median
       </text>
     </svg>
