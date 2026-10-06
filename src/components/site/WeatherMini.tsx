@@ -5,9 +5,16 @@ const W = 400, H = 170, TOP = 10, MID = 82, GAP = 14, BOTTOM = 154;
 
 /**
  * The weather in two stacked panels on one time axis: σ (pink) above, the fee it sets on pool V
- * (blue area) against pool S's fixed fee (dashed gray) below. Step lines, like the hook.
+ * (blue area) against pool S's fixed fee (dashed gray) below. Step lines, like the hook. `peak`
+ * rings the storm's highest σ in pink.
  */
-export function WeatherMini({ points, staticFeeBp, className = "", labels = true }: { points: WeatherPoint[]; staticFeeBp: number; className?: string; labels?: boolean }) {
+export function WeatherMini({ points, staticFeeBp, className = "", labels = true, peak }: {
+  points: WeatherPoint[];
+  staticFeeBp: number;
+  className?: string;
+  labels?: boolean;
+  peak?: { t: number; sigmaPct: number };
+}) {
   if (points.length < 2) return <div className={`grid place-items-center text-xs text-fg-subtle ${className}`}>Waiting for reports…</div>;
   const t0 = points[0].t, t1 = points.at(-1)!.t || t0 + 1;
   const sMax = Math.max(60, ...points.map((p) => p.sigmaPct)) * 1.12;
@@ -28,6 +35,7 @@ export function WeatherMini({ points, staticFeeBp, className = "", labels = true
       <path d={`M0 ${sY}H${W}`} stroke={COLORS.S} strokeWidth={1.2} strokeDasharray="5 4" fill="none" />
       <path d={fee} stroke={COLORS.V} strokeWidth={1.8} fill="none" />
       <path d={sigma} stroke={COLORS.sigma} strokeWidth={1.8} fill="none" />
+      {peak ? <circle cx={X(peak.t)} cy={Ys(peak.sigmaPct)} r={7} fill="none" stroke={COLORS.pink} strokeWidth={2} /> : null}
       <circle cx={W - 2} cy={Yf(last.feeVBp)} r={6} fill={COLORS.V} fillOpacity={0.18} />
       <circle cx={W - 2} cy={Yf(last.feeVBp)} r={3} fill={COLORS.V} />
       {labels ? (

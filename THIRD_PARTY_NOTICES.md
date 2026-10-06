@@ -1,10 +1,248 @@
 # Third-party notices
 
-clim's front uses or adapts the following third-party code. Each adapted file keeps a header naming
-its source. The components are used inside this application only; they are not redistributed as a
-component library, a kit or a template.
+clim's front uses or adapts the third-party code below. Every adapted file starts with a header naming
+its source. The components are used inside this application only: they are not sold, sublicensed or
+redistributed as a component library, a kit or a template.
 
 ## motion
 
-- Package: [`motion`](https://www.npmjs.com/package/motion) (motion/react), npm dependency.
+- Package: [`motion`](https://www.npmjs.com/package/motion) (motion/react), an npm dependency: the one animation library of the ported components.
 - Licence: MIT, Copyright (c) 2024 Motion B.V. (node_modules/motion/LICENSE.md).
+
+## React Bits
+
+[React Bits](https://reactbits.dev), github.com/DavidHDev/react-bits. Licence (LICENSE.md at the repository root):
+
+```
+MIT + Commons Clause License Condition v1.0
+
+Copyright (c) 2026 David Haz
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, and distribute the Software **as part of an application, website, or product**, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+## Commons Clause Restriction
+
+You may use this Software, including for any commercial purpose, **so long as you do not sell, sublicense, or redistribute the components themselves-whether alone, in a bundle, or as a ported version.**
+
+## No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### StatusMark
+
+- **Source:** https://github.com/DavidHDev/react-bits/blob/main/src/ts-tailwind/Micro/StatusMark/StatusMark.tsx
+- **Page:** https://reactbits.dev/micro/status-mark
+- **Version:** main branch, TS + Tailwind variant. No commit was pinned; the registry item is https://reactbits.dev/r/StatusMark-TS-TW.json.
+- **Licence:** MIT + Commons Clause License Condition v1.0. Copyright (c) 2026 David Haz. It is used as part of this application only and is not sold, sublicensed or redistributed as a component.
+- **File:** `src/components/StatusMark.tsx`.
+
+**What was adapted:**
+- The `react-hooks/refs` error was fixed. The geometry ref is now written in `useLayoutEffect`, not during render. `writeDash` was moved to a module-level helper, and the hook dependency lists were completed, which removed the `eslint-disable` comments.
+- Default colours now come from clim tokens: `var(--clim-fg-muted)`, `var(--clim-normal)` and `var(--clim-danger)` replace `currentColor`, `#22c55e` and `#ef4444`.
+- `strike` defaults to false and `size` defaults to 16.
+- The keyframes `<style>` tag uses React 19's `href` and `precedence` props, so there is one shared sheet instead of one per instance.
+- It was converted to clim's code style: a named function export, double quotes and `cn()`.
+- Used in `src/components/TxSteps.tsx`, where it replaces the ○◔◑●✕ glyphs.
+
+### Magnet
+
+- Source: https://reactbits.dev/animations/magnet (https://github.com/DavidHDev/react-bits/blob/main/src/ts-tailwind/Animations/Magnet/Magnet.tsx), main branch, no pinned commit
+- Licence: MIT + Commons Clause License Condition v1.0. Copyright (c) 2026 David Haz.
+- Used as part of this application only; not sold, sublicensed or redistributed as a component.
+- Adapted in `src/components/site/Magnet.tsx`:
+  - Rewritten on motion (`useMotionValue` + `useSpring` 150/15) in place of React state and CSS transitions.
+  - A passive `pointermove` listener in place of `mousemove`.
+  - The pull is measured from the laid-out box.
+  - Off under reduced motion and on coarse pointers.
+  - One inline-block `motion.span` wrapper with no prop or style spread.
+  - Defaults are padding 40 and strength 6.
+
+## Rare UI
+
+[Rare UI](https://rareui.com), github.com/swamimalode07/rare-ui, at commit f64e58332a8cb138ed974007575b5a76fe5e6c6f, the last
+commit under plain MIT (Rare UI's later licence, MIT + Commons Clause + Attribution, does not apply to these copies). Licence in
+force at that commit:
+
+```
+MIT License
+
+Copyright (c) 2026 Swami Malode
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### Animated Counter
+
+- Source: [Rare UI](https://rareui.com) "Animated Counter", https://github.com/swamimalode07/rare-ui/blob/f64e58332a8cb138ed974007575b5a76fe5e6c6f/components/ui/animated-counter.tsx (commit f64e5833, 2026-09-22, the last commit under plain MIT; this file is byte-identical on main).
+- Adapted in: `src/components/AnimatedCounter.tsx`.
+- Changes:
+  - The `cn` import now points to `@/lib/cn`.
+  - The two `#000` stops in the mask gradient are now `rgba(0,0,0,1)`, which is the same alpha.
+  - Added a licence header and doc comments on the exports.
+- Licence: MIT License, Copyright (c) 2026 Swami Malode. This is the licence in force at commit f64e5833. Rare UI's later licence (MIT + Commons Clause + Attribution, from commit 32b7b52a) does not apply to this copy. The rareui.com credit is kept as a courtesy.
+
+### Gooey Nav
+
+- Source: [Rare UI](https://rareui.com), [github.com/swamimalode07/rare-ui](https://github.com/swamimalode07/rare-ui), file `components/ui/gooey-nav.tsx` at commit [`f64e58332a8cb138ed974007575b5a76fe5e6c6f`](https://github.com/swamimalode07/rare-ui/blob/f64e58332a8cb138ed974007575b5a76fe5e6c6f/components/ui/gooey-nav.tsx). This is the last commit under plain MIT, before the 2026-09-22 licence change; the file is byte-identical on main.
+- Licence: MIT License, Copyright (c) 2026 Swami Malode (the LICENSE file in force at that commit).
+- Adapted in `src/components/GooeyNav.tsx`, used by `src/components/AppHeader.tsx`. Changes:
+  - The hard-coded hex colours became clim tokens: the bar is surface-2, and the neck currentColor (BAR_TEXT) matches it. Inactive labels use fg-muted. Active is `var(--clim-accent)` with a `var(--clim-accent-fg)` label.
+  - The gradient stops take their colour through the `stop-color` CSS property (style), so var() resolves.
+  - The `dark:` classes were removed.
+  - Labels use the regular weight.
+  - The 400 ms colour fade turns off under reduced motion.
+  - The list scrolls horizontally with a hidden scrollbar, and the active tile is scrolled into view.
+  - Added a keyboard focus ring and a hover colour.
+  - A modified click (new tab or window) no longer moves the active tile.
+  - Imports `cn` from `@/lib/cn` instead of clsx/tailwind-merge.
+- The rareui.com credit link is kept as a courtesy, in the landing's footer credits.
+
+### Scroll Progress
+
+- Source: [Rare UI](https://rareui.com) "Scroll Progress", https://github.com/swamimalode07/rare-ui/blob/f64e58332a8cb138ed974007575b5a76fe5e6c6f/components/ui/scroll-progress.tsx
+- Commit: f64e58332a8cb138ed974007575b5a76fe5e6c6f (2026-09-22), the last commit before Rare UI's licence changed to MIT + Commons Clause + Attribution. The file is byte-identical at that commit and on main.
+- Licence: MIT License, Copyright (c) 2026 Swami Malode (the LICENSE in force at that commit).
+- Adapted in: `src/components/site/ScrollRing.tsx`.
+- What was adapted:
+  - Kept three pieces of the scroll-progress pill:
+    - the findLast scroll-spy, as `useActiveSection` (offset 140, rAF-throttled, window only);
+    - the progress ring, as `ProgressDegree`, the ° of the clim wordmark, with raw progress under reduced motion;
+    - the label crossfade, as `SectionLabel`, keyed by the label string instead of a ref read during render.
+  - Dropped the fixed bottom pill, the squircle section menu, the scroll lock, the measured sizes, backdrop-blur and the blur filters.
+  - Recoloured to clim's tokens (stroke-line, stroke-signal).
+
+## ObsidianUI
+
+[ObsidianUI](https://www.obsidianui.dev), github.com/Atharvsinh-codez/ObsidianUI. Licence:
+
+```
+MIT License
+
+Copyright (c) 2026 ObsidianUI
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### Discover Button
+
+- Source: https://www.obsidianui.dev/docs/discover-button. The registry item is https://www.obsidianui.dev/r/discover-button.json, identical to github.com/Atharvsinh-codez/ObsidianUI `src/components/block/discover-button.tsx` and `.css`.
+- Licence: MIT License, Copyright (c) 2026 ObsidianUI (https://github.com/Atharvsinh-codez/ObsidianUI/blob/main/LICENSE).
+- Adapted in `src/components/site/LaunchButton.tsx`, which keeps a header naming the source:
+  - The 84-line CSS file became Tailwind utilities using clim tokens, and the four `--obsidian-discover-*` variables became the `onWhite` / `onBlue` tones.
+  - Added a separate pink icon disc (`data-launch-dot`) and a second, `sm` size.
+  - lucide's ArrowRight became an inline SVG, and `clsx` / `tailwind-merge` became `@/lib/cn`.
+  - Removed the glass border, the backdrop blur and the scale-in entrance. Font weight is 500 instead of 600.
+  - The focus outline uses the clim accent (upstream's `var(--ring)` does not exist in clim).
+  - The plain `<a>` / `<button>` became `LaunchLink` (next/link with the "launch" view transition), with a `useLinkStatus` pending spinner.
+
+### Split Showcase
+
+- Source: https://www.obsidianui.dev/docs/split-showcase (registry file https://www.obsidianui.dev/r/split-showcase.json), github.com/Atharvsinh-codez/ObsidianUI, src/components/block/split-showcase.tsx. The registry copy is byte-identical to the file at commit 996d383352843a7368904e6a6b558e2d0e19c6e8.
+- Licence: MIT, Copyright (c) 2026 ObsidianUI.
+- Adapted in src/components/site/PoolsVersus.tsx:
+  - Kept: the two halves joined at a dotted seam, the outward spring (x ±12, scale 0.98, stiffness 350, damping 24), the seam that fades, and the stacked mobile layout with a horizontal seam.
+  - Removed: the bundled Vercel and Tracwell logos, the sponsor defaults and their UTM links, the `children` and `compact` modes, `target="_blank"` and `select-none`.
+  - Changed:
+    - The content is now data-first and left-aligned (title, subtitle, stat rows, note, actions).
+    - Hover and focus are handled on the static cells: pointer events, ignoring touch, plus capture-phase focus and blur, so non-link content reacts to keyboard focus.
+    - The halves stack vertically on mobile, with y as the spring axis there.
+    - Reduced motion is gated inside the animated values instead of dropping the props.
+    - Restyled with clim tokens (bg-wash, bg-surface-2, dashed border-line, rounded-lg, --clim-shadow-lift, .dotted-divider), and every dark: class is gone.
+
+## Aceternity UI (patterns only)
+
+[Aceternity UI](https://ui.aceternity.com)'s components are free to use but its licence forbids redistributing their source
+files, so none is copied here. Two clim components re-implement a pattern of theirs from its behaviour:
+
+- `src/components/site/PointerHighlight.tsx`, after "Pointer Highlight" (https://ui.aceternity.com/components/pointer-highlight):
+  a box drawing itself around a word while a cursor travels to its corner.
+- `src/components/site/FloatingNav.tsx`, after "Floating Navbar" (https://ui.aceternity.com/components/floating-navbar): a pill
+  that slides in once the hero has scrolled away. Its active marker follows ObsidianUI's Spotlight Navigation idea (MIT); no code copied.
+
+## Dither it!
+
+- Source: https://github.com/alexharris/ditherit (tool: https://ditheritv3.netlify.app). No commit pinned: nothing was copied verbatim.
+- Licence: MIT License, Copyright (c) 2025 Nuxt UI Templates.
+- What was adapted: the ordered (Bayer) dithering approach of app/utils/dithering.ts (generateBayerIndex / toBayerThresholds, L13-40), re-implemented from the textbook recursive definition in two places:
+  - scripts/make-dither.mjs: Bayer 8x8, generates public/textures/storm-front.png, a blue → white → pink storm front from the clim tokens #0847f7 / #ffffff / #f50db4.
+  - src/components/site/LcdStorm.tsx: Bayer 4x4 thresholds for the CL-1 dot-matrix screen.
+- The generated texture is clim's own output, made from clim's own palette.
+
+```
+MIT License
+
+Copyright (c) 2025 Nuxt UI Templates
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## @web3icons/core
+
+- The stack's logos in `src/components/site/logos.ts`, generated by `scripts/make-logos.mjs` from [`@web3icons/core`](https://www.npmjs.com/package/@web3icons/core) (a dev dependency) and recoloured to `currentColor`.
+- Licence: MIT (package.json).
+
+## dotted-map
+
+- The world's dots in `src/lib/worldDots.ts`, generated by `scripts/make-world-dots.mjs` with [`dotted-map`](https://www.npmjs.com/package/dotted-map) (a dev dependency).
+- Licence: MIT (package.json).

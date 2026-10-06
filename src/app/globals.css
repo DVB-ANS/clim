@@ -250,6 +250,13 @@ h3 {
   background-size: 6px 6px;
 }
 
+/* The closing band's storm front, Bayer-dithered after Dither it! by scripts/make-dither.mjs from
+   #0847f7, #ffffff and #f50db4 (run `npm run dither` if those tokens change). Shown at 4 x, crisp. */
+.bg-storm-front {
+  background: url(/textures/storm-front.png) left center / 1200px 632px no-repeat;
+  image-rendering: pixelated;
+}
+
 /* A sentence that lights up word by word as it scrolls through (Ventriloc's word spans): each word
    goes from fg-subtle (already 4.7:1 on white) to its own colour over its slice of the paragraph's
    view timeline. Static and full colour where scroll timelines are missing. */
@@ -265,6 +272,7 @@ h3 {
   .stack-panel {
     position: sticky;
     top: var(--stack-top, 84px);
+    transform-origin: 50% 0;
   }
 }
 
@@ -326,10 +334,11 @@ h3 {
   }
 }
 
+/* scaled from its top edge, opaque: the panel shrinks behind the next one and its top stays visible
+   as a strip, like a stack of cards (a fade would let the panel behind show through) */
 @keyframes clim-recede {
   to {
     transform: scale(0.955);
-    opacity: 0.55;
   }
 }
 

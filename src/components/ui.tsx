@@ -3,9 +3,9 @@ import type { FeeMode } from "@/lib/feeMath";
 import { MODE_STYLE } from "@/lib/theme";
 
 /** A data card: white, 20 px corners, hairline border, the title in the display face at weight 400. */
-export function Panel({ title, subtitle, children, className = "" }: { title: string; subtitle?: ReactNode; children: ReactNode; className?: string }) {
+export function Panel({ title, subtitle, children, className = "", id }: { title: string; subtitle?: ReactNode; children: ReactNode; className?: string; id?: string }) {
   return (
-    <section className={`rounded-lg border border-line bg-surface p-6 ${className}`}>
+    <section id={id} className={`rounded-lg border border-line bg-surface p-6 ${id ? "scroll-mt-24" : ""} ${className}`}>
       <h2 className="font-display text-lg font-normal tracking-tight text-fg">{title}</h2>
       {subtitle ? <p className="mt-1 text-sm text-fg-subtle">{subtitle}</p> : null}
       <div className="mt-4">{children}</div>

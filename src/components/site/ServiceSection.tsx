@@ -2,13 +2,15 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
 /**
- * Ventriloc's stacked service panel: an Ash card with the signature asymmetric corner, the title
- * behind a blue square, a navy subtitle, the text and a link; the live mock on the right.
+ * Ventriloc's stacked service panel: a gray card with the signature asymmetric corner, the step
+ * number and the title behind a blue square, a navy subtitle, the text and a link; the live mock on
+ * the right.
  * Each panel sticks a little lower than the previous one, so they pile up as the page scrolls.
  */
-export function ServiceSection({ id, index, title, subtitle, link, children, mock }: {
+export function ServiceSection({ id, index, step, title, subtitle, link, children, mock }: {
   id: string;
   index: number;
+  step?: string;
   title: string;
   subtitle: string;
   link: { href: string; label: string };
@@ -20,12 +22,13 @@ export function ServiceSection({ id, index, title, subtitle, link, children, moc
       id={id}
       aria-labelledby={`${id}-title`}
       data-stack={index}
-      className="stack-panel grid gap-10 rounded-[6px_0_0_0] bg-surface-2 p-6 md:p-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.35fr)] lg:p-[56px]"
+      className="anchor stack-panel grid gap-10 rounded-[6px_0_0_0] bg-surface-2 p-6 md:p-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.35fr)] lg:p-[56px]"
       style={{ "--stack-top": `${84 + index * 14}px` } as CSSProperties}
     >
       <div>
         <h2 id={`${id}-title`} className="flex items-center gap-3 font-display text-[28px] font-normal leading-tight tracking-[-0.02em]">
           <span aria-hidden className="size-2 shrink-0 bg-signal" />
+          {step ? <span className="text-[15px] tabular-nums text-fg-muted">{step}</span> : null}
           {title}
         </h2>
         <p className="mt-2 pl-5 text-[13px] text-deep">{subtitle}</p>
