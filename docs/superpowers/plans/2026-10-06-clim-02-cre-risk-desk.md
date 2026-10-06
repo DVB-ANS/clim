@@ -463,7 +463,7 @@ The estimator is the scientific core: the numbers it produces go on chain and in
 - Create: `cre/risk-desk/estimator.ts`
 - Test: `cre/risk-desk/estimator.test.ts`
 
-- [ ] **Step 1: Write the failing test** at `cre/risk-desk/estimator.test.ts`
+- [x] **Step 1: Write the failing test** at `cre/risk-desk/estimator.test.ts`
 
 ```ts
 import { describe, expect, test } from 'bun:test'
@@ -600,7 +600,7 @@ describe('estimate', () => {
 })
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 (cd cre/risk-desk && bun test estimator.test.ts)
@@ -608,7 +608,7 @@ describe('estimate', () => {
 
 Expected: `error: Cannot find module './estimator' from '.../cre/risk-desk/estimator.test.ts'`, then `0 pass`, `1 fail`, `1 error`.
 
-- [ ] **Step 3: Minimal implementation** at `cre/risk-desk/estimator.ts`
+- [x] **Step 3: Minimal implementation** at `cre/risk-desk/estimator.ts`
 
 ```ts
 // Pure risk-desk estimator: no SDK imports, no I/O, no clock. Every input is passed in.
@@ -780,7 +780,7 @@ export function estimate(input: EstimatorInput): Estimate {
 }
 ```
 
-- [ ] **Step 4: Run it, expected PASS**
+- [x] **Step 4: Run it, expected PASS**
 
 ```bash
 (cd cre/risk-desk && bun test estimator.test.ts)
@@ -788,7 +788,7 @@ export function estimate(input: EstimatorInput): Estimate {
 
 Expected: `13 pass`, `0 fail`, `32 expect() calls`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add cre/risk-desk/estimator.ts cre/risk-desk/estimator.test.ts
