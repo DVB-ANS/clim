@@ -2026,7 +2026,7 @@ Load the `anthropic-skills:pptx` skill before this task; its gotchas are applied
 - Create: `docs/submission/deck/style.mjs`, `docs/submission/deck/data.mjs`, `docs/submission/deck/slides.mjs`, `docs/submission/deck/build-deck.mjs`
 - Test: `docs/submission/test/deck.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `docs/submission/test/deck.test.mjs`:
 ```js
@@ -2091,12 +2091,12 @@ test("deck refuses to build without videos unless allowed", async () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expect FAIL**
+- [x] **Step 2: Run it, expect FAIL**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/deck.test.mjs`
 Expected: FAIL with `Cannot find module '.../docs/submission/deck/build-deck.mjs'`.
 
-- [ ] **Step 3: Implement the style module**
+- [x] **Step 3: Implement the style module**
 
 `docs/submission/deck/style.mjs`:
 ```js
@@ -2199,6 +2199,7 @@ export function chartBase(extra) {
     legendColor: C.ink,
     legendFontFace: FONT,
     legendFontSize: 12,
+    dataLabelFontFace: FONT, // pptxgenjs defaults data labels to Arial
     showTitle: true,
     titleColor: C.ink,
     titleFontFace: FONT,
@@ -2208,7 +2209,7 @@ export function chartBase(extra) {
 }
 ```
 
-- [ ] **Step 4: Implement the data module**
+- [x] **Step 4: Implement the data module**
 
 `docs/submission/deck/data.mjs`:
 ```js
@@ -2280,7 +2281,7 @@ export function loadDeckData(files) {
 }
 ```
 
-- [ ] **Step 5: Implement the slides**
+- [x] **Step 5: Implement the slides**
 
 `docs/submission/deck/slides.mjs`:
 ```js
@@ -2431,7 +2432,7 @@ export function addSlides(pres, d) {
   s7.addNotes("The replay feeds real Binance prices of the 4 February 2026 storm through the same desk and hook. Both pools have the same average fee, so the gain comes from charging at the right time, not from charging more. We picked this window during design, at the old setting, around the sharpest rise in volatility, after comparing three candidates; at the final setting it turns out to be the most favorable 4 h window of the storm, so the slide shows the range and the median of all the hourly windows next to it.");
 
   // 8. Proof: prediction
-  const s8 = content(pres, "Proof", `The model predicts how often the pool is arbitraged: within ${model.maxGapPct}%`);
+  const s8 = content(pres, "Proof", `How often the pool is arbitraged: predicted within ${model.maxGapPct}%`); // one line at 36 pt
   const periods = bt.periods.map((x) => x.label);
   s8.addChart(
     pres.charts.BAR,
@@ -2653,7 +2654,7 @@ export function addSlides(pres, d) {
 }
 ```
 
-- [ ] **Step 6: Implement the builder**
+- [x] **Step 6: Implement the builder**
 
 `docs/submission/deck/build-deck.mjs`:
 ```js
@@ -2704,14 +2705,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 ```
 
-- [ ] **Step 7: Run, expect PASS, then the whole suite**
+- [x] **Step 7: Run, expect PASS, then the whole suite**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/deck.test.mjs`
 Expected: `# pass 4`, `# fail 0`.
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm test`
 Expected: `# pass 36`, `# fail 0`.
 
-- [ ] **Step 8: QA a fixture deck with the pptx skill**
+- [x] **Step 8: QA a fixture deck with the pptx skill**
 
 Build a draft from the fixtures (no video yet) and validate it with the pptx skill's validator, found on disk (on this Mac it is under `~/.claude/skills/synced/.../pptx/scripts/office/validate.py`).
 ```bash
@@ -2721,7 +2722,7 @@ uvx --from 'markitdown[pptx]' markitdown /Users/fianso/Development/hackathons/cl
 ```
 Expected: `wrote out/clim-fixture.pptx`, `validator: <path>`, `All validations PASSED!`, `22`. If no validator is found (the `find` prints nothing and the chain stops), skip validation and rely on markitdown and the visual pass of Step 9; log it.
 
-- [ ] **Step 9: Visual QA**
+- [x] **Step 9: Visual QA**
 
 LibreOffice is not installed on this Mac. Run it without installing it (checked on 2026-10-06 with 26.8.1; the download is about 300 MB): 
 ```bash
@@ -2729,12 +2730,12 @@ D=$(mktemp -d) && curl -sSL -o $D/lo.dmg https://download.documentfoundation.org
 $D/mnt/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to pdf --outdir /Users/fianso/Development/hackathons/clim/docs/submission/out /Users/fianso/Development/hackathons/clim/docs/submission/out/clim-fixture.pptx
 cd /Users/fianso/Development/hackathons/clim/docs/submission/out && find . -maxdepth 1 -name 'slide-*.jpg' -delete && pdftoppm -jpeg -r 80 clim-fixture.pdf slide && ls -1 "$PWD"/slide-*.jpg
 ```
-If version 26.8.1 is gone, take the current one from https://download.documentfoundation.org/libreoffice/stable/. Keep `$D/mnt` mounted for Task 17 (`hdiutil detach $D/mnt` when done). `find ... -delete` replaces `rm -f slide-*.jpg`, which aborts in zsh when nothing matches.
+If version 26.8.1 is gone, take the current one from https://download.documentfoundation.org/libreoffice/stable/. If the redirect lands on a slow mirror (on 2026-10-06 it picked one at about 35 KB/s), take a faster one from the same URL plus `.mirrorlist` (`https://mirror.fcix.net/tdf/libreoffice/stable/26.8.1/mac/aarch64/LibreOffice_26.8.1_MacOS_aarch64.dmg` ran at about 1 MB/s) and compare `shasum -a 256` with the URL plus `.sha256`. Shells reset between agent calls, so print `$D` and reuse the literal path. Keep `$D/mnt` mounted for Task 17 (`hdiutil detach $D/mnt` when done). `find ... -delete` replaces `rm -f slide-*.jpg`, which aborts in zsh when nothing matches.
 Open every image with the Read tool (or dispatch a subagent to look at them fresh) and fix in `slides.mjs`, never by hand: text overflow, overlaps, titles at different heights, low contrast, a number split from its unit. LibreOffice substitutes Calibri with Carlito (same metrics), so text fit is reliable. The "VIDEO MISSING" boxes on slides 6 and 21 are expected for this draft.
 
 The references on slide 22 and in the README were checked: Kupiec (1995) is *The Journal of Derivatives* 3(2), 73-84 (Crossref record of DOI 10.3905/jod.1995.407942, read 2026-10-06; spec Appendix A).
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck docs/submission/test/deck.test.mjs && git commit -m "feat(submission): pptx deck builder with native charts, embedded videos and notes"
@@ -3650,7 +3651,7 @@ Built by `deck/slides.mjs`; every number comes from `lab/out/backtest-summary.js
 | 5 | The risk desk runs on Chainlink CRE | Flow: 4 venues, node computation, DON consensus, RiskDesk.sol; blind and degraded cards | What CRE does, end to end. |
 | 6 | Demo | Embedded stage cut (about 78 s, starts automatically) | The working product. |
 | 7 | 4 February 2026: the storm test | 3 stat callouts (volatility range, fee range, change in LP losses), cumulative losses chart, range and median over the 92 rolling windows, and that this window is the most favorable one | The highlight result, without cherry-picking. |
-| 8 | The model predicts how often the pool is arbitraged: within N% (N computed from `lab/out/validation.json`: 10 in the validation run) | Bar chart predicted vs observed arbitraged blocks per period (the year bar is labeled "1-min data bridged"); table of both comparisons; simulated alert zones and the significance of the gap | Proof and honesty. |
+| 8 | How often the pool is arbitraged: predicted within N% (N computed from `lab/out/validation.json`: 10 in the validation run) | Bar chart predicted vs observed arbitraged blocks per period (the year bar is labeled "1-min data bridged"); table of both comparisons; simulated alert zones and the significance of the gap | Proof and honesty. |
 | 9 | Not just another volatility hook | 3 numbered cards: falsifiable prediction, model control, desk with no fee setter | Novelty. |
 | 10 | Where clim sits | 4 columns: volatility fees, auctions and ordering, managed liquidity, clim | Competition. |
 | 11 | Why Chainlink CRE | Honest stat (in-pool volatility captures most of the gain) and 4 reasons | Why Chainlink. |
