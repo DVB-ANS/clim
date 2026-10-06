@@ -677,7 +677,7 @@ git commit -m "feat(shared): sqrtPriceX96 and ETH/USD price math"
 - Create: `shared/src/report.ts`
 - Test: `shared/test/report.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 The reference hex is Solidity's encoding: `cast abi-encode "f(uint40,uint32,uint32,uint16,int24,uint16,uint8,uint16,uint8)" -- 1791280000 85475 85000 4800 -79072 3 4 10000 0`.
 
@@ -734,12 +734,12 @@ describe("MockKeystoneForwarder raw report", () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 Run: `cd shared && bun test test/report.test.ts`
 Expected: `error: Cannot find module '../src/report'`, ` 1 fail`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `shared/src/report.ts`:
 ```ts
@@ -813,12 +813,12 @@ export function buildMockRawReport(r: RiskReport, opts: { executionId: Hex; time
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 Run: `cd shared && bun test test/report.test.ts && bun run typecheck`
 Expected: ` 3 pass`, ` 0 fail`; typecheck clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add shared/src/report.ts shared/test/report.test.ts
