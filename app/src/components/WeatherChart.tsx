@@ -21,8 +21,8 @@ const MAX_POINTS = 600;
 const MAX_DOTS = 300;
 const axisTick = { fontSize: 11, fill: COLORS.muted };
 
-export function WeatherChart({ data }: { data: ClimData }) {
-  const [win, setWin] = useState(WINDOWS[1]);
+export function WeatherChart({ data, initialWindow = "6 h" }: { data: ClimData; initialWindow?: (typeof WINDOWS)[number]["label"] }) {
+  const [win, setWin] = useState(() => WINDOWS.find((w) => w.label === initialWindow) ?? WINDOWS[1]);
   const nowBucket = Math.floor(data.nowSec / 10) * 10;
   const { points, dots, blind } = useMemo(() => {
     const from = nowBucket - win.sec;
