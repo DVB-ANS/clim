@@ -58,19 +58,30 @@ export function useLpState(mode: TxMode, data: ClimData): LpState {
   // Simulated wallet (localStorage, mock mode).
   const [mockWallet, updateMock] = useStored(MOCK_KEY, EMPTY_MOCK);
 
-  // On-chain reads (chain mode): StateView for both pools, token balances.
-  const live = mode === "chain" && !!chainPair && !!router && !!address;
+  // On-chain reads (chain mode): both pools' depth and price from StateView, with or without a wallet,
+  // so the pool cards and the add quote show live numbers before connecting; then, with a wallet, its
+  // positions and token balances.
+  const chainPools = mode === "chain" && !!chainPair;
+  const live = chainPools && !!router && !!address;
   const ticks = chainPair ? fullRangeTicks(chainPair.V.key.tickSpacing) : { tickLower: 0, tickUpper: 0 };
+  const sv = { address: deployments.uniswap.stateView, abi: stateViewAbi } as const;
+  const poolContracts = chainPools && chainPair
+    ? POOLS.flatMap((name) => {
+        const poolId = chainPair[name].poolId;
+        return [
+          { ...sv, functionName: "getLiquidity", args: [poolId] },
+          { ...sv, functionName: "getSlot0", args: [poolId] },
+        ] as const;
+      })
+    : [];
+  const poolReads = useReadContracts({ contracts: poolContracts, query: { enabled: chainPools, refetchInterval: 12_000 } });
   const contracts = live && chainPair && router && address
     ? [
         ...POOLS.flatMap((name) => {
           const poolId = chainPair[name].poolId;
-          const sv = { address: deployments.uniswap.stateView, abi: stateViewAbi } as const;
           return [
             { ...sv, functionName: "getPositionInfo", args: [poolId, router, ticks.tickLower, ticks.tickUpper, saltFor(address)] },
             { ...sv, functionName: "getFeeGrowthInside", args: [poolId, ticks.tickLower, ticks.tickUpper] },
-            { ...sv, functionName: "getLiquidity", args: [poolId] },
-            { ...sv, functionName: "getSlot0", args: [poolId] },
           ] as const;
         }),
         ...(tETH && tUSD
@@ -104,14 +115,20 @@ export function useLpState(mode: TxMode, data: ClimData): LpState {
         if (last) pools[name] = { liquidity: Number(last.liquidity) + mine, sqrtP: Number(last.sqrtPriceX96) / 2 ** 96 };
       }
       balances = { tETH: mockWallet.tETH, tUSD: mockWallet.tUSD };
-    } else if (live && reads.data && chainPair) {
-      const r = reads.data;
+    } else if (chainPools && chainPair) {
+      const pr = poolReads.data ?? [];
       POOLS.forEach((name, i) => {
-        const [pos, inside, liq, slot0] = [r[4 * i], r[4 * i + 1], r[4 * i + 2], r[4 * i + 3]];
+        const [liq, slot0] = [pr[2 * i], pr[2 * i + 1]];
         if (liq?.status === "success" && slot0?.status === "success") {
           const [sqrtPriceX96] = slot0.result as readonly [bigint, number, number, number];
           pools[name] = { liquidity: Number(liq.result as bigint), sqrtP: Number(sqrtPriceX96) / 2 ** 96 };
         }
+      });
+    }
+    if (mode === "chain" && live && reads.data && chainPair) {
+      const r = reads.data;
+      POOLS.forEach((name, i) => {
+        const [pos, inside] = [r[2 * i], r[2 * i + 1]];
         if (pos?.status === "success" && inside?.status === "success") {
           const [liquidity, last0, last1] = pos.result as readonly [bigint, bigint, bigint];
           const [now0, now1] = inside.result as readonly [bigint, bigint];
@@ -126,13 +143,13 @@ export function useLpState(mode: TxMode, data: ClimData): LpState {
           }
         }
       });
-      const b = r.slice(8);
+      const b = r.slice(4);
       if (b.length === 2 && b[0]?.status === "success" && b[1]?.status === "success") {
         balances = { tETH: Number(b[0].result as bigint) / 1e18, tUSD: Number(b[1].result as bigint) / 1e18 };
       }
     }
     return { pools, positions, balances };
-  }, [mode, data.pair, data.swaps, mockWallet, live, reads.data, chainPair, since, address]);
+  }, [mode, data.pair, data.swaps, mockWallet, chainPools, poolReads.data, live, reads.data, chainPair, since, address]);
 
   const mock = useMemo(
     () => ({
@@ -150,9 +167,11 @@ export function useLpState(mode: TxMode, data: ClimData): LpState {
   );
 
   const { refetch } = reads;
+  const { refetch: refetchPools } = poolReads;
   const refresh = useCallback(() => {
     void refetch();
-  }, [refetch]);
+    void refetchPools();
+  }, [refetch, refetchPools]);
 
   return { pair, ...state, refresh, mock, rememberSince };
 }
