@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { Dashboard } from "@/components/Dashboard";
 import { params } from "@/lib/config";
 import { labBand } from "@/lib/labData";
 import { pipsToBp } from "@/lib/units";
+
+export const metadata: Metadata = { title: "Dashboard" };
 
 export default function DashboardPage() {
   return (

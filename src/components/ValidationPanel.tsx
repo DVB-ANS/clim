@@ -44,7 +44,8 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
         <p className="text-sm text-fg-subtle">{data.arbRouter ? "Waiting for desk reports and swaps." : "Arbitrage router unknown: add routers.arb to shared/deployments/sepolia.json."}</p>
       ) : (
         <>
-          <table className="mb-3 text-sm tabular-nums">
+          <div className="mb-3 overflow-x-auto" role="region" aria-label="Arbitrage frequency, observed against predicted" tabIndex={0}>
+            <table className="text-sm tabular-nums">
             <thead>
               <tr className="text-left text-xs text-fg-subtle">
                 <th className="pr-6">Pool</th><th className="pr-6">Blocks</th><th className="pr-6">With arbitrage</th><th className="pr-6">Observed</th><th>Predicted</th>
@@ -59,6 +60,7 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
               ))}
             </tbody>
           </table>
+          </div>
           {result.series.length === 0 ? (
             <p className="text-sm text-fg-subtle">Need at least {result.window} blocks of data for the rolling chart.</p>
           ) : (

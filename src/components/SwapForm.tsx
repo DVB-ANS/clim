@@ -111,7 +111,7 @@ export function SwapForm() {
   const feeVBp = quote ? pipsToBp(quote.feePips) : undefined;
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_440px]">
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_440px]">
       <Panel title="The weather sets your fee" subtitle="Read on every swap by the hook from the latest Chainlink CRE report (ClimHook.quoteFee()).">
         {!desk || !quote ? (
           <p className="text-sm text-fg-subtle">Loading the risk desk…</p>

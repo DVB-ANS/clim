@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { BacktestTable } from "@/components/BacktestTable";
 import { ReplayPanel } from "@/components/ReplayPanel";
 import { FixtureNote, Panel } from "@/components/ui";
 import { labReplay, labSummary } from "@/lib/labData";
+
+export const metadata: Metadata = { title: "Lab" };
 
 export default function LabPage() {
   const s = labSummary;

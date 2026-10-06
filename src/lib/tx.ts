@@ -20,7 +20,7 @@ export function writeReadiness(d: Deployments, needs: "swap" | "lp" | "faucet"):
   if (!d.pairs.live) {
     return {
       ok: false,
-      reason: "Contracts not deployed yet: shared/deployments/sepolia.json has no live pair. The simulated mode walks through the same steps.",
+      reason: "Contracts not deployed in this build: src/generated/sepolia.json has no live pair yet (npm run sync). The simulated mode walks through the same steps.",
     };
   }
   if (!d.tokens.tETH || !d.tokens.tUSD) return { ok: false, reason: "Test tokens not deployed yet (tokens.tETH and tokens.tUSD are null)." };

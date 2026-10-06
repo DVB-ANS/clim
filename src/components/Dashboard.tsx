@@ -13,6 +13,7 @@ import { QuotePanel } from "./QuotePanel";
 import { SafetyPanel } from "./SafetyPanel";
 import { ValidationPanel } from "./ValidationPanel";
 import { VolQuadPanel } from "./VolQuadPanel";
+import { Toggle } from "./ui";
 import { WeatherChart } from "./WeatherChart";
 
 export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand; initialPair?: Pair }) {
@@ -23,16 +24,12 @@ export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        {pairs.length > 1
-          ? pairs.map((p) => (
-              <button key={p} type="button" onClick={() => setPair(p)} className={`rounded-full px-3.5 py-1.5 text-sm ${p === pair ? "bg-fg text-surface" : "bg-surface-2 text-fg-muted hover:text-fg"}`}>
-                {p === "live" ? "Live pair" : "Replay pair (4 Feb 2026)"}
-              </button>
-            ))
-          : null}
+        {pairs.length > 1 ? (
+          <Toggle<Pair> value={pair} options={pairs.map((p) => ({ value: p, label: p === "live" ? "Live pair" : "Replay pair (4 Feb 2026)" }))} onChange={setPair} />
+        ) : null}
         {data.source === "mock" ? (
           <span className="rounded-sm bg-notice-bg px-2 py-1 text-xs text-notice-fg">
-            Mock data: contracts not deployed yet (or NEXT_PUBLIC_CLIM_SOURCE=mock). Same decoders and formulas as live.
+            Mock data: this build is not reading the Sepolia deployment (not synced yet, or NEXT_PUBLIC_CLIM_SOURCE=mock). Same decoders and formulas as live.
           </span>
         ) : data.pair ? (
           <span className="text-xs text-fg-muted">
@@ -50,7 +47,7 @@ export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand;
       ) : data.status === "error" ? (
         <p className="text-sm text-danger">Could not load chain data. Set NEXT_PUBLIC_SEPOLIA_RPC_URL or retry.</p>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <DeskPanel data={data} />
           <QuotePanel data={data} />
           <WeatherChart data={data} />

@@ -8,7 +8,7 @@ import { blindEpisodes, downsample, swapFeeDots, weatherSeries } from "@/lib/ser
 import { COLORS, utcTime } from "@/lib/theme";
 import { pipsToBp } from "@/lib/units";
 import { ChartTooltip, TOOLTIP } from "./ChartTooltip";
-import { Panel } from "./ui";
+import { Panel, Toggle } from "./ui";
 
 const WINDOWS = [
   { label: "1 h", sec: 3_600 },
@@ -40,17 +40,8 @@ export function WeatherChart({ data }: { data: ClimData }) {
       subtitle="Top: volatility published by the CRE desk. Bottom: the fee the hook charges on every swap (line), the fee actually paid by swaps on V (dots), and the static twin S. The fee is never sent by a transaction: Uniswap calls the hook's beforeSwap, which reads σ and returns the fee."
       className="col-span-full"
     >
-      <div className="mb-2 flex gap-1">
-        {WINDOWS.map((w) => (
-          <button
-            key={w.label}
-            type="button"
-            onClick={() => setWin(w)}
-            className={`rounded-full px-2.5 py-1 text-xs ${w === win ? "bg-fg text-surface" : "bg-surface-2 text-fg-muted hover:text-fg"}`}
-          >
-            {w.label}
-          </button>
-        ))}
+      <div className="mb-2">
+        <Toggle value={win.label} options={WINDOWS.map((w) => ({ value: w.label, label: w.label }))} onChange={(l) => setWin(WINDOWS.find((w) => w.label === l) ?? win)} />
       </div>
       <div className="h-48 w-full">
         <ResponsiveContainer width="100%" height="100%">

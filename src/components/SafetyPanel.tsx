@@ -41,7 +41,7 @@ export function SafetyPanel({ data }: { data: ClimData }) {
           <span className="font-medium">Protocol fee: </span>
           {pf ? (pf.V === 0 && pf.S === 0 ? "0 on V and S, so Swap.fee is the LP fee alone." : `NOT ZERO (V ${pf.V}, S ${pf.S}): Swap.fee includes a protocol share.`) : "…"}
         </li>
-        <li className="text-fg-muted">The desk owner can rotate the forwarder; nobody can set σ, the fee or the hook parameters.</li>
+        <li className="text-fg-muted">The desk owner can rotate the forwarder; no function sets σ, the fee or the hook parameters.</li>
       </ul>
     </Panel>
   );

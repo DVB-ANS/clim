@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { SwapForm } from "@/components/SwapForm";
+
+export const metadata: Metadata = { title: "Swap" };
 
 export default function SwapPage() {
   return (

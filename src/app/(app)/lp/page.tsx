@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { LiquidityBoard } from "@/components/LiquidityBoard";
+
+export const metadata: Metadata = { title: "Liquidity" };
 
 export default function LpPage() {
   return (

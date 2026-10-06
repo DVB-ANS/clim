@@ -175,7 +175,7 @@ export function LiquidityBoard() {
   return (
     <div className="space-y-6">
       <FaucetCard mode={mode} balances={lp.balances} busy={flow.running} onFaucet={faucet} />
-      <div className="grid items-start gap-6 lg:grid-cols-[440px_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[440px_minmax(0,1fr)]">
         <LiquidityForm mode={mode} busy={flow.running} balances={lp.balances} quote={quoteAdd} onAdd={add} pools={poolOptions} ethUsd={ethUsd}>
           <TxModeSwitch mode={mode} onChange={setMode} ready={ready} />
           <TxSteps steps={flow.steps} live={mode === "chain"} />

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Panel } from "@/components/ui";
@@ -6,6 +7,8 @@ import { params } from "@/lib/config";
 import { feePips } from "@/lib/feeMath";
 import { predictedPTrade } from "@/lib/ptrade";
 import { annualPctToSigmaE9, pipsToBp } from "@/lib/units";
+
+export const metadata: Metadata = { title: "How it works" };
 
 const EXAMPLES = [25, 50, 100, 150, 225];
 
@@ -64,7 +67,7 @@ export default function HowPage() {
         </p>
       </Panel>
       <Panel id="faq" title="FAQ">
-        <div className="text-sm [&_code]:text-xs [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-semibold [&_hr]:my-4 [&_li]:ml-5 [&_li]:list-disc [&_p]:mt-2 [&_td]:pr-4 [&_th]:pr-4 [&_th]:text-left">
+        <div className="text-sm [&_code]:text-xs [&_code]:wrap-anywhere [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-semibold [&_hr]:my-4 [&_li]:ml-5 [&_li]:list-disc [&_p]:mt-2 [&_td]:pr-4 [&_th]:pr-4 [&_th]:text-left">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{FAQ_MD}</ReactMarkdown>
         </div>
       </Panel>

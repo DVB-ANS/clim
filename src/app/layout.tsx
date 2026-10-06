@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Doto, Inter, Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
+import { BackScroll } from "@/components/BackScroll";
 import { MotionProvider } from "@/components/MotionProvider";
 import { WalletProviders } from "@/components/WalletProviders";
 import "./globals.css";
@@ -12,7 +13,7 @@ const interTight = Inter_Tight({ subsets: ["latin"], variable: "--font-inter-tig
 const doto = Doto({ subsets: ["latin"], variable: "--font-doto", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "clim: storm insurance for Uniswap v4 LPs",
+  title: { default: "clim: storm insurance for Uniswap v4 LPs", template: "%s · clim" },
   description: "A Chainlink CRE risk desk publishes ETH volatility on-chain; a Uniswap v4 hook turns it into the LP fee on every swap.",
 };
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <body className="min-h-screen">
         <WalletProviders>
           <MotionProvider>{children}</MotionProvider>
+          <BackScroll />
         </WalletProviders>
       </body>
     </html>

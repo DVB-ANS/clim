@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { Dashboard } from "@/components/Dashboard";
 import { ReplayPanel } from "@/components/ReplayPanel";
 import { deployments } from "@/lib/config";
 import { labBand, labReplay, labSummary } from "@/lib/labData";
+
+export const metadata: Metadata = { title: "Storm replay" };
 
 export default function ReplayPage() {
   return (
