@@ -1881,7 +1881,7 @@ The Homebrew ffmpeg on this Mac has no `drawtext` or `subtitles` filter (checked
 **Files:**
 - Create: `docs/submission/scripts/build-video.sh`
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 `docs/submission/scripts/build-video.sh`:
 ```bash
@@ -1986,7 +1986,7 @@ done
 
 Then: `chmod +x /Users/fianso/Development/hackathons/clim/docs/submission/scripts/build-video.sh`
 
-- [ ] **Step 2: Test it on synthetic recordings**
+- [x] **Step 2: Test it on synthetic recordings**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/docs/submission && mkdir -p out/video/raw && for s in s11 s12 s13 s14 s16 s22 s31 s32; do ffmpeg -nostdin -y -v error -f lavfi -i "testsrc2=size=2880x1800:rate=60:duration=15" -c:v libx264 -preset ultrafast -pix_fmt yuv420p out/video/raw/$s.mov; done && for s in s15 s21; do ffmpeg -nostdin -y -v error -f lavfi -i "testsrc2=size=2880x1800:rate=60:duration=90" -c:v libx264 -preset ultrafast -pix_fmt yuv420p out/video/raw/$s.mov; done
@@ -2001,13 +2001,13 @@ out/video/demo-stage.mp4  78.0 s  17 MB
 Then check the format: `ffprobe -v error -show_entries stream=width,height,r_frame_rate,pix_fmt,codec_name -of compact /Users/fianso/Development/hackathons/clim/docs/submission/out/video/demo-stage.mp4`
 Expected: `stream|codec_name=h264|width=1920|height=1080|pix_fmt=yuv420p|r_frame_rate=30/1`. Open `out/video/cover-stage.png` with the Read tool: test pattern, night-coloured side bars, caption pill at the bottom.
 
-- [ ] **Step 3: Delete the synthetic files**
+- [x] **Step 3: Delete the synthetic files**
 
 ```bash
 rm -rf /Users/fianso/Development/hackathons/clim/docs/submission/out/video
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/submission/scripts/build-video.sh && git commit -m "feat(submission): ffmpeg pipeline for the full and stage demo cuts"
