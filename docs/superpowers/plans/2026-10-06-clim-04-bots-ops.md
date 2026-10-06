@@ -2884,7 +2884,7 @@ git commit -m "feat(bots): arbitrage bot"
 **Files:**
 - Create: `bots/src/noise.ts`
 
-- [ ] **Step 1: Implementation**
+- [x] **Step 1: Implementation**
 
 `bots/src/noise.ts`:
 ```ts
@@ -2961,12 +2961,12 @@ client.watchBlockNumber({
 });
 ```
 
-- [ ] **Step 2: Typecheck and wiring check**
+- [x] **Step 2: Typecheck and wiring check**
 
 Run: `cd bots && bun run typecheck && bun run noise --pair live`
 Expected: typecheck clean; before plan 01 has deployed: `error: pools.liveV is null: deploy it first (plan 01) and record it in shared/deployments/sepolia.json`. `bun run noise --pair live --routing best` must fail with `error: --routing must be one of mirror, split, cheapest, got best`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add bots/src/noise.ts
