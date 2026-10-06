@@ -1271,7 +1271,7 @@ The owner mints the pools' and the bots' tokens. `faucet()` lets any visitor of 
 - Create: `contracts/src/test-tokens/TestToken.sol`
 - Test: `contracts/test/TestToken.t.sol`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `contracts/test/TestToken.t.sol`:
 ```solidity
@@ -1341,14 +1341,14 @@ contract TestTokenTest is Test {
 }
 ```
 
-- [ ] **Step 2: Run it, expected FAIL**
+- [x] **Step 2: Run it, expected FAIL**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path test/TestToken.t.sol
 ```
 Expected: `Error (6275): Source "src/test-tokens/TestToken.sol" not found`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 `contracts/src/test-tokens/TestToken.sol`:
 ```solidity
@@ -1389,14 +1389,14 @@ contract TestToken is ERC20, Ownable {
 }
 ```
 
-- [ ] **Step 4: Run, expected PASS**
+- [x] **Step 4: Run, expected PASS**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/contracts && forge test --match-path test/TestToken.t.sol
 ```
 Expected: `Suite result: ok. 6 passed; 0 failed; 0 skipped`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add contracts/src/test-tokens/TestToken.sol contracts/test/TestToken.t.sol && git commit -m "feat(contracts): 18-decimal TestToken with owner mint and a public faucet"
