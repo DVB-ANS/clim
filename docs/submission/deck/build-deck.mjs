@@ -1,6 +1,6 @@
-// Builds docs/submission/out/clim.pptx from the Figma deck (10 slides): one full-bleed PNG per slide (deck/v2/png/),
+// Builds docs/submission/out/clim.pptx from the Figma deck (12 slides since deck v3): one full-bleed PNG per slide (deck/v2/png/),
 // the slide text and speaker notes (deck/v2/slides.json, live numbers from deck/v2/live.json) and the 30-second stage cut
-// of the demo video dropped by the maintainer in out/video/demo-stage.mp4 (full-bleed on slide 08). The full demo video
+// of the demo video dropped by the maintainer in out/video/demo-stage.mp4 (full-bleed on slide 10). The full demo video
 // is not embedded: it goes on Google Drive and its link is the submission's Project link.
 //
 // Usage (from docs/submission): npm run deck                 the final deck, the stage video required

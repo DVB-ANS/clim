@@ -23,38 +23,38 @@ function streams(file) {
   return execFileSync("ffprobe", ["-v", "error", "-show_entries", "stream=codec_type", "-of", "csv=p=0", file], { encoding: "utf8" }).trim().split("\n");
 }
 
-test("the manifest has 10 slides, every image, the live numbers filled in and one video slot, the stage cut on slide 08", () => {
+test("the manifest has 12 slides, every image, the live numbers filled in and one video slot, the stage cut on slide 10", () => {
   const slides = loadManifest();
-  assert.equal(slides.length, 10);
+  assert.equal(slides.length, 12);
   for (const s of slides) {
     assert.ok(s.title && s.text && s.notes, s.png);
     assert.ok(!/\{\{/.test(s.text + s.notes), s.png);
     assert.match(s.notes, /\n\nSources \(not read aloud\): /, s.png);
   }
   assert.deepEqual(slides.filter((s) => s.video).map((s) => [s.png, s.video.kind]), [["08-demo.png", "stage"]]);
-  // deck v3: two opening slides added, results merged with the prediction and the live slide with CRE (slide 09)
-  assert.match(slides[8].text, /Live since 6 Oct: [\d,]+ CRE reports on Sepolia \(RiskDesk seq, read /);
+  // deck v3: opening slides, the keeper and volume slides, results merged with the prediction, live merged with CRE (slide 11)
+  assert.match(slides[10].text, /Live since 6 Oct: [\d,]+ CRE reports on Sepolia \(RiskDesk seq, read /);
 });
 
-test("deck builds with 10 slides, notes carrying the slide text and the sources, and the stage video with sound", async () => {
+test("deck builds with 12 slides, notes carrying the slide text and the sources, and the stage video with sound", async () => {
   const dir = mkdtempSync(path.join(os.tmpdir(), "clim-deck-"));
   const out = path.join(dir, "clim.pptx");
   const r = await buildDeck({ videos: { stage: tinyVideo(dir, "demo-stage.mp4", { seconds: 2 }) }, outFile: out, work: path.join(dir, "work") });
-  assert.equal(r.slides, 10);
+  assert.equal(r.slides, 12);
   assert.deepEqual(r.videos, ["stage"]);
   const entries = zipList(out);
-  assert.equal(entries.filter((e) => /^ppt\/slides\/slide\d+\.xml$/.test(e)).length, 10);
-  assert.equal(entries.filter((e) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(e)).length, 10);
+  assert.equal(entries.filter((e) => /^ppt\/slides\/slide\d+\.xml$/.test(e)).length, 12);
+  assert.equal(entries.filter((e) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(e)).length, 12);
   assert.equal(entries.filter((e) => /^ppt\/media\/.*\.mp4$/.test(e)).length, 1);
-  const slide8Rels = execFileSync("unzip", ["-p", out, "ppt/slides/_rels/slide8.xml.rels"], { encoding: "utf8" });
-  assert.match(slide8Rels, /\.mp4"/);
-  for (let i = 1; i <= 10; i++) {
+  const slide10Rels = execFileSync("unzip", ["-p", out, "ppt/slides/_rels/slide10.xml.rels"], { encoding: "utf8" });
+  assert.match(slide10Rels, /\.mp4"/);
+  for (let i = 1; i <= 12; i++) {
     const notes = execFileSync("unzip", ["-p", out, `ppt/notesSlides/notesSlide${i}.xml`], { encoding: "utf8" });
     assert.match(notes, /Slide text: /, `notes of slide ${i}`);
     assert.match(notes, /Sources \(not read aloud\):/, `notes of slide ${i}`);
   }
-  const notes9 = execFileSync("unzip", ["-p", out, "ppt/notesSlides/notesSlide9.xml"], { encoding: "utf8" });
-  assert.match(notes9, /Slide text: Chainlink CRE · our only partner track, by choice\. Why CRE, and our feedback\. Live since 6 Oct: [\d,]+ CRE reports/);
+  const notes11 = execFileSync("unzip", ["-p", out, "ppt/notesSlides/notesSlide11.xml"], { encoding: "utf8" });
+  assert.match(notes11, /Slide text: Chainlink CRE · our only partner track, by choice\. Why CRE, and our feedback\. Live since 6 Oct: [\d,]+ CRE reports/);
   assert.ok(streams(path.join(dir, "work", "demo-stage.mp4")).includes("audio"));
 });
 
