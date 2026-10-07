@@ -1,6 +1,8 @@
 // End-to-end latency of the risk desk: for each RiskReported event, block.timestamp - tObs
 // (DON observation time -> on-chain inclusion). Usage (from cre/risk-desk):
 //   bun scripts/latency.ts <deskAddress> [blocks=600]
+// RPC: SEPOLIA_RPC_URL, else the public Sepolia RPC. Bun loads .env from the working directory only, so
+// to use the RPC in cre/.env add --env-file=../.env (or run bun risk-desk/scripts/latency.ts from cre/).
 import { createPublicClient, http, parseAbiItem } from 'viem'
 import { sepolia } from 'viem/chains'
 

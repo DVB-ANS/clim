@@ -286,8 +286,11 @@ the docs only, summarized for the Chainlink team in the
   `RiskDesk.state()` after each write to tell the two apart (friction log row 9).
 - **Simulation is one node, and it needs the network.** The Sepolia mock forwarder checks no
   signature, so `RiskDesk` only accepts simulated reports sent by the operator key (`tx.origin`),
-  and the CLI validates its credentials against the CRE API on every run: 5 of 413 runs of our two
-  30 s loops (live and replay) on 2026-10-06 stopped there (friction log rows 1 and 24).
+  and the CLI validates its credentials against the CRE API on every run: 5 of the first 413 runs
+  of our two 30 s loops (live and replay) on 2026-10-06 stopped there. On 2026-10-07 a network
+  outage on our side stopped 27 live runs at that check, so the live desk went silent and the hook
+  charged its 30 bp safe fee, as designed, for about 8 minutes (04:33:00 to 04:40:24 and 04:48:12
+  to 04:48:36 UTC, block times); one retail swap paid it (friction log rows 1 and 24).
 
 ## What's live vs. simulated
 
@@ -305,8 +308,9 @@ the docs only, summarized for the Chainlink team in the
 
 ## Can a pool that is already live use clim?
 
-Not by flipping a switch on an existing pool; yes for a new pool, and yes for a pool that already
-has a dynamic fee. Details in [docs/faq.md](docs/faq.md).
+Not by flipping a switch on an existing pool. Yes for a new pool. A pool that already has a dynamic
+fee can follow the desk only if its hook reads an outside source or lets a keeper post the fee.
+Details in [docs/faq.md](docs/faq.md).
 
 - A Uniswap v3 pool cannot: `UniswapV3Pool.fee` is `immutable`.
 - A Uniswap v4 pool's fee mode and hook are part of its `PoolKey`, and the `PoolKey` is the pool's
@@ -315,25 +319,54 @@ has a dynamic fee. Details in [docs/faq.md](docs/faq.md).
 - A pool created with a dynamic fee gets its fee from its own hook, either per swap (`beforeSwap`
   with `OVERRIDE_FEE_FLAG`, what clim does) or stored (`PoolManager.updateDynamicLPFee`, which only
   that hook can call).
-- A DEX that already runs dynamic fees can use the risk desk without migrating anything: its hook or
-  keeper reads `RiskDesk.state()`.
+- A DEX whose fee a keeper posts can use the risk desk without migrating: the keeper reads
+  `RiskDesk.state()`. A dynamic-fee v4 pool can too if its hook reads an external source or exposes
+  a keeper path to `updateDynamicLPFee`; a hook with fixed logic means a new hook and a new pool.
 - clim's own parameters are immutable. A different P* means a new hook and a new pool.
 
 ## Roadmap
 
-1. **Fables on Robinhood Chain, shadow mode first.** Fables' crypto pools charge a flat fee plus a
-   temporary override that a keeper posts between a floor and a cap (our pre-hackathon reading of
-   public on-chain data, 2026-09-30). First, clim publishes its recommended fee next to the keeper's,
-   without acting on it. Then the keeper reads `RiskDesk.state()`, applies the fee rule with Fables'
-   own P*, floor and cap, and posts the result: no contract change on their side. This is our
-   proposal to Fables, not an agreement: nothing runs on Robinhood Chain yet.
-2. **One desk, many chains.** The same CRE workflow can write the same report to a `RiskDesk` on
-   every chain CRE supports, and an off-chain keeper can read a desk on any chain without a bridge.
-   CRE lists Robinhood Chain as Robinhood Testnet only (docs, 2026-09-18), and writes to Solana.
+1. **Existing DEXs plug clim in, Fables on Robinhood Chain first, in shadow mode.** clim is not a
+   new DEX. It is a risk desk (the CRE workflow and `RiskDesk`) plus a hook pattern (`ClimHook`)
+   that existing protocols plug in: a keeper that posts their fees reads `RiskDesk.state()`, or a
+   new pool gets a hook like `ClimHook` (an existing hook only if it can read an outside contract),
+   and either applies the fee rule with their own parameters. Fables comes first. Its fees are already presented as
+   dynamic, and a keeper moves them: its crypto pools charge a flat fee plus a temporary override
+   that the keeper posts between a floor and a cap (our pre-hackathon reading of public on-chain
+   data, 2026-09-30). First, clim publishes its recommended fee next to the keeper's, without acting
+   on it. Then the keeper reads `RiskDesk.state()`, applies the fee rule with Fables' own P*, floor
+   and cap, and posts the result: no contract change on their side. This is our proposal to Fables,
+   not an agreement: nothing runs on Robinhood Chain yet.
+2. **One desk, many chains: Sepolia is the proof, other EVM chains are configuration.** For the
+   workflow, another EVM chain that CRE supports is a new target: the chain name and the desk
+   address in its config, an RPC in `cre/project.yaml` (a mainnet also needs the `isTestnet` flag in
+   `workflow.ts` made configurable). The contracts deploy unchanged, with that chain's block time in
+   the hook (the hook needs Uniswap v4 there; a keeper-driven DEX needs only the desk; sub-second
+   chains first need a calibrated Δt, see [Limits](#limits)). The same CRE workflow can write the
+   same report to a `RiskDesk` on every chain CRE supports, and an off-chain keeper can read a desk
+   on any chain without a bridge. CRE lists Robinhood Chain as Robinhood Testnet only (docs,
+   2026-09-18), and writes to Solana.
 3. **DON deployment.** Deploy access was not granted during the hackathon. Once it is, the workflow
    runs on a DON and reports arrive through the `KeystoneForwarder`. The owner points `RiskDesk` at
    that forwarder and pins the expected workflow ID (`ReceiverTemplate`'s identity checks), and only
    then calls `disableSim()` and renounces ownership or hands it to a timelocked multisig.
+4. **Fees that also read volume (a judge's suggestion).** Today the fee reads volatility only.
+   Volume would enter through k, the multiplier the desk already sends with sigma in every report,
+   so the hook would not change. Each run, the workflow would read the clim pool's recent `Swap`
+   events with CRE's EVM client and split that volume into arbitrage (swaps that push the pool's
+   price toward the exchanges' median, the trades of Milionis, Moallemi and Roughgarden's
+   arbitrageur) and uninformed flow. k would rise with the arbitrage share: a spread pays the market
+   maker for trading with better-informed traders (Glosten and Milgrom 1985), and a market maker's
+   quotes depend on volatility and on how order arrivals respond to the spread (Avellaneda and
+   Stoikov 2008). In this build that can only raise the storm premium: `RiskDesk` clamps k to
+   [1, 2], and the floor stays the pair's market tier. Cutting the fee to attract traders when the
+   pool lacks volume would need a desk that accepts k below 1, so a new hook and new pools (the
+   hook's desk address is immutable). It is not a sure win either: a higher DEX fee can increase
+   volume, because it pays LPs to supply depth (Hasbrouck, Rivera and Saleh 2022). Before shipping,
+   the lab would backtest it against the same fixed-fee pool, at the same average fee and at the
+   same cost to traders, with the same prediction check: with k above 1, the predicted share of
+   arbitraged blocks becomes 1/(k × eta + 0.824). Details in the
+   [FAQ](docs/faq.md#why-not-set-the-fee-from-volume-too).
 
 ## Deployed addresses
 
@@ -494,6 +527,9 @@ drives the fee.
 - Loesch, Hindman, Richardson, Welch (2021). *Impermanent Loss in Uniswap v3.* [arXiv:2111.09192](https://arxiv.org/abs/2111.09192)
 - Kupiec (1995). *Techniques for Verifying the Accuracy of Risk Measurement Models.* The Journal of Derivatives 3(2), 73-84. [doi:10.3905/jod.1995.407942](https://doi.org/10.3905/jod.1995.407942)
 - Basel Committee on Banking Supervision (1996). *Supervisory framework for the use of "backtesting" in conjunction with the internal models approach to market risk capital requirements.*
+- Glosten, Milgrom (1985). *Bid, Ask and Transaction Prices in a Specialist Market with Heterogeneously Informed Traders.* Journal of Financial Economics 14(1), 71-100.
+- Avellaneda, Stoikov (2008). *High-frequency trading in a limit order book.* Quantitative Finance 8(3), 217-224.
+- Hasbrouck, Rivera, Saleh (2022). *The Need for Fees at a DEX: How Increases in Fees Can Increase DEX Trading Volume.* Working paper.
 - [Uniswap v4 core](https://github.com/Uniswap/v4-core) (`LPFeeLibrary`, `PoolManager`), [OpenZeppelin uniswap-hooks](https://github.com/OpenZeppelin/uniswap-hooks) (`BaseOverrideFee`), [Chainlink CRE documentation](https://docs.chain.link/cre) and [cre-templates](https://github.com/smartcontractkit/cre-templates) (`ReceiverTemplate`).
 
 ## Team
@@ -513,7 +549,10 @@ own license:
 
 - `contracts/src/receiver/` and `contracts/test/fixtures/sports-resolution/`: copied unmodified from
   [smartcontractkit/cre-templates](https://github.com/smartcontractkit/cre-templates) `d0223f3`. MIT,
-  © 2025 SmartContract (each folder has its `LICENSE`).
+  © 2025 SmartContract; `IERC165.sol` in each folder is OpenZeppelin Contracts v5.4.0's interface as
+  the template ships it, reformatted
+  ([MIT](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.4.0/LICENSE), © 2016-2025
+  Zeppelin Group Ltd). Each folder has its `LICENSE`.
 - The `contracts/lib/` submodules keep their own licenses: forge-std is MIT or Apache-2.0,
   OpenZeppelin's code and Uniswap v4-periphery are MIT, and Uniswap v4-core is MIT for the
   interfaces and libraries clim's own contracts import, BUSL-1.1 for `PoolManager` and some internal
