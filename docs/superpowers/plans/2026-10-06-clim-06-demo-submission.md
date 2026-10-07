@@ -46,7 +46,7 @@ The JSON field `submission_deadline` is `2026-10-07T15:59:00+00:00`, which is 23
 
 **Terms and Conditions 6.4:** "Participants must not include confidential information, personal data or third-party materials unless they are authorised to do so." The deck therefore cites only public papers, our own lab numbers, and one pre-hackathon measurement of public on-chain data, dated as such (speaker notes of slide 2).
 
-**Open format question:** the rules say ".ppt or .keynote"; this plan produces a `.pptx` (PowerPoint's current format; the legacy `.ppt` format cannot reliably embed MP4). Task 12 asks an organizer to confirm `.pptx`, and Task 17 Step 6 is the Keynote fallback.
+**Open format question:** the rules say ".ppt or .keynote"; this plan produces a `.pptx` (PowerPoint's current format; the legacy `.ppt` format cannot reliably embed MP4). Task 12 asks an organizer to confirm `.pptx`, and Task 17 Step 6 is the Keynote fallback, run when `.pptx` is refused or no organizer has answered.
 
 ## Inputs this plan consumes (contracts with plans 01 to 05)
 
@@ -91,7 +91,7 @@ Task 12 runs `npm run check`, which prints OK, MISSING or INVALID for each input
 | `docs/submission/src/check-inputs.mjs` | CLI: OK / MISSING / INVALID per input. |
 | `docs/submission/src/evidence.mjs` | Event decoding, block ranges, secret scanning, URL redaction. |
 | `docs/submission/src/collect-evidence.mjs` | CLI: reads `RiskReported` from Sepolia, copies transcripts into `docs/evidence/`. |
-| `docs/submission/src/scan-secrets.mjs` | CLI: fails if a tracked file contains a secret from a `.env` file. |
+| `docs/submission/src/scan-secrets.mjs` | CLI: fails if a tracked file, or any commit's patch on any ref, contains a secret from a `.env` file. |
 | `docs/submission/figures/fee_figure.py` | Draws `docs/media/fee-follows-weather.png`. |
 | `docs/submission/figures/test_figures.py` | pytest for the figure script. |
 | `docs/submission/src/cre-evidence-text.mjs` | CLI (`npm run evidence:text`): prints the CRE-track evidence text with a fresh on-chain report count, at most 1,500 characters. |
@@ -1013,6 +1013,9 @@ test("deployments: human labels, grouped, truncated Etherscan links, pools with 
   assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), `groups out of order: ${order}`);
   assert.equal(out.split("\n").filter((l) => l.includes("etherscan")).length, 8);
   assert.doesNotMatch(out, /\*\*Other\*\*|riskDesks\.|tokens\./);
+  // clim never used Chainlink's KeystoneForwarder (DON deployment cut), and no DON desk row is left.
+  assert.match(out, /\|  \| `KeystoneForwarder` \| \[`0xF8344CFd…4482`\]\([^)]+\) \|  \| delivers DON-signed reports; not used: the DON deployment was cut \|/);
+  assert.doesNotMatch(out, /\(DON\)|checks the DON's signatures/);
   assert.match(out, /\| clim pool \(live\) \| dynamic: set by `ClimHook` on every swap \| `0xaaaaaaaa…aaaa` \|/);
   assert.match(out, /lives in \[`shared\/deployments\/sepolia\.json`\]\(shared\/deployments\/sepolia\.json\)\.$/);
 });
@@ -1160,7 +1163,6 @@ const DEPLOYMENT_GROUPS = [
     ["hooks.live", "`ClimHook` (live)", "prices every swap of the live clim pool from the live desk"],
     ["riskDesks.replay", "`RiskDesk` (replay)", "received the CRE reports of the 4 February 2026 storm, replayed (459 reports, the last at 20:58 UTC on 2026-10-06); flagged REPLAY"],
     ["hooks.replay", "`ClimHook` (replay)", "prices every swap of the replay clim pool from the replay desk"],
-    ["riskDesks.don", "`RiskDesk` (DON)", "for reports from a CRE DON through the `KeystoneForwarder`"],
   ]],
   ["Uniswap v4", [
     ["uniswap.poolManager", "`PoolManager`", "the v4 singleton; calls the hook on every swap"],
@@ -1170,7 +1172,7 @@ const DEPLOYMENT_GROUPS = [
   ]],
   ["Chainlink", [
     ["cre.mockForwarder", "`MockKeystoneForwarder`", "delivers `cre workflow simulate --broadcast` reports; checks no signature"],
-    ["cre.keystoneForwarder", "`KeystoneForwarder`", "delivers DON reports; checks the DON's signatures"],
+    ["cre.keystoneForwarder", "`KeystoneForwarder`", "delivers DON-signed reports; not used: the DON deployment was cut"],
   ]],
   ["Test tokens and bots", [
     ["tokens.tETH.address", "`tETH`", "test ETH with a public faucet"],
@@ -1750,7 +1752,8 @@ if (!existsSync(logsDir)) {
 
 `docs/submission/src/scan-secrets.mjs`:
 ```js
-// Fails if any tracked file contains a secret value from a local .env file. Usage: node src/scan-secrets.mjs
+// Fails if any tracked file, or any commit's patch on any ref, contains a secret value from a local .env file. Prints counts,
+// never a value. Usage: node src/scan-secrets.mjs
 import { execFileSync } from "node:child_process";
 import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
@@ -1758,6 +1761,23 @@ import { REPO_ROOT } from "./paths.mjs";
 import { loadSecrets, findSecrets } from "./evidence.mjs";
 
 const secrets = loadSecrets(REPO_ROOT);
+
+// main is public and pushed as work goes on: a value one commit added and a later one removed is still published, so scan
+// every commit's patch on every ref too (merges against their first parent, so a value a merge brings in is seen; no
+// textconv or external diff, so git prints every byte).
+const history = execFileSync(
+  "git",
+  ["log", "--all", "-p", "--text", "--no-color", "--no-ext-diff", "--no-textconv", "--diff-merges=first-parent"],
+  { cwd: REPO_ROOT, maxBuffer: 1e9 },
+).toString("utf8");
+const commits = execFileSync("git", ["rev-list", "--all", "--count"], { cwd: REPO_ROOT }).toString().trim();
+const inHistory = findSecrets(history, secrets).length;
+console.log(
+  inHistory
+    ? `LEAK in git history: ${inHistory} value(s) from a .env file (find the commit with git log --all -S <value>)`
+    : `no .env secret in the patches of ${commits} commits (all refs)`,
+);
+
 const files = execFileSync("git", ["ls-files", "-z"], { cwd: REPO_ROOT }).toString().split("\0").filter(Boolean);
 let leaks = 0;
 for (const f of files) {
@@ -1771,8 +1791,10 @@ for (const f of files) {
     console.log(`LEAK ${f}: ${found.length} value(s) from a .env file`);
   }
 }
-console.log(leaks ? `${leaks} tracked file(s) contain .env secrets` : `no .env secret in ${files.length} tracked files (${secrets.length} secret values checked)`);
-process.exit(leaks ? 1 : 0);
+// The tracked-files line stays last (master plan Task 20 Step 3 reads it with tail -1); it also flags a history leak.
+const tracked = leaks ? `${leaks} tracked file(s) contain .env secrets` : `no .env secret in ${files.length} tracked files (${secrets.length} secret values checked)`;
+console.log(inHistory ? `${tracked}; LEAK in git history (first line)` : tracked);
+process.exit(leaks || inHistory ? 1 : 0);
 ```
 
 - [x] **Step 4: Run, expect PASS, then the scan**
@@ -1780,7 +1802,7 @@ process.exit(leaks ? 1 : 0);
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && node --test test/evidence.test.mjs`
 Expected: `# pass 6`, `# fail 0`.
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run scan`
-Expected: `no .env secret in <n> tracked files (<m> secret values checked)` and exit code 0.
+Expected: `no .env secret in the patches of <c> commits (all refs)`, then `no .env secret in <n> tracked files (<m> secret values checked)`, and exit code 0 (the history pass was added on 2026-10-07, audit round 4: main is public and pushed as work goes on).
 
 - [x] **Step 5: End-to-end check on a local chain (no repo files touched)**
 
@@ -3223,7 +3245,8 @@ has a dynamic fee. Details in [docs/faq.md](docs/faq.md).
    temporary override that a keeper posts between a floor and a cap (our pre-hackathon reading of
    public on-chain data, 2026-09-30). First, clim publishes its recommended fee next to the keeper's,
    without acting on it. Then the keeper reads `RiskDesk.state()`, applies the fee rule with Fables'
-   own P*, floor and cap, and posts the result: no contract change on their side.
+   own P*, floor and cap, and posts the result: no contract change on their side. This is our
+   proposal to Fables, not an agreement: nothing runs on Robinhood Chain yet.
 2. **One desk, many chains.** The same CRE workflow can write the same report to a `RiskDesk` on
    every chain CRE supports, and an off-chain keeper can read a desk on any chain without a bridge.
    CRE lists Robinhood Chain as Robinhood Testnet only (docs, 2026-09-18), and writes to Solana.
@@ -3388,11 +3411,14 @@ own license:
   it includes four of those BUSL-1.1 libraries (`Lock`, `CurrencyReserves`, `NonzeroDeltaCount`,
   `Position`), a testnet, non-production use, which BUSL-1.1 permits. clim's own deployed contracts
   (both desks, both hooks, tETH and tUSD) compile only MIT sources.
-- `app/` includes third-party components and npm dependencies with their own licenses, listed in
+- `app/` includes third-party components and npm dependencies with their own licenses: the adapted
+  components and the non-permissive packages are described in
   [`app/THIRD_PARTY_NOTICES.md`](app/THIRD_PARTY_NOTICES.md) (also at
-  [/credits](https://clim-zeta.vercel.app/credits)). Some are not permissive: two React Bits
-  components are MIT + Commons Clause, the MetaMask SDK (through wagmi and RainbowKit) is under
-  ConsenSys' license, and `ua-parser-js` 2 (through RainbowKit) is AGPL-3.0.
+  [/credits](https://clim-zeta.vercel.app/credits)), and every npm package's license text is in
+  [`app/public/third-party-licenses.txt`](app/public/third-party-licenses.txt) (also at
+  [/third-party-licenses.txt](https://clim-zeta.vercel.app/third-party-licenses.txt)). Some are not
+  permissive: two React Bits components are MIT + Commons Clause, the MetaMask SDK (through wagmi
+  and RainbowKit) is under ConsenSys' license, and `ua-parser-js` 2 (through RainbowKit) is AGPL-3.0.
 - Other npm dependencies keep their own licenses, including `@chainlink/cre-sdk` (BUSL-1.1).
 
 <div align="center">
@@ -3439,7 +3465,7 @@ Replace `docs/faq.md` entirely with the text below. The FAQ written with the spe
 ````markdown
 # clim FAQ
 
-Questions we were asked during TOKEN2049 Origins, with precise answers. Code references point to this repository and to [Uniswap v4 core](https://github.com/Uniswap/v4-core).
+A Chainlink mentor asked two of these questions at TOKEN2049 Origins on 6 October 2026: how the fee is changed and computed (the first two answers) and whether a pool that is already live can switch to clim (the third). The others are the ones we expect from judges. Precise answers. Code references point to this repository and to [Uniswap v4 core](https://github.com/Uniswap/v4-core).
 
 ## How is the fee computed?
 
@@ -3576,7 +3602,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/faq.md docs/session
 ```markdown
 - **Organizer answers:** .pptx accepted: <yes/no, who answered>. Stage pitch length: <minutes>.
 ```
-If `.pptx` is refused, Task 17 Step 6 (Keynote) becomes mandatory.
+If `.pptx` is refused, Task 17 Step 6 (Keynote) becomes mandatory. If no organizer has answered by Task 17, run Task 17 Step 6 anyway, upload `clim.key` into the same shared Drive folder, keep the `.pptx` link as `deckUrl` (Drive previews it), and log `- **Organizer answers:** none before the final deck build; .pptx submitted, Keynote copy in the same Drive folder.`
 
 - [x] **Step 2: Set the live URL**
 
@@ -3801,7 +3827,7 @@ Check: the stage cut is about 30 s; the full cut is under 240 s; `audio=` is not
 Rewritten on 2026-10-07 for deck v2: the slides are PNGs exported from the maintainer's Figma file, so a fix is made in Figma (and in `deck/v2/slides.json` when the text changes), never in the .pptx. Only the live report count changes at the last moment.
 
 **Files:**
-- Modify: `docs/submission/deck/v2/live.json`, `docs/submission/deck/v2/png/07-results.png`, `docs/submission/deck/v2/png/09-live.png`, `docs/submission/deck/v2/png/12-why-chainlink.png`, `docs/submission/deck/v2/png/19-a5-cre-evidence.png`; in Figma file `LyeDZ1KdOYws6nTzD8dI76`, four text nodes of frames `166:11` (slide 09) and `168:34` (slide 19). Frames `166:2` (slide 07) and `166:54` (slide 12) are re-exported only: their text changed in `slides.json` (commit `133cdb9`) after their PNGs were last exported (`1cdd460`), and the Figma frames already carry it
+- Modify: `docs/submission/deck/v2/live.json`, `docs/submission/deck/v2/png/07-results.png`, `docs/submission/deck/v2/png/09-live.png`, `docs/submission/deck/v2/png/12-why-chainlink.png`, `docs/submission/deck/v2/png/18-a4-limits.png`, `docs/submission/deck/v2/png/19-a5-cre-evidence.png`; in Figma file `LyeDZ1KdOYws6nTzD8dI76`, four text nodes of frames `166:11` (slide 09) and `168:34` (slide 19). Frames `166:2` (slide 07), `166:54` (slide 12) and `168:20` (slide 18) are re-exported only: their text changed in `slides.json` (commits `133cdb9` and `4db62e3`, and slide 12's DON line in audit round 4) after their PNGs were last exported (`1cdd460` for 07 and 12, `2ab9677` for 18); Step 3 checks that the Figma frames carry it
 - Create (gitignored): `docs/submission/out/clim.pptx`, `docs/submission/out/video/deck/` (the embedded copies of both videos and their poster frames)
 
 - [x] **Step 1: The builder and its tests exist**
@@ -3830,7 +3856,7 @@ In Figma file `LyeDZ1KdOYws6nTzD8dI76` (section `162:2`), put the same two value
 - slide 09 (frame `166:11`, "09 · What is live"): `172:10` "LIVE seq" (the count) and `172:11` "LIVE seq read" (the read time);
 - slide 19 (frame `168:34`, "A5 · CRE evidence"): `168:50` "LIVE seq big" (the count) and `168:52` "LIVE seq read" (the read time).
 
-Check that a longer number does not wrap or overlap. Then check that every text in frames `166:2` (slide 07), `166:11` (slide 09), `166:54` (slide 12), `168:20` (slide 18) and `168:34` (slide 19) matches that slide's `text` in `slides.json` word for word, apart from the two live values: slide 07 says "bridged to 12 s blocks", slide 09 carries the 7 Oct storm line and "DON deploy access was not granted in time", slide 12 opens with "Chainlink CRE, our only partner track, by choice", slide 18's last limit reads "about 184 ETH of gas a year per gwei". Fix any difference in Figma first. Export the five frames as PNG at 2x over `docs/submission/deck/v2/png/07-results.png`, `09-live.png`, `12-why-chainlink.png`, `18-a4-limits.png` and `19-a5-cre-evidence.png` (in Figma: select the frame, Export, 2x, PNG). Then:
+Check that a longer number does not wrap or overlap. Then check that every text in frames `166:2` (slide 07), `166:11` (slide 09), `166:54` (slide 12), `168:20` (slide 18) and `168:34` (slide 19) matches that slide's `text` in `slides.json` word for word, apart from the two live values: slide 07 says "bridged to 12 s blocks", slide 09 carries the 7 Oct storm line and "DON deploy access was not granted in time", slide 12 opens with "Chainlink CRE, our only partner track, by choice" and reads "On a DON, workflow ID pinned and owner renounced: no single key to steal.", slide 18's last limit reads "about 184 ETH of gas a year per gwei". Fix any difference in Figma first. Export the five frames as PNG at 2x over `docs/submission/deck/v2/png/07-results.png`, `09-live.png`, `12-why-chainlink.png`, `18-a4-limits.png` and `19-a5-cre-evidence.png` (in Figma: select the frame, Export, 2x, PNG). Then:
 ```bash
 cd /Users/fianso/Development/hackathons/clim/docs/submission/deck/v2/png && sips -g pixelWidth -g pixelHeight 07-results.png 09-live.png 12-why-chainlink.png 18-a4-limits.png 19-a5-cre-evidence.png
 ```
@@ -3857,11 +3883,11 @@ $D/mnt/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to pdf --outd
 cd /Users/fianso/Development/hackathons/clim/docs/submission/out && find . -maxdepth 1 -name 'slide-*.jpg' -delete && pdftoppm -jpeg -r 80 clim.pdf slide && ls -1 "$PWD"/slide-*.jpg
 ```
 Shells reset between agent calls: print `$D` and reuse the literal path. If 26.8.1 is gone, take the current version from https://download.documentfoundation.org/libreoffice/stable/; if the redirect lands on a slow mirror, pick a faster one from the same URL plus `.mirrorlist` and compare `shasum -a 256` with the URL plus `.sha256`. `hdiutil detach $D/mnt` when done.
-Expected: 20 images, `slide-01.jpg` to `slide-20.jpg`. Open every image with the Read tool (or dispatch a subagent to look at them fresh): each Figma slide full-bleed, in the order of "Deck content, slide by slide"; slides 09 and 19 show the new count; slide 07 says "bridged to 12 s blocks" and slide 12 says "our only partner track, by choice"; slide 10 shows the stage video's poster frame over the whole slide; slide 20 shows the full video's poster frame in the frame drawn on the slide. A wrong slide is fixed in Figma (and in `slides.json` if its text changed), re-exported, and the deck rebuilt.
+Expected: 20 images, `slide-01.jpg` to `slide-20.jpg`. Open every image with the Read tool (or dispatch a subagent to look at them fresh): each Figma slide full-bleed, in the order of "Deck content, slide by slide"; slides 09 and 19 show the new count; slide 07 says "bridged to 12 s blocks"; slide 12 says "our only partner track, by choice" and "On a DON, workflow ID pinned and owner renounced: no single key to steal."; slide 18's last limit reads "about 184 ETH of gas a year per gwei"; slide 10 shows the stage video's poster frame over the whole slide; slide 20 shows the full video's poster frame in the frame drawn on the slide. A wrong slide is fixed in Figma (and in `slides.json` if its text changed), re-exported, and the deck rebuilt.
 
-4. Commit the new count and the four PNGs:
+4. Commit the new count and the five PNGs:
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck/v2/live.json docs/submission/deck/v2/png/07-results.png docs/submission/deck/v2/png/09-live.png docs/submission/deck/v2/png/12-why-chainlink.png docs/submission/deck/v2/png/19-a5-cre-evidence.png && git commit -m "chore(deck): live report count on slides 09 and 19; slides 07 and 12 re-exported with their final text"
+cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck/v2/live.json docs/submission/deck/v2/png/07-results.png docs/submission/deck/v2/png/09-live.png docs/submission/deck/v2/png/12-why-chainlink.png docs/submission/deck/v2/png/18-a4-limits.png docs/submission/deck/v2/png/19-a5-cre-evidence.png && git commit -m "chore(deck): live report count on slides 09 and 19; slides 07, 12 and 18 re-exported with their final text"
 ```
 
 - [ ] **Step 5 (maintainer): Play it in PowerPoint (or Keynote) and set the stage video to start by itself** **Maintainer's step.**
@@ -3877,9 +3903,9 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck/v2/
 
 After this step, do not rebuild the deck with `npm run deck` (it overwrites `out/clim.pptx`), or redo this step.
 
-- [ ] **Step 6 (only if `.pptx` is refused): Keynote copy** **Maintainer's step.**
+- [ ] **Step 6 (if `.pptx` is refused, or no organizer has answered): Keynote copy** **Maintainer's step.**
 
-Install Keynote from the Mac App Store (free), open `out/clim.pptx` in Keynote, play both videos (slides 10 and 20), then File, Save, `out/clim.key`. Upload it next to the `.pptx` in Task 18 and submit the `.key` link.
+Install Keynote from the Mac App Store (free), open `out/clim.pptx` in Keynote, play both videos (slides 10 and 20), then File, Save, `out/clim.key`. Upload it next to the `.pptx` in Task 18. If `.pptx` was refused, submit the `.key` link; if no organizer answered, keep the `.pptx` link as `deckUrl` (Task 12 Step 1).
 
 ---
 
@@ -3936,7 +3962,7 @@ Expected: `# pass 40`, `# fail 0`, `0`.
 - [ ] **Step 2: Secret scan** **End of session.**
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run scan`
-Expected: `no .env secret in <n> tracked files (<m> secret values checked)`. Also run `cd /Users/fianso/Development/hackathons/clim && git status --short | grep -E "\.env$|secrets\.yaml$"` and expect no output. Any leak: remove the value, rotate that testnet key, and rewrite the commit before pushing.
+Expected: `no .env secret in the patches of <c> commits (all refs)`, then `no .env secret in <n> tracked files (<m> secret values checked)`. Also run `cd /Users/fianso/Development/hackathons/clim && git status --short | grep -E "\.env$|secrets\.yaml$"` and expect no output. Any leak: rotate that testnet key at once (main is public and pushed as work goes on, so a value in any pushed commit counts as exposed, rewritten or not), then remove the value.
 
 - [ ] **Step 3: Clean-clone smoke test of "Getting started"** **End of session.**
 
@@ -4187,7 +4213,7 @@ Read the numbers in brackets from `lab/out/backtest-summary.json` and `shared/pa
 "We need Uniswap v4 hooks and CRE on the same chain, and Sepolia has both; its 12-second blocks also make the formula give readable fees. Solana has no v4 hooks, we would have to write our own AMM, and Meteora already has volatility fees there. But CRE can write to Solana, so the same desk can publish there: one desk, many chains."
 
 **"What does it cost to run?"**
-"On an L2, close to nothing. Publishing every 30 s on Ethereum mainnet would cost tens of thousands of dollars a year in gas (our audit estimated 60 to 110 thousand), so mainnet would publish less often or only when volatility moves."
+"On an L2, close to nothing. On Ethereum mainnet, a report every 30 seconds would cost about 184 ETH of gas a year for every gwei of gas price: about 60 to 110 thousand dollars a year at 0.12 to 0.22 gwei and 2,700 dollars per ETH, about half a million at 1 gwei. So production would publish on deviation plus a heartbeat, or on an L2."
 
 **"Does it work on fast chains?"**
 "With very short blocks the formula falls to the floor, because the half-block noise is tiny. On those chains the right time scale is the arbitrageurs' real reaction time, which has to be measured first. That is on the list after the hackathon."

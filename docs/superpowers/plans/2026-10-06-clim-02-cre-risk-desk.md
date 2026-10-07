@@ -2998,7 +2998,7 @@ cd cre/risk-desk && bun install && bun test && bun run typecheck && cd ..
 cre workflow build ./risk-desk -o ./risk-desk/binary.wasm         # compile to WASM, no login needed
 cre workflow simulate risk-desk --non-interactive --trigger-index 0 --target staging-settings              # dry run
 cre workflow simulate risk-desk --non-interactive --trigger-index 0 --target staging-settings --broadcast  # one real report
-scripts/sim-loop.sh staging-settings --broadcast                   # smoke loop: one report every 30 s, logs in cre/logs/
+scripts/sim-loop.sh staging-settings --broadcast                   # the loop: one report every 30 s, logs in cre/logs/ (bun run cre-loop runs it and records each run)
 ENV_FILE=.env.replay scripts/sim-loop.sh replay-settings --broadcast   # replay desk, with its own operator key
 ```
 
@@ -3017,7 +3017,7 @@ Replay mode (`--target replay-settings`, `mode: "replay"`) fetches, for each con
 | `risk-desk/report.ts` | Report ABI, encoder and decoder, RiskDesk read ABI |
 | `risk-desk/fixtures/` | Real responses of the six sources captured on 2026-10-06 (unit-test inputs) |
 | `risk-desk/scripts/` | Fixture capture, config sync from `shared/deployments`, latency measurement |
-| `scripts/sim-loop.sh` | CRE-only smoke loop (build once, `simulate --wasm` every 30 s). The demo loop that records receipts is `bots/src/sim-loop.ts`. |
+| `scripts/sim-loop.sh` | The 30 s simulation loop: builds the WASM once, then runs `cre workflow simulate --wasm` every 30 s (`--broadcast` writes on-chain). `bun run cre-loop` (`bots/src/sim-loop.ts`) runs it with `--broadcast` and records each run's receipt and `RiskReported` in `bots/out/cre-runs.jsonl`. |
 ````
 
 - [x] **Step 2: Append a real sample run** (from the latest broadcast log, colour codes stripped)
@@ -3089,7 +3089,7 @@ git commit -m "docs(cre): risk desk README with sample run and on-chain evidence
 | "Never cut": CRE → onReport → RiskDesk, CRE tx hashes | Tasks 10 and 14 |
 
 Gaps that were found and closed while writing:
-- Plan 04 was written in parallel. Its contracts with this plan were adopted here: the exact log lines its loop parses, the replay server's per-venue Binance-format paths, and the `tokens.<sym>.address` / `riskDesks.<pair>` shape of the deployments file. The demo loop is plan 04's; `cre/scripts/sim-loop.sh` stays a CRE-only smoke loop.
+- Plan 04 was written in parallel. Its contracts with this plan were adopted here: the exact log lines its loop parses, the replay server's per-venue Binance-format paths, and the `tokens.<sym>.address` / `riskDesks.<pair>` shape of the deployments file. Plan 04's `cre-loop` (`bots/src/sim-loop.ts`) runs `cre/scripts/sim-loop.sh <target> --broadcast` and records each run: the script is the loop that writes every report, and plan 04 adds the record.
 - The simulator reports success for rejected reports, so a post-write `state()` check was added (Task 7) with a test for it.
 - The HTTP trigger needs authorized keys to deploy, so `httpAuthorizedKeys` was added to the config.
 - Latency was undocumented (friction row 5), so `latency.ts` was added.

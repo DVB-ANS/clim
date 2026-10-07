@@ -39,6 +39,9 @@ test("deployments: human labels, grouped, truncated Etherscan links, pools with 
   assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), `groups out of order: ${order}`);
   assert.equal(out.split("\n").filter((l) => l.includes("etherscan")).length, 8);
   assert.doesNotMatch(out, /\*\*Other\*\*|riskDesks\.|tokens\./);
+  // clim never used Chainlink's KeystoneForwarder (DON deployment cut), and no DON desk row is left.
+  assert.match(out, /\|  \| `KeystoneForwarder` \| \[`0xF8344CFd…4482`\]\([^)]+\) \|  \| delivers DON-signed reports; not used: the DON deployment was cut \|/);
+  assert.doesNotMatch(out, /\(DON\)|checks the DON's signatures/);
   assert.match(out, /\| clim pool \(live\) \| dynamic: set by `ClimHook` on every swap \| `0xaaaaaaaa…aaaa` \|/);
   assert.match(out, /lives in \[`shared\/deployments\/sepolia\.json`\]\(shared\/deployments\/sepolia\.json\)\.$/);
 });

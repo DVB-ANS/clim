@@ -44,7 +44,6 @@ const DEPLOYMENT_GROUPS = [
     ["hooks.live", "`ClimHook` (live)", "prices every swap of the live clim pool from the live desk"],
     ["riskDesks.replay", "`RiskDesk` (replay)", "received the CRE reports of the 4 February 2026 storm, replayed (459 reports, the last at 20:58 UTC on 2026-10-06); flagged REPLAY"],
     ["hooks.replay", "`ClimHook` (replay)", "prices every swap of the replay clim pool from the replay desk"],
-    ["riskDesks.don", "`RiskDesk` (DON)", "for reports from a CRE DON through the `KeystoneForwarder`"],
   ]],
   ["Uniswap v4", [
     ["uniswap.poolManager", "`PoolManager`", "the v4 singleton; calls the hook on every swap"],
@@ -54,7 +53,7 @@ const DEPLOYMENT_GROUPS = [
   ]],
   ["Chainlink", [
     ["cre.mockForwarder", "`MockKeystoneForwarder`", "delivers `cre workflow simulate --broadcast` reports; checks no signature"],
-    ["cre.keystoneForwarder", "`KeystoneForwarder`", "delivers DON reports; checks the DON's signatures"],
+    ["cre.keystoneForwarder", "`KeystoneForwarder`", "delivers DON-signed reports; not used: the DON deployment was cut"],
   ]],
   ["Test tokens and bots", [
     ["tokens.tETH.address", "`tETH`", "test ETH with a public faucet"],
