@@ -3723,7 +3723,7 @@ Expected: recent `live-<run start>.log` files written by plan 04's `bun run cre-
 
 Done 2026-10-07 (07:16 SGT): 1,246 transcripts in `bots/out/cre-sim/`, the newest `live-2026-10-06T23-16-18Z.log`, one every 30 s.
 
-- [ ] **Step 2: Collect** **End of session.**
+- [x] **Step 2: Collect** Done 2026-10-07 (10:09 UTC): 2,025 live and 459 replay `RiskReported` events, four `REPORT applied` transcripts kept (runs that printed the read-back's false `NOT APPLIED` dropped), `docs/evidence/README.md` written, README regenerated with no pending block but the deck and video links, `bots/out/cre-runs.jsonl` and `security-demos.jsonl` committed.
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && SEPOLIA_RPC_URL=https://sepolia.gateway.tenderly.co npm run evidence`
 (The Tenderly gateway serves the full log history; publicnode answers `pruned history unavailable` for logs older than about 10,000 blocks, about 33 h, measured by plan 05.)
@@ -3738,11 +3738,11 @@ copied docs/evidence/cre-simulate-<name>.log
 ```
 If that RPC fails, rerun with another archive-capable Sepolia RPC in `SEPOLIA_RPC_URL`. A replay desk with zero events is skipped by design.
 
-- [ ] **Step 3: Read the copied transcripts** **End of session.**
+- [x] **Step 3: Read the copied transcripts** Done 2026-10-07 (10:09 UTC): 2,025 live and 459 replay `RiskReported` events, four `REPORT applied` transcripts kept (runs that printed the read-back's false `NOT APPLIED` dropped), `docs/evidence/README.md` written, README regenerated with no pending block but the deck and video links, `bots/out/cre-runs.jsonl` and `security-demos.jsonl` committed.
 
 Open each `docs/evidence/cre-simulate-*.log` with the Read tool. Each must show the venues fetched, the quorum, the volatility, and the line `Write report transaction succeeded: 0x...`. Nothing private: no key, no e-mail address, no home path (the collector already replaced the home directory with `~` and RPC keys with `<redacted>`). Delete any file that does not meet this and rerun with `--max-logs 5`.
 
-- [ ] **Step 4: Write `docs/evidence/README.md`** **End of session.**
+- [x] **Step 4: Write `docs/evidence/README.md`** Done 2026-10-07 (10:09 UTC): 2,025 live and 459 replay `RiskReported` events, four `REPORT applied` transcripts kept (runs that printed the read-back's false `NOT APPLIED` dropped), `docs/evidence/README.md` written, README regenerated with no pending block but the deck and video links, `bots/out/cre-runs.jsonl` and `security-demos.jsonl` committed.
 
 ```markdown
 # CRE evidence
@@ -3759,7 +3759,7 @@ What shows that the clim risk desk ran as a Chainlink CRE workflow:
 To reproduce, see [Getting started](../../README.md#getting-started) in the main README.
 ```
 
-- [ ] **Step 5: Regenerate the README and commit** **End of session.**
+- [x] **Step 5: Regenerate the README and commit** Done 2026-10-07 (10:09 UTC): 2,025 live and 459 replay `RiskReported` events, four `REPORT applied` transcripts kept (runs that printed the read-back's false `NOT APPLIED` dropped), `docs/evidence/README.md` written, README regenerated with no pending block but the deck and video links, `bots/out/cre-runs.jsonl` and `security-demos.jsonl` committed.
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run readme`
 Expected: `README.md updated: links, results, params, fee-schedule, deployments, evidence, team`.
