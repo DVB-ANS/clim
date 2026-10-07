@@ -1,6 +1,8 @@
 # clim CRE project settings (cre CLI >= 1.37).
 # Targets: staging-settings = live simulation, replay-settings = replay simulation,
-# production-settings = DON deployment (private registry). Every target must also exist in risk-desk/workflow.yaml.
+# production-settings = a DON target (private registry) that was never used: DON deploy access was not granted,
+# so its config.production.json keeps the placeholder desk 0x...dEaD (riskDesks.don is null in shared/deployments).
+# Every target must also exist in risk-desk/workflow.yaml.
 staging-settings:
   rpcs:
     - chain-name: ethereum-testnet-sepolia

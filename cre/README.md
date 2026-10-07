@@ -4,7 +4,7 @@ The risk desk is the CRE half of clim. Every 30 seconds it measures ETH realized
 
 ## What one execution does
 
-1. **Trigger.** Cron `*/30 * * * * *` (handler 0) or an HTTP trigger (handler 1, used to drive local simulation). Both run the same `onTick`.
+1. **Trigger.** Cron `*/30 * * * * *` (handler 0) or an HTTP trigger (handler 1, tested in listen mode). Both run the same `onTick`. The 30 s simulation loops use the cron handler: each `simulate` run fires it once (`--trigger-index 0` in `scripts/sim-loop.sh`, which `bun run cre-loop` in `bots/` wraps).
 2. **Observe, on every node** (`runInNodeMode`, 6 HTTP calls, sent concurrently):
    - 1-minute ETH candles from Coinbase Advanced (ETH-USD), Kraken (ETHUSD), Binance via `data-api.binance.vision` (ETHUSDT) and Hyperliquid (`candleSnapshot`, ETH perp);
    - Deribit ETH DVOL (diagnostic only);
@@ -33,9 +33,9 @@ In this version `sigmaE9 == rv15E9`, `kE4 = 10000` (no model-risk multiplier) an
 |---|---|---|
 | Nodes | one (your machine) | the DON; each node fetches the venues itself |
 | Forwarder | `MockKeystoneForwarder` `0x15fC6ae953E024d975e77382eEeC56A9101f9F88`, no signature check | `KeystoneForwarder` `0xF8344CFd5c43616a4366C34E3EEE75af79a74482`, verifies DON signatures |
-| What protects RiskDesk | `tx.origin == simOperator` (the key in `cre/.env`; `cre/.env.replay` for the replay desk), plus the sigma envelope | forwarder address and expected workflow ID |
+| What protects RiskDesk | `tx.origin == simOperator` (the key in `cre/.env`; `cre/.env.replay` for the replay desk), plus the sigma envelope | forwarder address and expected workflow ID, once simulation is disabled and ownership renounced |
 
-On the live desk the `simOperator` key is also the owner, so in simulation that one key is trusted: it can post any volatility inside the envelope (×2 up, ×0.8 down per report, 10% to 1000% a year), and the hook still clamps the fee between 5 bp and 150 bp. `disableSim()` alone does not end that trust: the owner can point the desk at a forwarder it controls, so the owner key can post reports until ownership is renounced. On a DON the desk would accept only the DON's signed reports: the owner points it at the `KeystoneForwarder` and pins the expected workflow ID (`ReceiverTemplate`'s identity checks), and only then calls `disableSim()` and renounces ownership ([FAQ](../docs/faq.md#can-the-owner-change-the-fee)).
+On the live desk the `simOperator` key is also the owner, so in simulation that one key is trusted: it can post any volatility inside the envelope (×2 up, ×0.8 down per report, 10% to 1000% a year), and the hook still clamps the fee between 5 bp and 150 bp. `disableSim()` alone does not end that trust: the owner can point the desk at a forwarder it controls, so the owner key can post reports until ownership is renounced. On a DON, once the expected workflow ID is pinned, simulation disabled and ownership renounced, no single key can write the desk: it accepts only the DON's signed reports. The owner first points it at the `KeystoneForwarder` and pins the expected workflow ID (`ReceiverTemplate`'s identity checks), and only then calls `disableSim()` and renounces ownership ([FAQ](../docs/faq.md#can-the-owner-change-the-fee)).
 
 ## Run it
 
@@ -56,7 +56,7 @@ Replay mode (`--target replay-settings`, `mode: "replay"`) fetches, for each con
 
 | Path | Role |
 |---|---|
-| `project.yaml` | Targets `staging-settings` (live simulation), `replay-settings`, `production-settings` (DON deployment), Sepolia RPC |
+| `project.yaml` | Targets `staging-settings` (live simulation) and `replay-settings`, Sepolia RPC. A third target, `production-settings`, is a DON target whose `config.production.json` keeps a placeholder desk address (`0x…dEaD`); it was never used, because DON deploy access was not granted |
 | `risk-desk/workflow.yaml` | Workflow name, entry point and config file per target |
 | `risk-desk/main.ts` | Runner entry point |
 | `risk-desk/workflow.ts` | Triggers, node-mode observation, consensus, report, write and confirmation |

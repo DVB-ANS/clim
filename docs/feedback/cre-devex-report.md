@@ -11,7 +11,7 @@ From Sofiane Ben Taleb ([@gamween](https://github.com/gamween), DeVinci Blockcha
 | Mode | Simulation only: `cre workflow simulate --broadcast` (single node, mock forwarder). DON deploy access was requested on 2026-10-06 at 22:56 SGT with `cre account access` and not granted during the hackathon (`cre whoami` still printed `Deploy Access: Not enabled` on 2026-10-07), so the DON deployment was cut (row 6). |
 | AI tooling | We did not use the `cre-skills` skill, so this report has no feedback on it. |
 
-**Context.** clim's risk desk is one CRE workflow (cron every 30 s, six HTTP sources per node, a quorum of 3 venues out of 4, median consensus on each field, a signed report, `EVMClient.writeReport`) that feeds a Uniswap v4 hook on Sepolia. In simulation, the operator key submits each report through `MockKeystoneForwarder`; on a DON, reports would come through `KeystoneForwarder` with no keeper key.
+**Context.** clim's risk desk is one CRE workflow (cron every 30 s, six HTTP sources per node, a quorum of 3 venues out of 4, median consensus on each field, a signed report, `EVMClient.writeReport`) that feeds a Uniswap v4 hook on Sepolia. In simulation, the operator key submits each report through `MockKeystoneForwarder`. On a DON, reports would come only through `KeystoneForwarder`: once the expected workflow ID is pinned, simulation disabled and ownership renounced, no single key can write the desk.
 
 - From 16:33 to 19:37 UTC on 2026-10-06, our loop recorded 637 `simulate --broadcast` runs on two desks (334 live, 303 replay).
 - 630 runs landed: the forwarder's `ReportProcessed` was true and the desk's `RiskReported` was in the same receipt. That is 621 runs recorded with their receipt, plus 9 runs recorded without a receipt, whose receipts we re-read (they lost their last log line, row 22).
@@ -84,7 +84,7 @@ From Sofiane Ben Taleb ([@gamween](https://github.com/gamween), DeVinci Blockcha
 - **Our workaround.**
   - `RiskDesk` accepts a simulated report only when `tx.origin` is our operator key (`simOperator`), and it bounds how far volatility can move between two reports.
   - The demo shows a forged report being ignored.
-  - On a DON, the desk moves to `KeystoneForwarder`, checks the workflow id, and the owner calls `disableSim()`.
+  - On a DON, the owner points the desk at `KeystoneForwarder`, pins the expected workflow ID, calls `disableSim()` and renounces ownership; until then the owner key can still re-point the forwarder.
 
 ### 4. A long-running simulation as the demo backend (rows 3, 6, 22, 24, 25)
 
