@@ -32,7 +32,8 @@ test("the manifest has 10 slides, every image, the live numbers filled in and on
     assert.match(s.notes, /\n\nSources \(not read aloud\): /, s.png);
   }
   assert.deepEqual(slides.filter((s) => s.video).map((s) => [s.png, s.video.kind]), [["08-demo.png", "stage"]]);
-  assert.match(slides[6].text, /[\d,]+ CRE reports on the live desk, about one every 30 s \(RiskDesk seq, read /);
+  // deck v3: two opening slides added, results merged with the prediction and the live slide with CRE (slide 09)
+  assert.match(slides[8].text, /Live since 6 Oct: [\d,]+ CRE reports on Sepolia \(RiskDesk seq, read /);
 });
 
 test("deck builds with 10 slides, notes carrying the slide text and the sources, and the stage video with sound", async () => {
@@ -52,8 +53,8 @@ test("deck builds with 10 slides, notes carrying the slide text and the sources,
     assert.match(notes, /Slide text: /, `notes of slide ${i}`);
     assert.match(notes, /Sources \(not read aloud\):/, `notes of slide ${i}`);
   }
-  const notes7 = execFileSync("unzip", ["-p", out, "ppt/notesSlides/notesSlide7.xml"], { encoding: "utf8" });
-  assert.match(notes7, /Slide text: Live on Sepolia since 6 October\./);
+  const notes9 = execFileSync("unzip", ["-p", out, "ppt/notesSlides/notesSlide9.xml"], { encoding: "utf8" });
+  assert.match(notes9, /Slide text: Chainlink CRE · our only partner track, by choice\. Why CRE, and our feedback\. Live since 6 Oct: [\d,]+ CRE reports/);
   assert.ok(streams(path.join(dir, "work", "demo-stage.mp4")).includes("audio"));
 });
 
