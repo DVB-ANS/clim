@@ -338,6 +338,13 @@ Details in [docs/faq.md](docs/faq.md).
    on it. Then the keeper reads `RiskDesk.state()`, applies the fee rule with Fables' own P*, floor
    and cap, and posts the result: no contract change on their side. This is our proposal to Fables,
    not an agreement: nothing runs on Robinhood Chain yet.
+   We measured Fables' keeper on-chain before proposing it ([`lab/README.md`](lab/README.md#clim-vs-fables-keeper-11-september-2026)):
+   it is not a flat fee (it tracks volatility and posts its 60 bp cap at scheduled US releases), and
+   on the 11 September 2026 storm it lost about 10 % less to arbitrage than clim's rule at the same
+   average fee in our model, because it posted its cap in the very second of the CPI release, which
+   a 15-minute volatility measure cannot anticipate. What clim adds is a public, checkable rule fed
+   by four exchanges through CRE in place of one private key; the keeper's event overrides can sit on
+   top of the desk's measured baseline, which is what the shadow mode would test.
 2. **One desk, many chains: Sepolia is the proof, other EVM chains are configuration.** For the
    workflow, another EVM chain that CRE supports is a new target: the chain name and the desk
    address in its config, an RPC in `cre/project.yaml` (a mainnet also needs the `isTestnet` flag in
