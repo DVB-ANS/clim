@@ -38,7 +38,6 @@ export function LiveTicker({ items, simulated }: { items: TickerItem[]; simulate
         </span>
         <button
           type="button"
-          aria-pressed={paused}
           aria-label={paused ? "Play the page's motion" : "Pause the page's motion"}
           title={paused ? "Play the page's motion" : "Pause the page's motion"}
           onClick={() => setMotionPaused(!paused)}

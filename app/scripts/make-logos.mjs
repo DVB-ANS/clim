@@ -22,7 +22,7 @@ for (const [name, file] of Object.entries(SOURCES)) {
   const viewBox = svg.match(/viewBox="([^"]+)"/)[1];
   const body = svg
     .replace(/^<svg[^>]*>/, "")
-    .replace(/<\/svg>$/, "")
+    .replace(/<\/svg>\s*$/, "")
     .replace(/fill="#[0-9a-fA-F]{3,8}"/g, 'fill="currentColor"')
     .replace(/\s+/g, " ")
     .trim();

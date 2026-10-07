@@ -279,6 +279,12 @@ html:has([data-app-header]) {
   scroll-margin-top: var(--clim-nav-offset);
 }
 
+/* Shift+Tab brings a tall row's link to the top: keep keyboard focus below the pill too (on the focusable
+   elements, not html scroll-padding, which would also move ServiceSection's sentinels) */
+html:not(:has([data-app-header])) :is(a[href], button, input, [tabindex]:not([tabindex="-1"])) {
+  scroll-margin-top: var(--clim-nav-offset);
+}
+
 .rise-word {
   display: inline-block;
   animation: clim-rise 0.9s cubic-bezier(0.19, 1, 0.22, 1) both;

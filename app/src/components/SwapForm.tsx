@@ -181,7 +181,8 @@ export function SwapForm() {
             </span>
           </DetailRow>
         </div>
-        <div className="mt-3 space-y-3 px-1">
+        {/* flex gap, not space-y: TxSteps' always-mounted status line (absolute, sr-only) adds no gap before the first swap */}
+        <div className="mt-3 flex flex-col gap-3 px-1">
           <ActionButton mode={mode} block disabled={!plan || flow.running || estimate === undefined} onClick={submit}>
             {flow.running ? "Swapping…" : `Swap on pool ${pool}`}
           </ActionButton>

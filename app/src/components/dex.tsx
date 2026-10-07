@@ -35,6 +35,8 @@ export function AmountBox({ id, label, value, onChange, symbol, hint, error }: {
   hint?: ReactNode;
   error?: string | null;
 }) {
+  // the hint or error line describes the field; only the error is an alert (the hint changes on every keystroke)
+  const msgId = `${id}-msg`;
   return (
     <div className="rounded-lg bg-surface-2 p-4 transition-shadow focus-within:shadow-[0_0_0_1px_var(--clim-signal)]">
       <label htmlFor={id} className="text-sm text-fg-subtle">
@@ -48,12 +50,16 @@ export function AmountBox({ id, label, value, onChange, symbol, hint, error }: {
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           inputMode="decimal"
           autoComplete="off"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={msgId}
           placeholder="0"
           className="min-w-0 flex-1 bg-transparent font-display text-[34px] leading-tight tracking-[-0.02em] tabular-nums outline-none placeholder:text-fg-subtle read-only:text-fg-muted"
         />
         <TokenPill symbol={symbol} />
       </div>
-      <div className="mt-1 min-h-5 text-sm">{error ? <span className="text-danger">{error}</span> : <span className="text-fg-subtle">{hint}</span>}</div>
+      <div id={msgId} className="mt-1 min-h-5 text-sm">
+        {error ? <span role="alert" className="text-danger">{error}</span> : <span className="text-fg-subtle">{hint}</span>}
+      </div>
     </div>
   );
 }

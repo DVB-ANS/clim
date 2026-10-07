@@ -5,7 +5,7 @@ import { CartesianGrid, ComposedChart, Legend, Line, ReferenceArea, ReferenceLin
 import type { ClimData } from "@/hooks/useClimData";
 import { params } from "@/lib/config";
 import { blindEpisodes, downsample, extent, swapFeeDots, weatherSeries } from "@/lib/series";
-import { COLORS, utcTime } from "@/lib/theme";
+import { COLORS, LABEL_HALO, utcTime } from "@/lib/theme";
 import {
   type Bounds,
   clampRange,
@@ -211,7 +211,7 @@ export function WeatherChart({ data, initialWindow = "1 h" }: { data: ClimData; 
               {blind.map((e) => (
                 <ReferenceArea key={e.from} x1={Math.max(e.from, from)} x2={Math.min(e.to, to)} fill={COLORS.blind} fillOpacity={0.08} />
               ))}
-              <ReferenceLine y={staticFeeBp} stroke={COLORS.S} strokeWidth={2} strokeDasharray="6 3" label={{ value: "S static", position: "insideTopRight", fontSize: 12 }} />
+              <ReferenceLine y={staticFeeBp} stroke={COLORS.S} strokeWidth={2} strokeDasharray="6 3" label={{ value: "S static", position: "insideTopRight", fontSize: 12, style: LABEL_HALO }} />
               <Line type="stepAfter" dataKey="feeVBp" name="V fee (hook)" stroke={COLORS.V} strokeWidth={2} dot={false} isAnimationActive={false} />
               <Scatter data={dots} dataKey="feeBp" name="V swaps (fee paid)" fill={COLORS.V} isAnimationActive={false} shape={(p: { cx?: number; cy?: number }) => <circle cx={p.cx} cy={p.cy} r={2} fill={COLORS.V} fillOpacity={0.6} />} />
             </ComposedChart>

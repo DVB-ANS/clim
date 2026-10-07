@@ -16,6 +16,9 @@ export const COLORS = {
   surface: "var(--clim-surface)", // ring around highlighted dots
 } as const;
 
+/** A chart label's ground: a surface-coloured stroke painted under the glyphs, so a series crossing the label does not cut its text. */
+export const LABEL_HALO = { paintOrder: "stroke", stroke: COLORS.surface, strokeWidth: 3, strokeLinejoin: "round" } as const;
+
 export const MODE_STYLE: Record<FeeMode, { label: string; icon: string; color: string }> = {
   [FeeMode.Normal]: { label: "Normal", icon: "●", color: "var(--clim-normal)" },
   [FeeMode.Degraded]: { label: "Degraded", icon: "▲", color: "var(--clim-degraded)" },
@@ -33,4 +36,9 @@ export const WALLET_THEME = {
   accentColorForeground: "var(--clim-accent-fg)",
   borderRadius: "large",
   fontStack: "system",
+} as const;
+
+/** Colours set on top of lightTheme's: its modalTextSecondary, rgba(60, 66, 66, 0.6), is 3.3:1 on the white modal; fg-subtle is 5.2:1. */
+export const WALLET_COLORS = {
+  modalTextSecondary: "var(--clim-fg-subtle)",
 } as const;

@@ -6,10 +6,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { WagmiProvider } from "wagmi";
 import { sepolia } from "wagmi/chains";
-import { WALLET_THEME } from "@/lib/theme";
+import { WALLET_COLORS, WALLET_THEME } from "@/lib/theme";
 import { makeWagmiConfig } from "@/lib/wallet";
 
 const config = makeWagmiConfig();
+const base = lightTheme(WALLET_THEME);
+const walletTheme = { ...base, colors: { ...base.colors, ...WALLET_COLORS } };
 
 /** wagmi, TanStack Query and RainbowKit for every page (the connect button lives in the app). */
 export function WalletProviders({ children }: { children: ReactNode }) {
@@ -17,7 +19,7 @@ export function WalletProviders({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider initialChain={sepolia} theme={lightTheme(WALLET_THEME)} appInfo={{ appName: "clim" }}>
+        <RainbowKitProvider initialChain={sepolia} theme={walletTheme} appInfo={{ appName: "clim" }}>
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>

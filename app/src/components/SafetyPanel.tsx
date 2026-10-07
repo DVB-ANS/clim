@@ -8,6 +8,10 @@ import { utcTime } from "@/lib/theme";
 import { formatAge, pipsToBp } from "@/lib/units";
 import { Panel, TxLink } from "./ui";
 
+// each list shows its latest rows; the count above it stays the total, so it says when the list is cut
+const LISTED = 5;
+const cut = (n: number) => (n > LISTED ? ` (latest ${LISTED} listed)` : "");
+
 export function SafetyPanel({ data }: { data: ClimData }) {
   const live = data.source === "sepolia";
   const episodes = useMemo(() => blindEpisodes(data.reports, params.tauKillSec, data.nowSec), [data.reports, data.nowSec]);
@@ -18,18 +22,18 @@ export function SafetyPanel({ data }: { data: ClimData }) {
     <Panel title="Safety evidence" subtitle="Everything below is read from logs: forwarder deliveries, desk silences, pool state.">
       <ul className="space-y-3 text-sm">
         <li>
-          <span className="font-medium">Forged or invalid reports rejected: {rejected.length}</span>
+          <span className="font-medium">Forged or invalid reports rejected: {rejected.length}{cut(rejected.length)}</span>
           <span className="text-fg-subtle"> (accepted deliveries: {accepted}). A rejected report emits ReportProcessed(…, false) and no RiskReported.</span>
           <ul className="mt-1 space-y-0.5">
-            {rejected.slice(-5).map((d) => (
+            {rejected.slice(-LISTED).map((d) => (
               <li key={`${d.txHash}:${d.logIndex}`} className="text-xs">{utcTime(d.blockTimestamp)} UTC <TxLink hash={d.txHash} live={live} /></li>
             ))}
           </ul>
         </li>
         <li>
-          <span className="font-medium">Blind episodes (desk silent over {params.tauKillSec} s, fee at least {pipsToBp(params.feeSafePips)} bp): {episodes.length}</span>
+          <span className="font-medium">Blind episodes (desk silent over {params.tauKillSec} s, fee at least {pipsToBp(params.feeSafePips)} bp): {episodes.length}{cut(episodes.length)}</span>
           <ul className="mt-1 space-y-0.5">
-            {episodes.slice(-5).map((e) => (
+            {episodes.slice(-LISTED).map((e) => (
               <li key={e.from} className="text-xs">
                 {utcTime(e.from)} to {e.ongoing ? "now" : `${utcTime(e.to)} UTC`} ({formatAge(e.to - e.from)}): last report <TxLink hash={e.lastTx} live={live} />
                 {e.resumeTx ? <> , resumed <TxLink hash={e.resumeTx} live={live} /></> : null}

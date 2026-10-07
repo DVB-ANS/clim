@@ -12,25 +12,35 @@ const TEXT: Record<StepStatus, string> = {
   failed: "failed",
 };
 
-/** The steps of a transaction flow, each with its status and hash (Etherscan link when live). */
+/**
+ * The steps of a transaction flow, each with its status and hash (Etherscan link when live). A status line,
+ * mounted before the first step so screen readers announce its changes, says the latest step's state.
+ */
 export function TxSteps({ steps, live }: { steps: StepState[]; live: boolean }) {
-  if (steps.length === 0) return null;
+  const say = (s: StepState) =>
+    s.note ?? (!live && s.status === "signing" ? "simulated signature" : !live && s.status === "pending" ? "simulated block" : TEXT[s.status]);
+  const now = [...steps].reverse().find((s) => s.status !== "waiting");
   return (
-    <ol className="mt-3 space-y-1 text-sm">
-      {steps.map((s, i) => (
-        <li key={`${s.label}-${i}`} className="flex flex-wrap items-center gap-2">
-          {/* Decorative: the status text beside it already says it, so the mark's own role="img" label stays hidden. */}
-          <span aria-hidden className="flex shrink-0">
-            <StatusMark status={MARK[s.status]} />
-          </span>
-          <span className="font-medium">{s.label}</span>
-          <span className="text-xs text-fg-subtle">
-            {s.note ?? (!live && s.status === "signing" ? "simulated signature" : !live && s.status === "pending" ? "simulated block" : TEXT[s.status])}
-          </span>
-          {s.hash ? <TxLink hash={s.hash} live={live} /> : null}
-          {s.error ? <span className="text-xs text-danger">{s.error}</span> : null}
-        </li>
-      ))}
-    </ol>
+    <>
+      <p role="status" className="sr-only">
+        {now ? `${now.label}: ${say(now)}${now.error ? `. ${now.error}` : ""}` : ""}
+      </p>
+      {steps.length === 0 ? null : (
+        <ol className="space-y-1 text-sm">
+          {steps.map((s, i) => (
+            <li key={`${s.label}-${i}`} className="flex flex-wrap items-center gap-2">
+              {/* Decorative: the status text beside it already says it, so the mark's own role="img" label stays hidden. */}
+              <span aria-hidden className="flex shrink-0">
+                <StatusMark status={MARK[s.status]} />
+              </span>
+              <span className="font-medium">{s.label}</span>
+              <span className="text-xs text-fg-subtle">{say(s)}</span>
+              {s.hash ? <TxLink hash={s.hash} live={live} /> : null}
+              {s.error ? <span className="text-xs text-danger">{s.error}</span> : null}
+            </li>
+          ))}
+        </ol>
+      )}
+    </>
   );
 }

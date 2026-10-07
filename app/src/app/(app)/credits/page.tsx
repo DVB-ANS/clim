@@ -14,7 +14,15 @@ export default function CreditsPage() {
   return (
     <div className="space-y-4">
       <h1 className="font-display text-[40px] font-normal leading-[1.1] tracking-[-0.02em]">Credits and licenses</h1>
-      <Panel title="Third-party notices" subtitle="The components and data clim's front adapts, and the npm packages whose licenses ask for a notice, with their sources and licenses.">
+      <Panel
+        title="Third-party notices"
+        subtitle={
+          <>
+            The components and data clim&apos;s front adapts, and the npm packages with non-permissive terms. Every npm package&apos;s license
+            text: <a className="text-link underline" href="/third-party-licenses.txt">/third-party-licenses.txt</a>.
+          </>
+        }
+      >
         <div className="text-sm wrap-anywhere [&_a]:underline [&_code]:text-xs [&_code]:wrap-anywhere [&_h1]:hidden [&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-xl [&_h3]:mt-5 [&_h3]:font-medium [&_li]:ml-5 [&_li]:list-disc [&_p]:mt-2 [&_pre]:mt-3 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-surface-2 [&_pre]:p-4 [&_pre]:text-xs [&_pre]:whitespace-pre-wrap">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{NOTICES}</ReactMarkdown>
         </div>

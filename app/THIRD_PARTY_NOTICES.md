@@ -4,6 +4,11 @@ clim's front uses or adapts the third-party code below. Every adapted file start
 its source. The components are used inside this application only: they are not sold, sublicensed or
 redistributed as a component library, a kit or a template.
 
+The license text of every npm package in the site's dependencies, permissive ones included, is in
+`public/third-party-licenses.txt` (served at [/third-party-licenses.txt](https://clim-zeta.vercel.app/third-party-licenses.txt);
+`npm run licenses` regenerates it). The sections below cover the components, data and fonts clim adapts,
+and the npm packages with non-permissive terms.
+
 ## motion
 
 - Package: [`motion`](https://www.npmjs.com/package/motion) (motion/react), an npm dependency: the one animation library of the ported components.

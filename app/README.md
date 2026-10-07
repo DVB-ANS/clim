@@ -8,6 +8,8 @@ This is the `app/` folder of the clim monorepo ([DVB-ANS/clim](https://github.co
 
 The look follows refero's Ventriloc style (layout and type) in pink, blue and white: Chainlink Blue for actions and pool V, Uniswap's pink for σ and the storm. Every color, radius and font is a token in `src/app/globals.css` and `src/lib/theme.ts`.
 
+RainbowKit's wallet dialog takes the same tokens (its secondary text is `fg-subtle`, 5.2:1 on white). It draws the wallet icons and, on wide screens, its two "What is a Wallet?" illustrations as unnamed `role=img` elements (axe `role-img-alt`): this is upstream, RainbowKit passes them no name, and the text next to each (the wallet's name, the illustration's heading) says what it shows.
+
 ## Data sources
 
 Everything shown comes from Ethereum Sepolia and from files synced from the rest of the repo:
@@ -46,6 +48,7 @@ npm run build
 - `npm run snapshot -- live` (or `replay`) freezes a pair's logs into `public/data/chain/<pair>.json`.
 - `npm run e2e:onchain -- <env file>` runs `/swap` and `/lp` end to end on Sepolia with the app's own call builders: faucet, a 0.5 tETH swap on V and on S (each `Swap.fee` checked against `ClimHook.quoteFee()` and S's fixed fee), then a 1 tETH full-range add and remove on both pools. The env file holds `TEST_PRIVATE_KEY` for a testnet key, which is never printed; `--out <file>` writes a summary.
 - `npm run fixtures` rewrites the synthetic lab fixtures (`src/fixtures/lab/`, labeled "fixture"); `npm run dither` regenerates the dithered storm texture; `npm run logos` and `npm run world-dots` regenerate `src/components/site/logos.ts` and `src/lib/worldDots.ts` from the dev dependencies `@web3icons/core` and `dotted-map`.
+- `npm run licenses` regenerates `public/third-party-licenses.txt`, the license text of every npm package in the site's dependencies (`generate-license-file`). Run it by hand before a deploy that changes dependencies; the build does not.
 
 ## Environment
 
@@ -69,4 +72,4 @@ Decisions and deviations from plan 05 are logged in the repo's `docs/sessions/20
 
 ## Credits
 
-Components adapted from [React Bits](https://reactbits.dev), [Rare UI](https://rareui.com) and [ObsidianUI](https://www.obsidianui.dev); patterns after [Aceternity UI](https://ui.aceternity.com); ordered dithering after [Dither it!](https://ditheritv3.netlify.app). Sources, commits and licenses, and the npm packages with notice requirements: `THIRD_PARTY_NOTICES.md` (also served at `/credits`).
+Components adapted from [React Bits](https://reactbits.dev), [Rare UI](https://rareui.com) and [ObsidianUI](https://www.obsidianui.dev); patterns after [Aceternity UI](https://ui.aceternity.com); ordered dithering after [Dither it!](https://ditheritv3.netlify.app). Sources, commits and licenses, and the non-permissive npm packages: `THIRD_PARTY_NOTICES.md` (also served at `/credits`); every npm package's license text is in `public/third-party-licenses.txt` (served at `/third-party-licenses.txt`).

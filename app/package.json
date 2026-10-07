@@ -16,7 +16,8 @@
     "e2e:onchain": "tsx scripts/e2e-onchain.ts",
     "dither": "node scripts/make-dither.mjs",
     "logos": "node scripts/make-logos.mjs",
-    "world-dots": "node scripts/make-world-dots.mjs"
+    "world-dots": "node scripts/make-world-dots.mjs",
+    "licenses": "npx -y generate-license-file --input package.json --output public/third-party-licenses.txt --overwrite"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.11",
