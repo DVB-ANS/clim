@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Wordmark } from "../Wordmark";
+import { LaunchLink } from "./LaunchLink";
 
 const FOOT = [
   { title: "app", links: [{ href: "/app", label: "Dashboard" }, { href: "/swap", label: "Swap" }, { href: "/lp", label: "Liquidity" }] },
@@ -22,11 +23,14 @@ const ADAPTED = [
 
 const credit = "underline decoration-line underline-offset-2 hover:text-fg";
 
+/** External links open a new tab; the way into the app opens it from the link, like "Launch app". */
 function FootLink({ href, children, className = "" }: { href: string; children: string; className?: string }) {
   return href.startsWith("http") ? (
     <a href={href} target="_blank" rel="noreferrer" className={className}>
       {children}
     </a>
+  ) : href === "/app" ? (
+    <LaunchLink className={className}>{children}</LaunchLink>
   ) : (
     <Link href={href} className={className}>
       {children}

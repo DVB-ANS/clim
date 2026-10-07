@@ -5,29 +5,22 @@ import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * A real link to /app tagged with the "launch" transition type: the button blooms into the app
- * (globals.css, "Launch transition"). On click it hands its box and its rounding to that CSS, and the
- * pink wave's origin: its [data-launch-dot] element when it has one (LaunchButton's pink disc), else a
- * point at its centre. A modified click opens a new tab as usual, and browsers without view
- * transitions simply navigate.
+ * A real link to /app tagged with the "launch" transition type: the app opens from the disc, a circle
+ * growing over the held landing (globals.css, "Launch transition"). On click it hands that CSS the
+ * circle's centre, its [data-launch-dot] element's when it has one (LaunchButton's pink disc), else
+ * its own centre, and the reach that covers the window's farthest corner from there. A modified click
+ * opens a new tab as usual, and browsers without view transitions simply navigate.
  */
 export function LaunchLink({ className, style, children, ...rest }: { className: string; style?: CSSProperties; children: ReactNode; "aria-label"?: string }) {
   const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    const dot = e.currentTarget.querySelector("[data-launch-dot]")?.getBoundingClientRect() ?? r;
-    const radius = parseFloat(getComputedStyle(e.currentTarget).borderTopLeftRadius) || 0;
+    const r = (e.currentTarget.querySelector("[data-launch-dot]") ?? e.currentTarget).getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    const reach = Math.ceil(Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))) + 4;
     const s = document.documentElement.style;
-    s.setProperty("--launch-t", `${r.top}px`);
-    s.setProperty("--launch-l", `${r.left}px`);
-    s.setProperty("--launch-r", `${r.right}px`);
-    s.setProperty("--launch-b", `${r.bottom}px`);
-    s.setProperty("--launch-rad", `${Math.min(radius, r.height / 2)}px`);
-    // the disc's own box (a point at the centre for a link without one): the pink starts as the disc
-    const disc = dot === r ? { top: r.top + r.height / 2, left: r.left + r.width / 2, right: r.left + r.width / 2, bottom: r.top + r.height / 2 } : dot;
-    s.setProperty("--launch-dot-t", `${disc.top}px`);
-    s.setProperty("--launch-dot-l", `${disc.left}px`);
-    s.setProperty("--launch-dot-r", `${disc.right}px`);
-    s.setProperty("--launch-dot-b", `${disc.bottom}px`);
+    s.setProperty("--launch-x", `${x}px`);
+    s.setProperty("--launch-y", `${y}px`);
+    s.setProperty("--launch-reach", `${reach}px`);
   };
   return (
     <Link href="/app" transitionTypes={["launch"]} onClick={onClick} className={className} style={style} {...rest}>

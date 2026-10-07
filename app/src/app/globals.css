@@ -9,10 +9,10 @@
  * Layout and type after refero's Ventriloc style. Colours: pink, blue and white. Chainlink's design
  * system gives the blue and the grays (chain.link: Chainlink Blue #0847f7, the blue ramp, cool grays,
  * navy #1a2b6b); Uniswap's gives the pinks (its interface's colors.ts: pinkVibrant #f50db4,
- * accent1 #ff37c7, pinkBase #fc74fe, pinkLight #fef4ff). Blue is every action, pool V and the
- * launch's first wave; pink is σ, the storm, the launch's second wave and a few brand marks (the
- * nav's marker, live dots); white is the ground. Pink and blue are always flat fills, never blended
- * (a blend reads purple). Pink as text only from 24 px (3.75:1), else sigma-ink; never white on pink.
+ * accent1 #ff37c7, pinkBase #fc74fe, pinkLight #fef4ff). Blue is every action and pool V; pink is
+ * σ, the storm, the launch's iris rim and a few brand marks (the "Launch app" disc, the nav's marker,
+ * live dots); white is the ground. Pink and blue are always flat fills, never blended (a blend reads
+ * purple). Pink as text only from 24 px (3.75:1), else sigma-ink; never white on pink.
  * One light theme for the landing and the app.
  * ============================================================================================= */
 
@@ -46,7 +46,7 @@
   --clim-pink-600: #ca108e;
   --clim-pink-700: #a21572;
   --clim-pink-900: #361a37;
-  --clim-pink: var(--clim-pink-500); /* brand pink for marks: the launch's 2nd wave, the nav marker, live dots */
+  --clim-pink: var(--clim-pink-500); /* brand pink for marks: the launch's disc and iris rim, the nav marker, live dots */
   --clim-pink-soft: var(--clim-pink-300); /* decorative only (the footer's giant degree sign), 2.3:1 */
   --clim-pink-wash: var(--clim-pink-50); /* eyebrow pills */
 
@@ -418,68 +418,57 @@ html:has([data-app-header]) {
   }
 }
 
-/* Launch transition: "Launch app" blooms into the app. The button's blue grows from its own box to
-   the whole window, Uniswap's pink follows from the same box, then the white app rises over them
-   (two flat waves rather than a blended gradient, which would muddy into purple). React's
-   <ViewTransition> boundaries on the landing (exit) and the app layout (enter) carry the "launch"
-   type; LaunchLink writes the button's box into --launch-*. Browsers without view transitions just
-   navigate. */
+/* Launch transition: the app opens from "Launch app"'s pink disc. One circle grows from the disc's
+   centre (a plain link's centre for the other ways in) to the window's farthest corner: inside it is
+   the app, its edge a 2 px Uniswap-pink rim, and the landing holds still until the circle has covered
+   it, so no frame is a flat screen of colour. React's <ViewTransition> boundaries on the landing (exit)
+   and the app layout (enter) carry the "launch" type; LaunchLink writes the centre and the reach into
+   --launch-x, --launch-y and --launch-reach. The circles are clip-path keyframes, which Chrome runs
+   on the compositor: the iris keeps opening while the app's first render busies the main thread (a
+   radius held in a registered custom property froze there, then jumped). The rim stays 2 px all the
+   way: the pink group's circle starts 2 px wide and ends at the reach, the app's starts at 0 and ends
+   2 px short, so the two radii always differ by exactly the rim. The wordmark back to the landing
+   carries the "home" type: the app fades out and the landing rises in. Browsers without view
+   transitions just navigate. */
 :root {
-  --launch-t: 45vh;
-  --launch-l: 45vw;
-  --launch-r: 55vw;
-  --launch-b: 55vh;
-  --launch-rad: 999px;
-  --launch-dot-t: 50vh;
-  --launch-dot-l: 50vw;
-  --launch-dot-r: 50vw;
-  --launch-dot-b: 50vh;
+  --launch-x: 50vw;
+  --launch-y: 50vh;
+  --launch-reach: 150vmax;
+  --launch-dur: 560ms;
+  --launch-ease: cubic-bezier(0.2, 0, 0, 1); /* fast start, so the click answers at once, then a gentle settle */
+  --launch-rim: 2px;
 }
 
 ::view-transition {
   pointer-events: none;
 }
+/* the landing is held, not faded, until the circle covers it */
 ::view-transition-old(.launch-out) {
-  animation: 900ms linear both launch-hold;
+  animation: var(--launch-dur) linear both launch-hold;
 }
+/* the group's pink shows only as the rim: the app inside is clipped 2 px tighter */
 ::view-transition-group(.launch-in) {
-  background: var(--clim-accent);
-  animation: 480ms cubic-bezier(0.7, 0, 0.25, 1) both launch-bloom;
-}
-::view-transition-image-pair(.launch-in) {
   background: var(--clim-pink);
-  animation: 610ms cubic-bezier(0.7, 0, 0.25, 1) both launch-follow;
+  animation: var(--launch-dur) var(--launch-ease) both launch-iris-rim;
 }
 ::view-transition-new(.launch-in) {
-  animation: 320ms cubic-bezier(0.7, 0, 0.25, 1) 560ms both launch-curtain;
+  animation: var(--launch-dur) var(--launch-ease) both launch-iris;
 }
 
-@keyframes launch-bloom {
+@keyframes launch-iris-rim {
   from {
-    clip-path: inset(var(--launch-t) calc(100% - var(--launch-r)) calc(100% - var(--launch-b)) var(--launch-l) round var(--launch-rad));
+    clip-path: circle(var(--launch-rim) at var(--launch-x) var(--launch-y));
   }
-  /* to the window's edges, not the app's full height, so the shape grows evenly in both directions */
   to {
-    clip-path: inset(0 0 calc(100% - 100vh) 0 round 0);
+    clip-path: circle(var(--launch-reach) at var(--launch-x) var(--launch-y));
   }
 }
-/* the pink follows from the button's disc, inside the blue */
-@keyframes launch-follow {
-  /* held on the pill's pink disc while the blue covers the pill, so the pink never blinks out */
-  0%,
-  25% {
-    clip-path: inset(var(--launch-dot-t) calc(100% - var(--launch-dot-r)) calc(100% - var(--launch-dot-b)) var(--launch-dot-l) round 999px);
-  }
-  to {
-    clip-path: inset(0 0 calc(100% - 100vh) 0 round 0);
-  }
-}
-@keyframes launch-curtain {
+@keyframes launch-iris {
   from {
-    clip-path: inset(100vh 0 0 0);
+    clip-path: circle(0px at var(--launch-x) var(--launch-y));
   }
   to {
-    clip-path: inset(0);
+    clip-path: circle(calc(var(--launch-reach) - var(--launch-rim)) at var(--launch-x) var(--launch-y));
   }
 }
 @keyframes launch-hold {
@@ -498,18 +487,38 @@ html:has([data-app-header]) {
     opacity: 0;
   }
 }
+@keyframes home-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+::view-transition-old(.home-out) {
+  animation: 150ms cubic-bezier(0.4, 0, 1, 1) both launch-fade-out;
+}
+::view-transition-new(.home-in) {
+  animation: 240ms cubic-bezier(0, 0, 0.2, 1) 60ms both home-rise;
+}
 
-/* The global reduced-motion rule does not reach these pseudo-elements: a short crossfade instead */
+/* The global reduced-motion rule does not reach these pseudo-elements: a short crossfade, no circle */
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(.launch-in),
-  ::view-transition-image-pair(.launch-in) {
+  ::view-transition-group(.launch-in) {
     animation: none;
     background: none;
   }
-  ::view-transition-old(.launch-out) {
-    animation: 150ms ease both launch-fade-out;
-  }
   ::view-transition-new(.launch-in) {
     animation: 150ms ease both launch-fade-in;
+  }
+  ::view-transition-old(.launch-out),
+  ::view-transition-old(.home-out) {
+    animation: 150ms ease both launch-fade-out;
+  }
+  ::view-transition-new(.home-in) {
+    animation: 150ms ease both launch-fade-in;
+  }
+  /* the page ground behind them crossfades in the same 150 ms, not the browser's 250 */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 150ms;
   }
 }

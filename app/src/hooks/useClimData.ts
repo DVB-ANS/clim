@@ -32,8 +32,8 @@ const EMPTY = { reports: [], swaps: [], deliveries: [], nowSec: 0, usedSnapshot:
 
 // Mock mode: one simulated world per page load, generated 30 min ahead (so its storm, degraded
 // window, forged report and blind gap are already in the past) and revealed as time passes: a new
-// report every 30 s, as on Sepolia, without regenerating or re-decoding anything. The cache is shared
-// by every page of the visit, so /app opens with its data while the launch transition plays.
+// report every 30 s, as on Sepolia, without regenerating or re-decoding anything. Like the Sepolia
+// cache below, it is shared by every page of the visit.
 const MOCK_LOOKAHEAD_SEC = 1_800;
 const MOCK_HOURS = 6.5;
 type MockCache = { endSec: number; t0: number; pair: PairDeployment; arbRouter: Address; reports: DeskReport[]; swaps: SwapRow[]; deliveries: Delivery[] };
@@ -65,14 +65,30 @@ function mockAt(now: number): ClimData {
   };
 }
 
+// Sepolia: the logs read so far for each pair, where the next read starts, and the last data shown.
+// Shared by every page of the visit, so a page opened later (the landing's "Launch app" into /app)
+// starts from the data the previous page already read, while the launch transition plays, and only
+// reads the blocks since: the 2 MB snapshot is downloaded once per visit. Filled only in effects, so
+// the server render and a hard reload both start at "loading" and hydrate without a mismatch.
+type ChainLogs = Record<"deskLogs" | "swapLogs" | "forwarderLogs", RawLog[]>;
+type ChainCache = { logs: ChainLogs; next: number; usedSnapshot: boolean; data: ClimData };
+const chainCache: Partial<Record<Pair, ChainCache>> = {};
+
 export function useClimData(pairName: Pair): ClimData {
   const source = dataSource(pairName);
-  // a page opened later in the visit starts from the mock world the first one built (never on the
-  // server, where the cache stays empty, so hydration always starts from "loading")
-  const [data, setData] = useState<ClimData>(() =>
-    source === "mock" && mockCache ? mockAt(Math.floor(Date.now() / 1000)) : { source, status: "loading", ...EMPTY },
+  // a page opened later in the visit starts from what the first one read: the mock world it built,
+  // or the Sepolia logs it fetched (never on the server, where both caches stay empty, so hydration
+  // always starts from "loading")
+  const [data, setData] = useState<ClimData>(() => {
+    if (source === "mock" && mockCache) return mockAt(Math.floor(Date.now() / 1000));
+    const cached = source === "sepolia" ? chainCache[pairName] : undefined;
+    return cached ? cached.data : { source, status: "loading", ...EMPTY };
+  });
+  // the clock starts at "now" too when the data came from a cache, so the first tick below changes
+  // nothing and the page is not rendered a second time while the launch transition opens it
+  const [nowSec, setNowSec] = useState(() =>
+    (source === "mock" ? mockCache : source === "sepolia" ? chainCache[pairName] : undefined) ? Math.floor(Date.now() / 1000) : 0,
   );
-  const [nowSec, setNowSec] = useState(0);
 
   useEffect(() => {
     const tick = () => setNowSec(Math.floor(Date.now() / 1000));
@@ -94,10 +110,12 @@ export function useClimData(pairName: Pair): ClimData {
     const pair = deployments.pairs[pairName];
     if (!pair) return;
     const client = makeClient();
-    const logs: Record<"deskLogs" | "swapLogs" | "forwarderLogs", RawLog[]> = { deskLogs: [], swapLogs: [], forwarderLogs: [] };
-    let next = pair.startBlock;
-    let usedSnapshot = false;
-    let first = true;
+    // resume from the visit's cache when a previous page already read this pair: no snapshot again
+    const cached = chainCache[pairName];
+    const logs: ChainLogs = cached ? { ...cached.logs } : { deskLogs: [], swapLogs: [], forwarderLogs: [] };
+    let next = cached?.next ?? pair.startBlock;
+    let usedSnapshot = cached?.usedSnapshot ?? false;
+    let first = !cached;
     let busy = false;
 
     async function load() {
@@ -125,11 +143,13 @@ export function useClimData(pairName: Pair): ClimData {
           next = to + 1;
         }
         if (!cancelled) {
-          setData({
+          const ready: ClimData = {
             source, status: "ready", pair, arbRouter: deployments.routers.arb,
             reports: decodeReports(logs.deskLogs), swaps: decodeSwaps(logs.swapLogs), deliveries: decodeDeliveries(logs.forwarderLogs),
             state, nowSec: state.latestBlock.timestamp, usedSnapshot,
-          });
+          };
+          setData(ready);
+          chainCache[pairName] = { logs: { ...logs }, next, usedSnapshot, data: ready };
         }
       } catch (e) {
         const error = e instanceof Error ? e.message.split("\n")[0] : String(e);

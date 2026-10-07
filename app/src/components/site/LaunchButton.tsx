@@ -21,7 +21,7 @@ const SIZE = {
   },
 } as const;
 
-/* Blue first, never a pink hover: the pill is still blue when it blooms into the app (globals.css,
+/* Blue first, never a pink hover: the pink stays the disc's, where the app opens from (globals.css,
    "Launch transition"). The outline contrasts with the ground the tone is made for. */
 const TONE = {
   onWhite: {
@@ -40,8 +40,8 @@ const SWEEP = "duration-480 ease-[cubic-bezier(0.65,0,0.076,1)] motion-reduce:tr
 
 /**
  * "Launch app": a pill with Uniswap's pink disc and a white arrow; on hover or keyboard focus a darker
- * blue sweeps across it from the disc. It is a LaunchLink, so the click blooms into /app, the pink wave
- * starting from the disc ([data-launch-dot]), and the arrow turns into a spinner while /app loads.
+ * blue sweeps across it from the disc. It is a LaunchLink, so the click opens /app from the disc
+ * ([data-launch-dot]), and the arrow turns into a spinner while /app loads.
  * `tone="onBlue"` is the white pill for blue grounds (the closing band).
  */
 export function LaunchButton({

@@ -6,6 +6,7 @@ import { windowLabel } from "@/lib/story";
 import { params } from "@/lib/config";
 import { formatTusd, pipsToBp } from "@/lib/units";
 import { AnimatedCounter } from "../AnimatedCounter";
+import { LaunchLink } from "./LaunchLink";
 import { PoolsVersus } from "./PoolsVersus";
 import type { LandingData } from "./useLandingData";
 import { WeatherMini } from "./WeatherMini";
@@ -17,7 +18,7 @@ const pill = "inline-flex min-h-10 items-center rounded-full px-4 text-[14px] fo
 
 /**
  * "Two pools, one market": the window's weather (σ's peak ringed in pink, what each pool charged then),
- * then pool V against its static twin S on the app's own P&L maths. The verdict only says "same
+ * then pool V against pool S, its static twin, on the app's own P&L maths. The verdict only says "same
  * average fee" when PnlPanel's 10 % rule holds, and only credits a storm when σ took V's fee off its
  * floor; otherwise it says V charged more only in its safe modes. Amounts are in tUSD (test tokens);
  * every figure is labelled simulated in mock mode.
@@ -121,9 +122,7 @@ export function PoolsSection({ d }: { d: LandingData }) {
                   { label: "Hedged LP P&L", value: formatTusd(v.S.netUsd) },
                 ],
                 actions: (
-                  <Link href="/app" className={`${pill} border border-line text-fg hover:border-fg-subtle`}>
-                    Compare in the dashboard
-                  </Link>
+                  <LaunchLink className={`${pill} border border-line text-fg hover:border-fg-subtle`}>Compare in the dashboard</LaunchLink>
                 ),
               }}
             />
