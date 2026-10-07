@@ -1,6 +1,6 @@
 # CRE loop evidence, 2026-10-06
 
-Excerpts behind the counts in the [DevEx report](cre-devex-report.md). They come from two local files that are not in the repository: our run recorder's log (`bots/out/cre-runs.jsonl`) and the CLI transcripts of `cre/scripts/sim-loop.sh` (`cre/logs/`). Every transaction below is on Ethereum Sepolia; anyone can re-read its receipt. All of it is simulation: `cre workflow simulate --broadcast` through `MockKeystoneForwarder` `0x15fC6ae953E024d975e77382eEeC56A9101f9F88`.
+Excerpts behind the counts in the [DevEx report](cre-devex-report.md). They come from our run recorder's log, [`bots/out/cre-runs.jsonl`](../../bots/out/cre-runs.jsonl), committed with the evidence (plan 06 Task 13), and from the CLI transcripts of `cre/scripts/sim-loop.sh` (`cre/logs/`), which stay local (a few curated `simulate` transcripts are in [`docs/evidence/`](../evidence/)). Every transaction below is on Ethereum Sepolia; anyone can re-read its receipt. All of it is simulation: `cre workflow simulate --broadcast` through `MockKeystoneForwarder` `0x15fC6ae953E024d975e77382eEeC56A9101f9F88`.
 
 Desks: live `RiskDesk` `0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F`, replay `RiskDesk` `0x4b843dc3A7ec6202d2337cdeF8C67a0F10f24746`.
 

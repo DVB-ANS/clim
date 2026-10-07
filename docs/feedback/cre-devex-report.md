@@ -8,7 +8,7 @@ From Sofiane Ben Taleb ([@gamween](https://github.com/gamween), DeVinci Blockcha
 | TypeScript SDK | `@chainlink/cre-sdk` 1.23.0, Bun 1.3.9 |
 | Host | macOS |
 | Chain | Ethereum Sepolia, through `MockKeystoneForwarder` `0x15fC6ae953E024d975e77382eEeC56A9101f9F88` |
-| Mode | Simulation only: `cre workflow simulate --broadcast` (single node, mock forwarder). DON deploy access was requested on 2026-10-06 at 22:56 SGT with `cre account access` and is still pending. |
+| Mode | Simulation only: `cre workflow simulate --broadcast` (single node, mock forwarder). DON deploy access was requested on 2026-10-06 at 22:56 SGT with `cre account access` and not granted during the hackathon (`cre whoami` still printed `Deploy Access: Not enabled` on 2026-10-07), so the DON deployment was cut (row 6). |
 | AI tooling | We did not use the `cre-skills` skill, so this report has no feedback on it. |
 
 **Context.** clim's risk desk is one CRE workflow (cron every 30 s, six HTTP sources per node, a quorum of 3 venues out of 4, median consensus on each field, a signed report, `EVMClient.writeReport`) that feeds a Uniswap v4 hook on Sepolia. In simulation, the operator key submits each report through `MockKeystoneForwarder`; on a DON, reports would come through `KeystoneForwarder` with no keeper key.
@@ -17,7 +17,7 @@ From Sofiane Ben Taleb ([@gamween](https://github.com/gamween), DeVinci Blockcha
 - 630 runs landed: the forwarder's `ReportProcessed` was true and the desk's `RiskReported` was in the same receipt. That is 621 runs recorded with their receipt, plus 9 runs recorded without a receipt, whose receipts we re-read (they lost their last log line, row 22).
 - The other 7: 5 credential failures (row 24), 1 run with a quorum of 2 venues out of 4 and no report, and 1 run lost to our own network.
 - At 20:32 UTC on 2026-10-06, the live desk had 451 reports (`RiskDesk.state().seq` on `0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F`, read with `cast`).
-- Transaction lists and CLI excerpts: [cre-loop-evidence.md](cre-loop-evidence.md). The full run log and CLI transcripts are local files, not in the repository.
+- Transaction lists and CLI excerpts: [cre-loop-evidence.md](cre-loop-evidence.md). The run log, [`bots/out/cre-runs.jsonl`](../../bots/out/cre-runs.jsonl), is committed with the evidence (plan 06 Task 13), with a few curated `simulate` transcripts in [`docs/evidence/`](../evidence/); the full CLI transcripts stay local.
 
 ## What worked well
 
@@ -35,7 +35,7 @@ From Sofiane Ben Taleb ([@gamween](https://github.com/gamween), DeVinci Blockcha
 - **Problem.** With `--broadcast`, `WriteReportReply.receiverContractExecutionStatus` is SUCCESS whenever the forwarder transaction is mined, so the workflow cannot tell an accepted report from a rejected one. The docs already say the status is always SUCCESS in simulation, but the reason they give is not what happens.
   - The "Simulation vs production" note of the [Onchain Write overview](https://docs.chain.link/cre/guides/workflow/using-evm-client/onchain-write/overview-ts) (TypeScript and Go versions, last updated 2026-09-18) says: "`cre workflow simulate` uses a **MockForwarder** that records the report but does **not** call your consumer contract's `onReport()`. As a result, `receiverContractExecutionStatus` is always `SUCCESS` in simulation."
   - The mock does call `onReport` (chainlink-evm `contracts/cre/src/dev/MockKeystoneForwarder.sol`, `route`; our Sepolia fork test). When the consumer reverts, the mock does not revert: it emits `ReportProcessed(..., false)`. The outcome is in the receipt, so the simulator could return REVERTED at little cost.
-  - The note's advice is to deploy with `cre workflow deploy` to observe real reverts. That needs deploy access, which is still pending for us (row 6).
+  - The note's advice is to deploy with `cre workflow deploy` to observe real reverts. That needs deploy access, which was not granted to us during the hackathon (row 6).
   - The dry run has the same blind spot, and the note does not mention it: it `eth_call`s the mock forwarder, which swallows the consumer's revert.
   - cre-cli issue [#393](https://github.com/smartcontractkit/cre-cli/issues/393), "Auto-deploy MockKeystoneForwarder for experimental chains during simulation", hit the same blind spot from another side: a simulation that "appeared to succeed (returned a tx hash)" while delivery silently failed, found only by inspecting `ReportProcessed`.
 - **Repro (cre v1.37.0, Sepolia).**
@@ -88,7 +88,7 @@ From Sofiane Ben Taleb ([@gamween](https://github.com/gamween), DeVinci Blockcha
 
 ### 4. A long-running simulation as the demo backend (rows 3, 6, 22, 24, 25)
 
-- **Problem.** While deploy access is pending, a `simulate --broadcast` loop is the only way to run a live product on CRE. We ran two loops for hours, one per desk. The five issues in the table below made them fragile.
+- **Problem.** Without deploy access, a `simulate --broadcast` loop was the only way to run a live product on CRE. We ran two loops for hours, one per desk. The five issues in the table below made them fragile.
 - **Repro (cre v1.37.0).** From `cre/`, run `scripts/sim-loop.sh staging-settings --broadcast` and `ENV_FILE=.env.replay scripts/sim-loop.sh replay-settings --broadcast`. The script runs `cre workflow build` once, then `cre workflow simulate risk-desk --wasm <abs path> --non-interactive --trigger-index 0 --target <target> --broadcast` every 30 s.
 - **Evidence, ask and workaround, per row.** The first-413 counts cover the first 413 recorded runs on 2026-10-06. Excerpts for rows 22, 24 and 25 are in [cre-loop-evidence.md](cre-loop-evidence.md).
 
@@ -98,7 +98,7 @@ From Sofiane Ben Taleb ([@gamween](https://github.com/gamween), DeVinci Blockcha
 | 24 | `simulate` validates the CLI credentials against the CRE API on every run. | 5 of the first 413 runs stopped before simulating: `✗ Credential validation failed`, then `✗ authentication required: credential validation failed: authentication failed: unable to retrieve organization info. ...`. Three times with no network error; once followed by `Post "https://api.cre.chain.link/graphql": net/http: TLS handshake timeout`; once followed by `Post "https://api.cre.chain.link/graphql": dial tcp: lookup api.cre.chain.link: no such host`, while our own network was down. | Cache the validated credentials for local simulation, or let simulation run offline. | The recorder logs the run as `error` (`CRE CLI credential validation failed`); the next run comes 30 s later. |
 | 25 | `cre workflow build` always writes the same temporary file, `<workflow>/.cre_build_tmp.wasm`. | We restarted our live and replay loops (different targets) in the same second: `✗ failed to compile workflow: failed to compile workflow: open .../cre/risk-desk/.cre_build_tmp.wasm: no such file or directory`. | A unique temporary file per build, or a lock. | Start the loops a few seconds apart. |
 | 22 | The workflow's last `[USER LOG]` line can be lost at shutdown. | In 7 of the first 413 runs the result was `OK` but clim's `REPORT applied` line never printed, each time with `context canceled` at shutdown; one more `NOT_APPLIED` run lost its line too. All 11 such runs in the 637-run snapshot (9 `OK`, 2 `NOT_APPLIED`) landed on chain. In `--listen`, run 1's last line printed after run 2's banner. | Flush the workflow's logs before printing the result and the next banner. | The recorder keeps the hash from clim's earlier `Write report transaction succeeded: 0x...` line and checks the receipt. |
-| 6 | Deploying to a DON needs approval, with an unknown delay during a 36 h hackathon. | Requested on 2026-10-06 at 22:56 SGT: `Access request submitted successfully!`. `cre whoami` still says `Deploy Access: Not enabled`. | A hackathon fast track. | Simulation plus the `tx.origin` guard (ask 3). |
+| 6 | Deploying to a DON needs approval, with an unknown delay during a 36 h hackathon. | Requested on 2026-10-06 at 22:56 SGT: `Access request submitted successfully!`. `cre whoami` still said `Deploy Access: Not enabled` on 2026-10-07, so the DON deployment was cut for the hackathon. | A hackathon fast track. | Simulation plus the `tx.origin` guard (ask 3). |
 
 ### 5. Docs and messages that disagree with the CLI (rows 2, 11, 12, 15, 18)
 
