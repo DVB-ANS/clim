@@ -372,7 +372,7 @@ Details in [docs/faq.md](docs/faq.md).
 ## Deployed addresses
 
 <!-- clim:begin deployments -->
-Everything runs on Ethereum Sepolia (chain id 11155111). Each address links to Etherscan. The source of every contract clim deployed (both desks, both hooks, tETH, tUSD and the arbitrage router, Uniswap's unmodified `PoolSwapTest`) is verified on Sourcify.
+Everything runs on Ethereum Sepolia (chain id 11155111). Each address links to Etherscan. The source of every contract clim deployed (both desks, both hooks, tETH, tUSD and the arbitrage router, Uniswap's unmodified `PoolSwapTest`) is verified on Etherscan (source and Read Contract tab) and on Sourcify.
 
 | | Contract | Address | Source | Role |
 |---|---|---|---|---|
