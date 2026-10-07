@@ -4,7 +4,7 @@
 
 **Goal:** Turn the working clim system into a complete TOKEN2049 Origins submission: a judge-ready README with generated numbers and CRE evidence, a precise FAQ (including the Chainlink mentor's two questions), the maintainer's own demo video (on camera, then a live demo), a .pptx deck assembled from his Figma slides with the video embedded, a Google Drive link, and the main-track plus CRE-track submission, then close the loop with the Chainlink friction log and the private notes.
 
-**Architecture:** A small Node.js package in `docs/submission/` (plain ES modules, `node:test`, no build step; the fee formula is imported from plan 04's `shared/src/units.ts`, which Node 22 loads directly) reads the single sources of truth (`shared/deployments/sepolia.json`, `shared/params.json`, `lab/out/backtest-summary.json`, `lab/out/replay-2026-02-04.json`, on-chain `RiskReported` events) and generates (1) the numeric blocks of `README.md` between `<!-- clim:begin X -->` markers, (2) `docs/evidence/` (CRE evidence), and (3) the deck `docs/submission/out/clim.pptx`, assembled with pptxgenjs from the slides the maintainer designs in Figma (deck v2 since 2026-10-07: one full-bleed PNG per slide, the slide text and speaker notes from `deck/v2/slides.json`, the two demo videos he records embedded, re-encoded with ffmpeg when needed). One Python script (run with `uv run --no-project`) draws the README figure. No number in the README or the evidence is typed by hand; the numbers on the slides are typed in Figma from the same sources, which each slide's speaker notes name, and the live report count comes from `deck/v2/live.json`.
+**Architecture:** A small Node.js package in `docs/submission/` (plain ES modules, `node:test`, no build step; the fee formula is imported from plan 04's `shared/src/units.ts`, which Node 22 loads directly) reads the single sources of truth (`shared/deployments/sepolia.json`, `shared/params.json`, `lab/out/backtest-summary.json`, `lab/out/replay-2026-02-04.json`, on-chain `RiskReported` events) and generates (1) the numeric blocks of `README.md` between `<!-- clim:begin X -->` markers, (2) `docs/evidence/` (CRE evidence), and (3) the deck `docs/submission/out/clim.pptx`, assembled with pptxgenjs from the slides the maintainer designs in Figma (deck v2 since 2026-10-07, cut to 10 slides the same day: one full-bleed PNG per slide, the slide text and speaker notes from `deck/v2/slides.json`, the 30-second stage cut of the demo video he records embedded, re-encoded with ffmpeg when needed; the full video goes on Google Drive and its link is the Project link). One Python script (run with `uv run --no-project`) draws the README figure. No number in the README or the evidence is typed by hand; the numbers on the slides are typed in Figma from the same sources, which each slide's speaker notes name, and the live report count comes from `deck/v2/live.json`.
 
 **Tech Stack:** Node.js 22 (ES modules, `node:test`), pptxgenjs 4.0.1, viem 2.57.3, Python 3 via uv (matplotlib, Pillow, pytest), Figma (the slides, exported at 2x), ffmpeg/ffprobe (video checks and re-encoding), Foundry `cast` (the live report count), LibreOffice run from its disk image (slide render), Microsoft PowerPoint for Mac (installed) for the final playback check, the `anthropic-skills:pptx` skill for deck QA, Google Drive (browser), Builderbase (submission platform), `gh`.
 
@@ -58,7 +58,7 @@ Task 12 runs `npm run check`, which prints OK, MISSING or INVALID for each input
 | `shared/params.json` | plan 03 (lab decision) | `{ pStar, etaE4, sqrtHalfDtE6, feeMinPips, feeMaxPips, feeSafePips, tauKillSec, decidedBy }` are read; the lab also writes `staticFeePips`, `replayStaticFeePips` and `decidedAt` (ignored here). Plan 04 checks `|etaE4 - round((1/pStar - 0.824) * 1e4)| <= 1`. |
 | `shared/src/units.ts` | plan 04 Task 2 | `feePips`, `pipsToBp`, `annualSigmaToSigmaE9`, `sigmaE9ToAnnual`, `SECONDS_PER_YEAR` (the TypeScript mirror of `ClimFeeMath`). |
 | `lab/out/backtest-summary.json` | plan 03 | Schema `clim.lab.backtest/1` exactly as plan 03 writes it (its "Output contracts"; the app reads the separate `lab/out/summary.json`), **including three fields this plan needs**: `lpGainPctPerYear.volatileAssetHigh` (percent of capital per year: the main (aggregator) scenario on the same year with every return doubled, not an upper bound), `lpGainPctPerYear.top5WeeksSharePct` (percent of the main scenario's ETH year gain earned in the five stormiest weeks; the README reads that gain from `yearAttribution.clim_p<P* in %>.gainVsStatic5BpYr` when present), `inPoolVolGainSharePct {low, high}` (percent of the gain a pool-internal volatility captures), plus `replayWindowsMedianPct` and `replayWindowsBetterCount` (the median of the rolling 4 h windows and how many beat the static pool, so the replay window is never shown without its context). Plan 03 writes them (validated against `BACKTEST_SPEC`). Every value is rounded at display time (shares to whole percent, %/yr of capital and ratios to 2 decimals): the lab writes 8 significant digits. |
-| `lab/out/validation.json` | plan 03 Task 19 | Schema `clim.lab.validation/1`: `pStar`, `windowBlocks`, `nSimsTotal`, `samples[]` of `{name, blocks, pTradeObserved, pTradePredicted, simPValueTwoSided, zones.simulated {green, yellow, red}}` (validated against `VALIDATION_SPEC`). The README's "Where the model is weak" reads it, and deck slide 08 shows the same numbers (typed in Figma, source named in its notes): the largest observed/predicted gap, the simulated alert zones and the significance of the gap. |
+| `lab/out/validation.json` | plan 03 Task 19 | Schema `clim.lab.validation/1`: `pStar`, `windowBlocks`, `nSimsTotal`, `samples[]` of `{name, blocks, pTradeObserved, pTradePredicted, simPValueTwoSided, zones.simulated {green, yellow, red}}` (validated against `VALIDATION_SPEC`). The README's "Where the model is weak" reads it, and deck slide 06 shows the same numbers (typed in Figma, source named in its notes): the largest observed/predicted gap, the simulated alert zones and the significance of the gap. |
 | `lab/out/replay-2026-02-04.json` | plan 03 | Schema `clim.lab.replay/1` as plan 03 writes it (one file carries this plan's `points[]` and plan 05's columnar arrays): `window`, `params` (with `staticFeePips`), `units.arb`, `points[]` of `{t, price, sigmaAnnualPct, feeVBp, feeSBp, cumArbV, cumArbS}`, `summary` (`arbChangePct`, `pTradeObsV`, `pTradePredV`, ...). Computed at the deployed parameters. Not the same file as `lab/out/replay-window.json` (plan 03's price series for plan 04's replay server). |
 | `bots/out/cre-sim/<pair>-<run start>.log` | plan 04 Task 17 (`bun run cre-loop`) | One transcript per `cre workflow simulate --broadcast` run (the loop's `[USER LOG]` lines: `node:` venues, `consensus:` sigma and dispersion, `Write report transaction succeeded: 0x<64 hex>`, `REPORT applied ... tx=0x...`; plan 04 contract 6). Ignored by git; the full CLI logs are in `cre/logs/`. |
 | `bots/out/cre-runs.jsonl`, `bots/out/security-demos.jsonl` | plan 04 | Tracked by git (plan 04's `.gitignore` exceptions); linked from `docs/evidence/README.md`. |
@@ -68,10 +68,10 @@ Task 12 runs `npm run check`, which prints OK, MISSING or INVALID for each input
 
 ## Deviations from the canonical layout (explicit)
 
-- `docs/submission/`: submission tooling (README generator, evidence collector, CRE evidence text, deck assembler and its Figma exports, README figure). Generated files and the two demo videos go to `docs/submission/out/` (gitignored).
+- `docs/submission/`: submission tooling (README generator, evidence collector, CRE evidence text, deck assembler and its Figma exports, README figure). Generated files and the stage cut of the demo video go to `docs/submission/out/` (gitignored).
 - `docs/evidence/`: committed CRE evidence for judges (on-chain report list and simulate transcripts).
 - `docs/media/`: committed README figure.
-- `.gitignore`: plan 04 Task 1 narrows `out/` to `app/out/` (so `lab/out/` is tracked) and ignores `bots/out/*` except its two evidence files. Task 1 here only adds `docs/submission/out/` (deck and videos, too large for git), applying plan 04's edit first if it has not run yet.
+- `.gitignore`: plan 04 Task 1 narrows `out/` to `app/out/` (so `lab/out/` is tracked) and ignores `bots/out/*` except its two evidence files. Task 1 here only adds `docs/submission/out/` (deck and video, too large for git), applying plan 04's edit first if it has not run yet.
 - This plan owns `README.md` and `docs/faq.md`. If an earlier plan created a stub, Task 10 and Task 11 replace it and keep any extra FAQ entry the stub had.
 
 ## File structure
@@ -81,7 +81,7 @@ Task 12 runs `npm run check`, which prints OK, MISSING or INVALID for each input
 | `.gitignore` | Modify: ignore `docs/submission/out/` (Task 1). |
 | `docs/submission/package.json` | Node package for the submission tooling (scripts: `test`, `check`, `check:final`, `evidence`, `readme`, `deck`, `deck:draft`, `evidence:text`, `scan`). |
 | `docs/submission/links.json` | Repo, live, deck and video URLs (filled as they exist). |
-| `docs/submission/team.json` | Team members shown in the README (the deck's team slide is drawn in Figma). |
+| `docs/submission/team.json` | Team members shown in the README (the deck's team line, on slide 10, is drawn in Figma). |
 | `docs/submission/src/paths.mjs` | Every input and output path, resolved from the repo root. |
 | `docs/submission/src/inputs.mjs` | JSON loader, structural specs (lab schemas of plan 05), address walker. |
 | `docs/submission/src/lab.mjs` | Facts derived from the lab outputs (replay statistics, severity range). |
@@ -95,11 +95,11 @@ Task 12 runs `npm run check`, which prints OK, MISSING or INVALID for each input
 | `docs/submission/figures/fee_figure.py` | Draws `docs/media/fee-follows-weather.png`. |
 | `docs/submission/figures/test_figures.py` | pytest for the figure script. |
 | `docs/submission/src/cre-evidence-text.mjs` | CLI (`npm run evidence:text`): prints the CRE-track evidence text with a fresh on-chain report count, at most 1,500 characters. |
-| `docs/submission/deck/v2/png/*.png` | The 20 slides, exported from the maintainer's Figma file at 2x (3840 x 2160). |
+| `docs/submission/deck/v2/png/*.png` | The 10 slides (`01-cover.png` to `10-roadmap.png`), exported from the maintainer's Figma file at 2x (3840 x 2160). |
 | `docs/submission/deck/v2/slides.json` | Per slide: PNG, Figma node, title, on-slide text, speaker notes. The source of truth for the deck content. |
-| `docs/submission/deck/v2/live.json` | Live report count and read time shown on slides 09 and 19. |
-| `docs/submission/deck/build-deck.mjs` | CLI (`npm run deck`, `npm run deck:draft`) and `buildDeck()`: PNGs, notes and both videos into `out/clim.pptx`, under 95 MB. |
-| `docs/submission/out/video/demo-stage.mp4`, `demo-full.mp4` | The maintainer's two cuts of the demo video (gitignored), dropped in by hand (Task 16). |
+| `docs/submission/deck/v2/live.json` | Live report count and read time shown on slide 07. |
+| `docs/submission/deck/build-deck.mjs` | CLI (`npm run deck`, `npm run deck:draft`) and `buildDeck()`: PNGs, notes and the stage video into `out/clim.pptx`, under 95 MB. |
+| `docs/submission/out/video/demo-stage.mp4` | The 30-second stage cut of the maintainer's demo video (gitignored), dropped in by hand (Task 16), embedded on slide 08. The full video is not in the repository: it goes on Google Drive (Task 18), and its link is the Project link. |
 | `docs/submission/test/*.test.mjs`, `test/fixtures/*.json` | Unit tests and fixtures. |
 | `docs/evidence/README.md`, `cre-reports-sepolia.json`, `cre-simulate-*.log` | CRE evidence. |
 | `docs/media/fee-follows-weather.png` | The README picture. |
@@ -117,7 +117,7 @@ The test fixtures contain the numbers known on 2026-10-06 (P* = 10% runs; the pe
 
 - **Tasks 1 to 11 can start right away**, in parallel with plans 01 to 05: they only use fixtures. They are delegable. Exception: Task 3 (and Tasks 4 and 9, which import it) needs plan 04 Task 2 (`shared/src/units.ts`).
 - **Gate C (from the master plan):** contracts deployed and recorded in `shared/deployments/sepolia.json` (master Gate B); `shared/params.json` decided by the lab (master Gate A); the CRE loop has been writing reports with `--broadcast` for at least an hour; the bots trade on pools V and S; `lab/out/backtest-summary.json` and `lab/out/replay-2026-02-04.json` computed at the deployed parameters (with the three extra fields of Task 2 Step 5); the dashboard deployed with a live URL. Tasks 12 to 23 need Gate C.
-- **Never-cut list for this plan:** CRE evidence (Task 13), README (Tasks 10, 14), deck with an embedded recording (Tasks 15 to 17), Drive link and submission (Tasks 18 to 21). If time runs short, cut in this order: the full video on slide 20 (keep the 30-second stage video on slide 10 and build with `npm run deck:draft`, which embeds whichever of the two files is present), the clean-clone smoke test (keep the secret scan).
+- **Never-cut list for this plan:** CRE evidence (Task 13), README (Tasks 10, 14), deck with an embedded recording (Tasks 15 to 17), Drive link and submission (Tasks 18 to 21). If time runs short, cut in this order: the full video (since the 10-slide cut it is not embedded, only uploaded to Drive as the Project link; without it, the Project link is the live URL, and the 30-second stage video on slide 08 stays), the clean-clone smoke test (keep the secret scan).
 
 ---
 
@@ -2210,6 +2210,8 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/submission/scripts/
 > - `src/cre-evidence-text.mjs`: `npm run evidence:text` prints the CRE-track evidence text with a fresh on-chain count (at most 1,500 characters);
 > - tests: `test/deck.test.mjs` (rewritten, 4 tests) and `test/cre-evidence-text.test.mjs` (1 test); `npm test` passes 40.
 >
+> **Cut to 10 slides later on 2026-10-07** (the maintainer's decision, after a Chainlink judge said judges read the slides simply, want CRE explained a bit and like a slide with our CRE feedback; session log 2026-10-07): the frames to export are Figma section `198:2` "clim° deck · 10 slides (export these frames)", section `162:2` is archived as "archive · deck v2, 20 slides (not exported)", and `deck/v2/png/` holds `01-cover.png` to `10-roadmap.png` (the 18 PNGs no longer used were removed with `git rm`; `01-cover.png` and `02-origin.png` kept their names). There is no appendix: its content is in the speaker notes. `build-deck.mjs` embeds only `demo-stage.mp4`, full-bleed on slide 08, with the whole size budget, and refuses to build without it unless `--allow-missing-video`; the full video goes on Google Drive as the Project link. `test/deck.test.mjs` keeps 4 tests (10 slides, one mp4 on slide 08, the refusal without the stage video, every note with "Slide text:" and "Sources (not read aloud):"), so `npm test` still passes 40.
+>
 > The steps below are the history of the v1 builder: do not recreate `style.mjs`, `data.mjs` or `slides.mjs`. The final build and its checks are Task 17; the slide list is "Deck content, slide by slide".
 
 **Delegable:** yes
@@ -3206,8 +3208,11 @@ the docs only, summarized for the Chainlink team in the
   `RiskDesk.state()` after each write to tell the two apart (friction log row 9).
 - **Simulation is one node, and it needs the network.** The Sepolia mock forwarder checks no
   signature, so `RiskDesk` only accepts simulated reports sent by the operator key (`tx.origin`),
-  and the CLI validates its credentials against the CRE API on every run: 5 of 413 runs of our two
-  30 s loops (live and replay) on 2026-10-06 stopped there (friction log rows 1 and 24).
+  and the CLI validates its credentials against the CRE API on every run: 5 of the first 413 runs
+  of our two 30 s loops (live and replay) on 2026-10-06 stopped there. On 2026-10-07 a network
+  outage on our side stopped 27 live runs at that check, so the live desk went silent and the hook
+  charged its 30 bp safe fee, as designed, for about 8 minutes (04:33:00 to 04:40:24 and 04:48:12
+  to 04:48:36 UTC, block times); one retail swap paid it (friction log rows 1 and 24).
 
 ## What's live vs. simulated
 
@@ -3225,8 +3230,9 @@ the docs only, summarized for the Chainlink team in the
 
 ## Can a pool that is already live use clim?
 
-Not by flipping a switch on an existing pool; yes for a new pool, and yes for a pool that already
-has a dynamic fee. Details in [docs/faq.md](docs/faq.md).
+Not by flipping a switch on an existing pool. Yes for a new pool. A pool that already has a dynamic
+fee can follow the desk only if its hook reads an outside source or lets a keeper post the fee.
+Details in [docs/faq.md](docs/faq.md).
 
 - A Uniswap v3 pool cannot: `UniswapV3Pool.fee` is `immutable`.
 - A Uniswap v4 pool's fee mode and hook are part of its `PoolKey`, and the `PoolKey` is the pool's
@@ -3235,25 +3241,54 @@ has a dynamic fee. Details in [docs/faq.md](docs/faq.md).
 - A pool created with a dynamic fee gets its fee from its own hook, either per swap (`beforeSwap`
   with `OVERRIDE_FEE_FLAG`, what clim does) or stored (`PoolManager.updateDynamicLPFee`, which only
   that hook can call).
-- A DEX that already runs dynamic fees can use the risk desk without migrating anything: its hook or
-  keeper reads `RiskDesk.state()`.
+- A DEX whose fee a keeper posts can use the risk desk without migrating: the keeper reads
+  `RiskDesk.state()`. A dynamic-fee v4 pool can too if its hook reads an external source or exposes
+  a keeper path to `updateDynamicLPFee`; a hook with fixed logic means a new hook and a new pool.
 - clim's own parameters are immutable. A different P* means a new hook and a new pool.
 
 ## Roadmap
 
-1. **Fables on Robinhood Chain, shadow mode first.** Fables' crypto pools charge a flat fee plus a
-   temporary override that a keeper posts between a floor and a cap (our pre-hackathon reading of
-   public on-chain data, 2026-09-30). First, clim publishes its recommended fee next to the keeper's,
-   without acting on it. Then the keeper reads `RiskDesk.state()`, applies the fee rule with Fables'
-   own P*, floor and cap, and posts the result: no contract change on their side. This is our
-   proposal to Fables, not an agreement: nothing runs on Robinhood Chain yet.
-2. **One desk, many chains.** The same CRE workflow can write the same report to a `RiskDesk` on
-   every chain CRE supports, and an off-chain keeper can read a desk on any chain without a bridge.
-   CRE lists Robinhood Chain as Robinhood Testnet only (docs, 2026-09-18), and writes to Solana.
+1. **Existing DEXs plug clim in, Fables on Robinhood Chain first, in shadow mode.** clim is not a
+   new DEX. It is a risk desk (the CRE workflow and `RiskDesk`) plus a hook pattern (`ClimHook`)
+   that existing protocols plug in: a keeper that posts their fees reads `RiskDesk.state()`, or a
+   new pool gets a hook like `ClimHook` (an existing hook only if it can read an outside contract),
+   and either applies the fee rule with their own parameters. Fables comes first. Its fees are already presented as
+   dynamic, and a keeper moves them: its crypto pools charge a flat fee plus a temporary override
+   that the keeper posts between a floor and a cap (our pre-hackathon reading of public on-chain
+   data, 2026-09-30). First, clim publishes its recommended fee next to the keeper's, without acting
+   on it. Then the keeper reads `RiskDesk.state()`, applies the fee rule with Fables' own P*, floor
+   and cap, and posts the result: no contract change on their side. This is our proposal to Fables,
+   not an agreement: nothing runs on Robinhood Chain yet.
+2. **One desk, many chains: Sepolia is the proof, other EVM chains are configuration.** For the
+   workflow, another EVM chain that CRE supports is a new target: the chain name and the desk
+   address in its config, an RPC in `cre/project.yaml` (a mainnet also needs the `isTestnet` flag in
+   `workflow.ts` made configurable). The contracts deploy unchanged, with that chain's block time in
+   the hook (the hook needs Uniswap v4 there; a keeper-driven DEX needs only the desk; sub-second
+   chains first need a calibrated Δt, see [Limits](#limits)). The same CRE workflow can write the
+   same report to a `RiskDesk` on every chain CRE supports, and an off-chain keeper can read a desk
+   on any chain without a bridge. CRE lists Robinhood Chain as Robinhood Testnet only (docs,
+   2026-09-18), and writes to Solana.
 3. **DON deployment.** Deploy access was not granted during the hackathon. Once it is, the workflow
    runs on a DON and reports arrive through the `KeystoneForwarder`. The owner points `RiskDesk` at
    that forwarder and pins the expected workflow ID (`ReceiverTemplate`'s identity checks), and only
    then calls `disableSim()` and renounces ownership or hands it to a timelocked multisig.
+4. **Fees that also read volume (a judge's suggestion).** Today the fee reads volatility only.
+   Volume would enter through k, the multiplier the desk already sends with sigma in every report,
+   so the hook would not change. Each run, the workflow would read the clim pool's recent `Swap`
+   events with CRE's EVM client and split that volume into arbitrage (swaps that push the pool's
+   price toward the exchanges' median, the trades of Milionis, Moallemi and Roughgarden's
+   arbitrageur) and uninformed flow. k would rise with the arbitrage share: a spread pays the market
+   maker for trading with better-informed traders (Glosten and Milgrom 1985), and a market maker's
+   quotes depend on volatility and on how order arrivals respond to the spread (Avellaneda and
+   Stoikov 2008). In this build that can only raise the storm premium: `RiskDesk` clamps k to
+   [1, 2], and the floor stays the pair's market tier. Cutting the fee to attract traders when the
+   pool lacks volume would need a desk that accepts k below 1, so a new hook and new pools (the
+   hook's desk address is immutable). It is not a sure win either: a higher DEX fee can increase
+   volume, because it pays LPs to supply depth (Hasbrouck, Rivera and Saleh 2022). Before shipping,
+   the lab would backtest it against the same fixed-fee pool, at the same average fee and at the
+   same cost to traders, with the same prediction check: with k above 1, the predicted share of
+   arbitraged blocks becomes 1/(k × eta + 0.824). Details in the
+   [FAQ](docs/faq.md#why-not-set-the-fee-from-volume-too).
 
 ## Deployed addresses
 
@@ -3385,6 +3420,9 @@ drives the fee.
 - Loesch, Hindman, Richardson, Welch (2021). *Impermanent Loss in Uniswap v3.* [arXiv:2111.09192](https://arxiv.org/abs/2111.09192)
 - Kupiec (1995). *Techniques for Verifying the Accuracy of Risk Measurement Models.* The Journal of Derivatives 3(2), 73-84. [doi:10.3905/jod.1995.407942](https://doi.org/10.3905/jod.1995.407942)
 - Basel Committee on Banking Supervision (1996). *Supervisory framework for the use of "backtesting" in conjunction with the internal models approach to market risk capital requirements.*
+- Glosten, Milgrom (1985). *Bid, Ask and Transaction Prices in a Specialist Market with Heterogeneously Informed Traders.* Journal of Financial Economics 14(1), 71-100.
+- Avellaneda, Stoikov (2008). *High-frequency trading in a limit order book.* Quantitative Finance 8(3), 217-224.
+- Hasbrouck, Rivera, Saleh (2022). *The Need for Fees at a DEX: How Increases in Fees Can Increase DEX Trading Volume.* Working paper.
 - [Uniswap v4 core](https://github.com/Uniswap/v4-core) (`LPFeeLibrary`, `PoolManager`), [OpenZeppelin uniswap-hooks](https://github.com/OpenZeppelin/uniswap-hooks) (`BaseOverrideFee`), [Chainlink CRE documentation](https://docs.chain.link/cre) and [cre-templates](https://github.com/smartcontractkit/cre-templates) (`ReceiverTemplate`).
 
 ## Team
@@ -3401,7 +3439,10 @@ own license:
 
 - `contracts/src/receiver/` and `contracts/test/fixtures/sports-resolution/`: copied unmodified from
   [smartcontractkit/cre-templates](https://github.com/smartcontractkit/cre-templates) `d0223f3`. MIT,
-  © 2025 SmartContract (each folder has its `LICENSE`).
+  © 2025 SmartContract; `IERC165.sol` in each folder is OpenZeppelin Contracts v5.4.0's interface as
+  the template ships it, reformatted
+  ([MIT](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.4.0/LICENSE), © 2016-2025
+  Zeppelin Group Ltd). Each folder has its `LICENSE`.
 - The `contracts/lib/` submodules keep their own licenses: forge-std is MIT or Apache-2.0,
   OpenZeppelin's code and Uniswap v4-periphery are MIT, and Uniswap v4-core is MIT for the
   interfaces and libraries clim's own contracts import, BUSL-1.1 for `PoolManager` and some internal
@@ -3566,6 +3607,22 @@ Every report, whoever sends it, stays bounded:
 That still leaves room: from a calm 12% a year, 7 reports, a few minutes in all, reach the 1000% ceiling (about 109 bp at k = 1, the 150 bp cap at k = 2), and a report that declares more than 25 bp of dispersion flags the desk as degraded, which lifts the fee to at least the 30 bp safe fee.
 
 On a DON, once the expected workflow ID is pinned, simulation disabled and ownership renounced, no single key can write the desk: `RiskDesk` then accepts only the DON's signed reports. The owner switches to the `KeystoneForwarder` and pins the expected workflow ID (`ReceiverTemplate`'s identity checks) before it calls `disableSim()` (irreversible) and renounces ownership (or hands it to a timelocked multisig). The hackathon deployment keeps an owner because it must switch forwarders; DON deploy access was not granted during the hackathon, so that switch has not happened.
+
+## Why not set the fee from volume too?
+
+A judge suggested it at the booth on 7 October 2026: the fee should also read the pool's own volume, to attract traders when the pool lacks volume, and rest on established methods. It is on the roadmap, not in this build.
+
+**What is built.** The fee reads volatility only. Volume is not an input to the workflow, to `RiskDesk` or to `ClimHook`, and the workflow sends k = 1 in every report.
+
+**How volume would enter, with no hook change.** Through k, the model-risk multiplier the desk already sends with the volatility in every report. `RiskDesk` clamps it to [1, 2] (`K_MIN_E4 = 10_000`, `K_MAX_E4 = 20_000`), and `ClimHook` multiplies the fee by it.
+1. Each run, the workflow reads the clim pool's recent `Swap` events from the PoolManager (for example over the 15 minutes of the volatility estimate) with CRE's EVM client (`EVMClient.filterLogs`, inside the 15 EVM reads a run may make).
+2. It splits that volume in two: arbitrage, the swaps that move the pool's price toward the median price of the four exchanges, which the workflow already computes (the trades of the arbitrageur in Milionis, Moallemi and Roughgarden's model), and the rest, uninformed flow.
+3. It raises k as the arbitrage share grows. In Glosten and Milgrom (1985), a spread exists to pay the market maker for trading with better-informed traders, and it widens as their share of the flow grows. In Avellaneda and Stoikov (2008), a market maker's optimal quotes depend on volatility and on how order arrivals respond to the quoted spread: clim's fee already has the first input, and the pool's own flow is how the desk would learn the second.
+4. k then carries this volume term and the model-risk term together, inside the same [1, 2] bound. How fast k rises with the arbitrage share is a parameter the lab would fit.
+
+**What it cannot do in this build.** It can only raise the fee. k never goes below 1, so a volume term can make the storm premium more prudent, never cheaper. It changes nothing while the formula sits at the 5 bp floor: the floor holds up to about 46% annualized volatility at k = 1, and up to about 23% at k = 2. Cutting the fee to attract traders when the pool lacks volume, the judge's goal, needs a desk that accepts k below 1: a new `RiskDesk`, and since `ClimHook`'s desk address is immutable, a new hook and new pools. The floor stays the pair's market tier in every version. That direction is not a sure win either: Hasbrouck, Rivera and Saleh (2022, "The Need for Fees at a DEX: How Increases in Fees Can Increase DEX Trading Volume") show that a higher fee can raise a DEX's volume, because it pays LPs to supply the depth that lowers traders' price impact. A fee cut aimed at volume can shrink liquidity, and volume with it.
+
+**What it would take to ship.** The lab would backtest the volume term the way it tested the volatility rule: against the same fixed-fee comparator, at the same average fee and at the same cost to traders (the README's two comparisons), and with the same prediction check, the predicted against the observed share of arbitraged blocks. With k above 1 the prediction becomes 1/(k × η + 0.824): about 17% at k = 2, against 30% at k = 1. On Sepolia our arbitrage bot trades through its own router, so its swaps can be told apart, and the split of step 2 can be checked against them first.
 ````
 
 - [x] **Step 2: Check the anchors the README and the mentor message use**
@@ -3745,7 +3802,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/media/fee-follows-w
 **Delegable:** no (the maintainer, on camera, in his own words)
 **Depends on:** Task 12; the live system running on the live pair (plan 04's run-book `docs/runbook.md` sections 1 to 3: `cre-loop`, `arb`, `noise` and `status --watch`; section 5, the security demos, if the shot plan shows them); the dashboard at https://clim-zeta.vercel.app/app reading Sepolia (master Task 14)
 
-Rewritten on 2026-10-07: the maintainer decided that the video is him on camera, in his own words, then a live demo of the app, with no AI-generated video (session log 2026-10-07, Decisions "Demo video"). This replaces the screen-only 3-act recording and the shot-by-shot capture of the first version (Tasks 7 and 8 history). The script and the shot plan are in the maintainer's private notes (outside the repo); the section "Demo script" below gives their structure. One session gives two cuts: the full version, under 4 minutes (slide 20 and the Drive link), and a 30-second stage version (full-bleed on slide 10; live demos are not allowed on stage, so this is what the stage sees).
+Rewritten on 2026-10-07: the maintainer decided that the video is him on camera, in his own words, then a live demo of the app, with no AI-generated video (session log 2026-10-07, Decisions "Demo video"). This replaces the screen-only 3-act recording and the shot-by-shot capture of the first version (Tasks 7 and 8 history). The script and the shot plan are in the maintainer's private notes (outside the repo); the section "Demo script" below gives their structure. One session gives two cuts: the full version, under 4 minutes (on Google Drive; its link is the submission's Project link, and the 10-slide deck does not embed it), and a 30-second stage version (full-bleed on slide 08; live demos are not allowed on stage, so this is what the stage sees).
 
 - [ ] **Step 1 (maintainer): Prepare the machine** **Maintainer's step.**
 
@@ -3782,57 +3839,55 @@ Append under "## Build notes" of today's session log:
 
 ---
 
-### Task 16: Drop in and check the two videos
+### Task 16: Drop in and check the stage video
 
 **Delegable:** Step 1 is the maintainer's (he has the files); Steps 2 and 3, yes
 **Depends on:** Task 15
 
-Rewritten on 2026-10-07: there is no video build any more (Task 8 history). The maintainer's two exports go where `npm run deck` looks for them, under fixed names.
+Rewritten on 2026-10-07: there is no video build any more (Task 8 history). The maintainer's stage cut goes where `npm run deck` looks for it, under a fixed name. Since the deck was cut to 10 slides later that day, only the stage cut is embedded; the full video is not dropped here: it goes on Google Drive in Task 18, and its link is the Project link.
 
 **Files:**
-- Create (gitignored, never committed): `docs/submission/out/video/demo-stage.mp4`, `docs/submission/out/video/demo-full.mp4`
+- Create (gitignored, never committed): `docs/submission/out/video/demo-stage.mp4`
 
-- [ ] **Step 1 (maintainer): Drop both files in under their exact names** **Maintainer's step.**
+- [ ] **Step 1 (maintainer): Drop the stage cut in under its exact name** **Maintainer's step.**
 
 ```bash
 mkdir -p /Users/fianso/Development/hackathons/clim/docs/submission/out/video
 cp "<stage export>.mp4" /Users/fianso/Development/hackathons/clim/docs/submission/out/video/demo-stage.mp4
-cp "<full export>.mp4" /Users/fianso/Development/hackathons/clim/docs/submission/out/video/demo-full.mp4
 ```
-The names matter: `deck/build-deck.mjs` embeds `demo-stage.mp4` on slide 10 and `demo-full.mp4` on slide 20, and refuses to build the final deck without both.
+The name matters: `deck/build-deck.mjs` embeds `demo-stage.mp4` full-bleed on slide 08 and refuses to build the final deck without it.
 
 - [ ] **Step 2: Check duration, sound and format** **End of session.**
 
 ```bash
-cd /Users/fianso/Development/hackathons/clim/docs/submission/out/video && for f in demo-stage.mp4 demo-full.mp4; do printf '%s  %.1f s  audio=%s  video=%s  %s MB\n' "$f" "$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$f")" "$(ffprobe -v error -select_streams a -show_entries stream=codec_name -of csv=p=0 "$f" | head -1)" "$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,pix_fmt -of csv=p=0 "$f")" "$(du -m "$f" | cut -f1)"; done
+cd /Users/fianso/Development/hackathons/clim/docs/submission/out/video && f=demo-stage.mp4 && printf '%s  %.1f s  audio=%s  video=%s  %s MB\n' "$f" "$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$f")" "$(ffprobe -v error -select_streams a -show_entries stream=codec_name -of csv=p=0 "$f" | head -1)" "$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,pix_fmt -of csv=p=0 "$f")" "$(du -m "$f" | cut -f1)"
 ```
-Expected, two lines like (durations and sizes vary):
+Expected, one line like (duration and size vary):
 ```
 demo-stage.mp4  30.2 s  audio=aac  video=h264,1920,1080,yuv420p  14 MB
-demo-full.mp4  225.0 s  audio=aac  video=h264,1920,1080,yuv420p  96 MB
 ```
-Check: the stage cut is about 30 s; the full cut is under 240 s; `audio=` is not empty on both lines (empty means no sound track: back to Task 15 Step 4 and export with sound). Any video codec, size or file size is accepted: the builder copies an H.264 yuv420p file that fits its share of the 95 MB budget and re-encodes the others (the budget is split between the two videos in proportion to their durations).
+Check: the stage cut is about 30 s and `audio=` is not empty (empty means no sound track: back to Task 15 Step 4 and export with sound). Any video codec, size or file size is accepted: the builder copies an H.264 yuv420p file that fits the 95 MB budget (minus the slide images) and re-encodes it otherwise. Before Task 18 uploads the full video, run the same line with `f=` set to the full export's path: under 240 s, `audio=` not empty.
 
-- [ ] **Step 3: Watch both** **Maintainer's step.**
+- [ ] **Step 3: Watch both cuts** **Maintainer's step.**
 
-`open /Users/fianso/Development/hackathons/clim/docs/submission/out/video/demo-stage.mp4` (QuickTime), then `demo-full.mp4`. Check: the sound is clear from start to end; nothing private is visible (no key, no e-mail address, no notification, no browser profile); the live part shows the risk desk reporting on Sepolia, the fee following the weather and the dashboard reading the chain (what slide 10's notes announce). A bad take: back to Task 15 Steps 2 to 4, then Step 1 here.
+`open /Users/fianso/Development/hackathons/clim/docs/submission/out/video/demo-stage.mp4` (QuickTime), then the full export. Check: the sound is clear from start to end; nothing private is visible (no key, no e-mail address, no notification, no browser profile); the stage cut shows the risk desk reporting on Sepolia, the fee following the weather and the dashboard reading the chain (what slide 08's notes announce). A bad take: back to Task 15 Steps 2 to 4, then Step 1 here.
 
 ---
 
 ### Task 17: Refresh the live numbers, build the final deck and check it
 
 **Delegable:** yes for Steps 2 and 4; Step 3 needs the maintainer's Figma file (the maintainer, or an agent with the Figma MCP); Step 5 is the maintainer's (PowerPoint at the Mac)
-**Depends on:** Tasks 12, 16; the deck v2 builder (Task 9 history, commit `1a53016`)
+**Depends on:** Tasks 12, 16; the deck v2 builder (Task 9 history, commit `1a53016`, then the 10-slide cut)
 
-Rewritten on 2026-10-07 for deck v2: the slides are PNGs exported from the maintainer's Figma file, so a fix is made in Figma (and in `deck/v2/slides.json` when the text changes), never in the .pptx. Only the live report count changes at the last moment.
+Rewritten on 2026-10-07 for deck v2, then for the 10-slide cut: the slides are PNGs exported from the maintainer's Figma file (section `198:2`), so a fix is made in Figma (and in `deck/v2/slides.json` when the text changes), never in the .pptx. Only the live report count changes at the last moment, and it is on slide 07 only.
 
 **Files:**
-- Modify: `docs/submission/deck/v2/live.json`, `docs/submission/deck/v2/png/07-results.png`, `docs/submission/deck/v2/png/09-live.png`, `docs/submission/deck/v2/png/12-why-chainlink.png`, `docs/submission/deck/v2/png/18-a4-limits.png`, `docs/submission/deck/v2/png/19-a5-cre-evidence.png`; in Figma file `LyeDZ1KdOYws6nTzD8dI76`, four text nodes of frames `166:11` (slide 09) and `168:34` (slide 19). Frames `166:2` (slide 07), `166:54` (slide 12) and `168:20` (slide 18) are re-exported only: their text changed in `slides.json` (commits `133cdb9` and `4db62e3`, and slide 12's DON line in audit round 4) after their PNGs were last exported (`1cdd460` for 07 and 12, `2ab9677` for 18); Step 3 checks that the Figma frames carry it
-- Create (gitignored): `docs/submission/out/clim.pptx`, `docs/submission/out/video/deck/` (the embedded copies of both videos and their poster frames)
+- Modify: `docs/submission/deck/v2/live.json`, `docs/submission/deck/v2/png/07-live.png`; in Figma file `LyeDZ1KdOYws6nTzD8dI76`, two text nodes of frame `166:11` (slide 07)
+- Create (gitignored): `docs/submission/out/clim.pptx`, `docs/submission/out/video/deck/` (the embedded copy of the stage video and its poster frame)
 
 - [x] **Step 1: The builder and its tests exist**
 
-Done on 2026-10-07 in commit `1a53016`: `deck/build-deck.mjs`, `deck/v2/` (20 PNGs, `slides.json`, `live.json`), the scripts `deck`, `deck:draft` and `evidence:text`, `test/deck.test.mjs` and `test/cre-evidence-text.test.mjs`; LibreOffice rendered all 20 slides of a draft. To check it again:
+Done on 2026-10-07 in commit `1a53016` (20 slides, two videos; LibreOffice rendered all 20 slides of a draft), then cut to 10 slides the same day: `deck/build-deck.mjs` (the stage video only), `deck/v2/` (10 PNGs, `slides.json`, `live.json`), the scripts `deck`, `deck:draft` and `evidence:text`, `test/deck.test.mjs` (10 slides, one embedded mp4 on slide 08, the refusal without the stage video, every note with "Slide text:" and "Sources (not read aloud):") and `test/cre-evidence-text.test.mjs`. To check it again:
 ```bash
 cd /Users/fianso/Development/hackathons/clim/docs/submission && npm test 2>&1 | grep -E "^# (pass|fail)"
 ```
@@ -3850,17 +3905,15 @@ cd /Users/fianso/Development/hackathons/clim && D=$(jq -r .riskDesks.live shared
 ```
 Expected: `{ "seq": <n>, "readUtc": "<d Mon HH:MM UTC>" }`, for example `"seq": 624` and `"readUtc": "6 Oct 22:00 UTC"`. The builder fills `{{LIVE_SEQ}}` (with a thousands comma, for example `1,234`) and `{{LIVE_SEQ_READ}}` in the slide text and notes of `slides.json` from this file.
 
-- [ ] **Step 3: Update slides 09 and 19 in Figma, then re-export slides 07, 09, 12, 18 and 19** **End of session.**
+- [ ] **Step 3: Update slide 07 in Figma, then re-export it** **End of session.**
 
-In Figma file `LyeDZ1KdOYws6nTzD8dI76` (section `162:2`), put the same two values as `live.json` in these text nodes, keeping the rest of each text and the number format of Step 2:
-- slide 09 (frame `166:11`, "09 · What is live"): `172:10` "LIVE seq" (the count) and `172:11` "LIVE seq read" (the read time);
-- slide 19 (frame `168:34`, "A5 · CRE evidence"): `168:50` "LIVE seq big" (the count) and `168:52` "LIVE seq read" (the read time).
+In Figma file `LyeDZ1KdOYws6nTzD8dI76` (section `198:2`), put the same two values as `live.json` in slide 07 (frame `166:11`, "07 · What is live"), keeping the rest of each text and the number format of Step 2: `172:10` "LIVE seq" (the count) and `172:11` "LIVE seq read" (the read time). Slide 07 is the only slide with the live count since the 10-slide cut (the archived slide 19's nodes `168:50` and `168:52` are no longer exported).
 
-Check that a longer number does not wrap or overlap. Then check that every text in frames `166:2` (slide 07), `166:11` (slide 09), `166:54` (slide 12), `168:20` (slide 18) and `168:34` (slide 19) matches that slide's `text` in `slides.json` word for word, apart from the two live values: slide 07 says "bridged to 12 s blocks", slide 09 carries the 7 Oct storm line and "DON deploy access was not granted in time", slide 12 opens with "Chainlink CRE, our only partner track, by choice" and reads "On a DON, workflow ID pinned and owner renounced: no single key to steal.", slide 18's last limit reads "about 184 ETH of gas a year per gwei". Fix any difference in Figma first. Export the five frames as PNG at 2x over `docs/submission/deck/v2/png/07-results.png`, `09-live.png`, `12-why-chainlink.png`, `18-a4-limits.png` and `19-a5-cre-evidence.png` (in Figma: select the frame, Export, 2x, PNG). Then:
+Check that a longer number does not wrap or overlap, and that every other text in frame `166:11` matches slide 07's `text` in `slides.json` word for word. Fix any difference in Figma first. Export the frame as PNG at 2x over `docs/submission/deck/v2/png/07-live.png` (in Figma: select the frame, Export, 2x, PNG). Then:
 ```bash
-cd /Users/fianso/Development/hackathons/clim/docs/submission/deck/v2/png && sips -g pixelWidth -g pixelHeight 07-results.png 09-live.png 12-why-chainlink.png 18-a4-limits.png 19-a5-cre-evidence.png
+cd /Users/fianso/Development/hackathons/clim/docs/submission/deck/v2/png && sips -g pixelWidth -g pixelHeight 07-live.png
 ```
-Expected: `pixelWidth: 3840` and `pixelHeight: 2160` for all five. Open the five with the Read tool: on 09 and 19 the count and the read time match `live.json`; on 07, 12 and 18 the text matches `slides.json`.
+Expected: `pixelWidth: 3840` and `pixelHeight: 2160`. Open it with the Read tool: the count and the read time match `live.json`.
 
 - [ ] **Step 4: Build, check the size, render every slide, commit** **End of session.**
 
@@ -3868,7 +3921,7 @@ Expected: `pixelWidth: 3840` and `pixelHeight: 2160` for all five. Open the five
 ```bash
 cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run deck
 ```
-Expected: `wrote docs/submission/out/clim.pptx: 20 slides, videos: stage, full, <n> MB`. "demo-stage.mp4 or demo-full.mp4 missing": back to Task 16 Step 1.
+Expected: `wrote docs/submission/out/clim.pptx: 10 slides, video: stage, <n> MB`. "demo-stage.mp4 missing": back to Task 16 Step 1.
 
 2. Size:
 ```bash
@@ -3883,19 +3936,19 @@ $D/mnt/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to pdf --outd
 cd /Users/fianso/Development/hackathons/clim/docs/submission/out && find . -maxdepth 1 -name 'slide-*.jpg' -delete && pdftoppm -jpeg -r 80 clim.pdf slide && ls -1 "$PWD"/slide-*.jpg
 ```
 Shells reset between agent calls: print `$D` and reuse the literal path. If 26.8.1 is gone, take the current version from https://download.documentfoundation.org/libreoffice/stable/; if the redirect lands on a slow mirror, pick a faster one from the same URL plus `.mirrorlist` and compare `shasum -a 256` with the URL plus `.sha256`. `hdiutil detach $D/mnt` when done.
-Expected: 20 images, `slide-01.jpg` to `slide-20.jpg`. Open every image with the Read tool (or dispatch a subagent to look at them fresh): each Figma slide full-bleed, in the order of "Deck content, slide by slide"; slides 09 and 19 show the new count; slide 07 says "bridged to 12 s blocks"; slide 12 says "our only partner track, by choice" and "On a DON, workflow ID pinned and owner renounced: no single key to steal."; slide 18's last limit reads "about 184 ETH of gas a year per gwei"; slide 10 shows the stage video's poster frame over the whole slide; slide 20 shows the full video's poster frame in the frame drawn on the slide. A wrong slide is fixed in Figma (and in `slides.json` if its text changed), re-exported, and the deck rebuilt.
+Expected: 10 images, `slide-01.jpg` to `slide-10.jpg`. Open every image with the Read tool (or dispatch a subagent to look at them fresh): each Figma slide full-bleed, in the order of "Deck content, slide by slide"; slide 07 shows the new count; slides 01, 07 and 10 show the live URL `clim-zeta.vercel.app`; slide 08 shows the stage video's poster frame over the whole slide. A wrong slide is fixed in Figma (and in `slides.json` if its text changed), re-exported, and the deck rebuilt.
 
-4. Commit the new count and the five PNGs:
+4. Commit the new count and slide 07:
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck/v2/live.json docs/submission/deck/v2/png/07-results.png docs/submission/deck/v2/png/09-live.png docs/submission/deck/v2/png/12-why-chainlink.png docs/submission/deck/v2/png/18-a4-limits.png docs/submission/deck/v2/png/19-a5-cre-evidence.png && git commit -m "chore(deck): live report count on slides 09 and 19; slides 07, 12 and 18 re-exported with their final text"
+cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck/v2/live.json docs/submission/deck/v2/png/07-live.png && git commit -m "chore(deck): live report count on slide 07"
 ```
 
 - [ ] **Step 5 (maintainer): Play it in PowerPoint (or Keynote) and set the stage video to start by itself** **Maintainer's step.**
 
 1. `open -a "Microsoft PowerPoint" /Users/fianso/Development/hackathons/clim/docs/submission/out/clim.pptx` (or `open -a Keynote` with the same path if PowerPoint is not at hand).
-2. Slide Show from slide 10: the stage video plays over the whole slide, with sound. Then slide 20: the full video plays, with sound.
-3. In PowerPoint, on slide 10, select the video, Playback tab, Start: "Automatically". Save (Cmd+S).
-4. If a video does not play: delete it on that slide, Insert, Video, "Movie from File...", pick the embedded copy `docs/submission/out/video/deck/demo-stage.mp4` (or `demo-full.mp4`; these copies fit the size budget), place it like the original (slide 10: the whole slide; slide 20: the frame drawn on the slide), set Start as above, save, and log under "## Build notes" of today's session log:
+2. Slide Show from slide 08: the stage video plays over the whole slide, with sound.
+3. In PowerPoint, on slide 08, select the video, Playback tab, Start: "Automatically". Save (Cmd+S).
+4. If the video does not play: delete it on slide 08, Insert, Video, "Movie from File...", pick the embedded copy `docs/submission/out/video/deck/demo-stage.mp4` (it fits the size budget), place it over the whole slide, set Start as above, save, and log under "## Build notes" of today's session log:
 ```markdown
 - (submission) Deck video: the pptxgenjs embed did not play in PowerPoint for Mac; re-inserted by hand (plan 06 Task 17 Step 5).
 ```
@@ -3905,7 +3958,7 @@ After this step, do not rebuild the deck with `npm run deck` (it overwrites `out
 
 - [ ] **Step 6 (if `.pptx` is refused, or no organizer has answered): Keynote copy** **Maintainer's step.**
 
-Install Keynote from the Mac App Store (free), open `out/clim.pptx` in Keynote, play both videos (slides 10 and 20), then File, Save, `out/clim.key`. Upload it next to the `.pptx` in Task 18. If `.pptx` was refused, submit the `.key` link; if no organizer answered, keep the `.pptx` link as `deckUrl` (Task 12 Step 1).
+Install Keynote from the Mac App Store (free), open `out/clim.pptx` in Keynote, play the stage video (slide 08), then File, Save, `out/clim.key`. Upload it next to the `.pptx` in Task 18. If `.pptx` was refused, submit the `.key` link; if no organizer answered, keep the `.pptx` link as `deckUrl` (Task 12 Step 1).
 
 ---
 
@@ -3919,7 +3972,7 @@ Install Keynote from the Mac App Store (free), open `out/clim.pptx` in Keynote, 
 
 - [ ] **Step 1: Upload** **Maintainer's step.**
 
-In https://drive.google.com: New, New folder, `clim · TOKEN2049 Origins 2026`. Open it and drag in `docs/submission/out/clim.pptx` and `docs/submission/out/video/demo-full.mp4` (plus `clim.key` if Task 17 Step 6 ran).
+In https://drive.google.com: New, New folder, `clim · TOKEN2049 Origins 2026`. Open it and drag in `docs/submission/out/clim.pptx` and the full demo video, the maintainer's full export (under 4 minutes, with sound, checked in Task 16 Step 2; it is not in the repository and not embedded in the deck), plus `clim.key` if Task 17 Step 6 ran.
 
 - [ ] **Step 2: Share** **Maintainer's step.**
 
@@ -3931,7 +3984,7 @@ Open each link in a Chrome Incognito window. The `.pptx` shows a preview or a do
 
 - [ ] **Step 4: Record the links and regenerate the README** **Maintainer's step.**
 
-Put the `.pptx` link in `deckUrl` and the `.mp4` link in `videoUrl` of `docs/submission/links.json`. Then:
+Put the `.pptx` link in `deckUrl` and the full video's link in `videoUrl` of `docs/submission/links.json`. The `videoUrl` is also the submission's Project link (Task 21 Step 3) and goes into the CRE evidence text (`npm run evidence:text`). Then:
 ```bash
 cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run readme && npm run check:final; echo "exit=$?"
 ```
@@ -4038,12 +4091,12 @@ node -e 'const e=require("/Users/fianso/Development/hackathons/clim/docs/evidenc
 
 On Builderbase (TOKEN2049 Origins dashboard), create the project submission with the texts of the section "Submission texts" below:
 - GitHub repository: `https://github.com/DVB-ANS/clim`
-- Project link: `liveUrl` from `docs/submission/links.json`
+- Project link: `videoUrl` from `docs/submission/links.json`, the full demo video on Google Drive (the maintainer's decision on 2026-10-07: the 10-slide deck embeds only the stage cut). The live URL, `liveUrl` (https://clim-zeta.vercel.app), is on slides 01, 07 and 10 and in the README. If the full video was cut, give `liveUrl` here.
 - Presentation slides: `deckUrl` (or the `.key` link if `.pptx` was refused)
 Check the checklist before pressing submit:
 - [ ] repo public and pushed (Task 20) **Maintainer's step.**
 - [ ] live URL opens logged out and shows live data **Maintainer's step.**
-- [ ] Drive link opens logged out; the deck embeds the stage video on slide 10 and the full video on slide 20 (no YouTube link) **Maintainer's step.**
+- [ ] Drive links open logged out: the deck embeds the stage video on slide 08 (no YouTube link), and the full video (the Project link) plays **Maintainer's step.**
 - [ ] team members on Builderbase match `docs/submission/team.json` **Maintainer's step.**
 - [ ] README has no "Pending" block **Maintainer's step.**
 
@@ -4145,48 +4198,42 @@ Follow the vault rules in `CLAUDE.local.md` (no em dashes, no contractions in En
 
 - [ ] **Step 3 (only if selected for the top 5): stage preparation** **Maintainer's step.**
 
-Rehearse with the deck and the stage video until the talk fits the length the organizers gave (Task 12): the main deck, slides 01 to 13 (the stage video on slide 10), and the appendix (14 to 20) on demand. Learn the Q&A answer bank below. Keep the `.pptx` on a USB stick as well as on Drive.
+Rehearse with the deck and the stage video until the talk fits the length the organizers gave (Task 12): the 10 slides, with the stage video on slide 08; there is no appendix, so questions go to the speaker notes (they hold what the appendix held) and the Q&A answer bank below. Learn the Q&A answer bank. Keep the `.pptx` on a USB stick as well as on Drive.
 
 ---
 
 ## Demo script
 
-The current script and shot plan are the maintainer's, in his private notes (outside the repo; never copied here). They replace, since 2026-10-07, the screen-only 3-act script with its shot table, captions and narration (session log 2026-10-07, Decisions "Demo video"; the removed tooling is in the history of Tasks 7 and 8). Structure: the maintainer on camera, in his own words, explains how it works, the math and the logic behind the fee, why this idea, and how it would be rolled out (the desk's output handed to the Fables keeper that updates fees, Chainlink CRE, Uniswap v4); then a live demo of the app on Sepolia. No AI-generated video. Two cuts: the full version, under 4 minutes (slide 20 and the Drive link), and a 30-second stage version (slide 10). Recording: Task 15; files and checks: Task 16; embedding and playback: Task 17.
+The current script and shot plan are the maintainer's, in his private notes (outside the repo; never copied here). They replace, since 2026-10-07, the screen-only 3-act script with its shot table, captions and narration (session log 2026-10-07, Decisions "Demo video"; the removed tooling is in the history of Tasks 7 and 8). Structure: the maintainer on camera, in his own words, explains how it works, the math and the logic behind the fee, why this idea, and how it would be rolled out (the desk's output handed to the Fables keeper that updates fees, Chainlink CRE, Uniswap v4); then a live demo of the app on Sepolia. No AI-generated video. Two cuts: the full version, under 4 minutes (on Google Drive; its link is the submission's Project link), and a 30-second stage version (embedded full-bleed on slide 08). Recording: Task 15; files and checks: Task 16; embedding and playback: Task 17; Drive: Task 18.
 
 ---
 
 ## Deck content, slide by slide
 
-Source of truth: `docs/submission/deck/v2/slides.json`, which holds per slide the PNG, the Figma node, the title, the on-slide text and the speaker notes (the spoken part, then "Sources (not read aloud): ..."). The slides are designed in the maintainer's Figma file `LyeDZ1KdOYws6nTzD8dI76`, section `162:2`, and exported at 2x into `deck/v2/png/`. A change is made in Figma and in `slides.json` together, then the slide is re-exported and the deck rebuilt (Task 17), never in the .pptx. The numbers on the slides are typed in Figma from the lab outputs, `shared/params.json` and the chain, and each slide's notes name their source; only the live report count on slides 09 and 19 comes from `deck/v2/live.json`. Main deck: slides 01 to 13, the stage talk, with the 30-second stage video on slide 10. Appendix: 14 to 20, for judges reading the file and for questions. The mentor's question 1 (who changes the fee) is slide 05; his question 2 (a pool that is already live) is slide 16. This list replaces the 22-slide list of deck v1 (removed 2026-10-07).
+Source of truth: `docs/submission/deck/v2/slides.json`, which holds per slide the PNG, the Figma node, the title, the on-slide text and the speaker notes (the spoken part, then "Sources (not read aloud): ..."). The slides are designed in the maintainer's Figma file `LyeDZ1KdOYws6nTzD8dI76`, section `198:2` "clim° deck · 10 slides (export these frames)", and exported at 2x into `deck/v2/png/`. A change is made in Figma and in `slides.json` together, then the slide is re-exported and the deck rebuilt (Task 17), never in the .pptx. The numbers on the slides are typed in Figma from the lab outputs, `shared/params.json` and the chain, and each slide's notes name their source; only the live report count on slide 07 comes from `deck/v2/live.json`.
 
-| # | Part | PNG (`deck/v2/png/`) | Figma frame | Title | Video |
+Since 2026-10-07 the deck has 10 slides and no appendix: the maintainer cut it after a Chainlink judge said that judges read the slides simply (the idea and the criteria), want CRE explained a bit, and like a slide with our CRE feedback. The 20-slide version (13 main slides and a 7-slide appendix) is archived in Figma section `162:2` "archive · deck v2, 20 slides (not exported)", and its unused PNGs were removed from `deck/v2/png/`. What the appendix held is in the speaker notes, which a reader (or an AI) reads first: the fee rule in slide 03's notes; the 4 February storm and the limits of the backtest in 05's; safety, the CRE evidence and the limits of the live build in 07's; the trust condition on a DON and our feedback to Chainlink in 09's; the live-pool question and the team in 10's; the old problem illustration in 02's. Only the 30-second stage video is embedded (slide 08, full-bleed); the full demo video goes on Google Drive and its link is the submission's Project link. The live URL, clim-zeta.vercel.app, is on slides 01, 07 and 10. The mentor's question 1 (who changes the fee) is slide 04; his question 2 (a pool that is already live) is answered in slide 10's notes and in `docs/faq.md`. This list replaces the 20-slide list of deck v2 and the 22-slide list of deck v1.
+
+| # | PNG (`deck/v2/png/`) | Figma frame | Title | The notes also carry | Video |
 |---|---|---|---|---|---|
-| 01 | main | `01-cover.png` | `154:7` | clim°: storm insurance for Uniswap v4 LPs |  |
-| 02 | main | `02-origin.png` | `154:8` | Where the idea comes from |  |
-| 03 | main | `03-problem.png` | `163:2` | The problem: the same fee in calm and in storm |  |
-| 04 | main | `04-idea.png` | `164:2` | The idea: the fee follows the weather |  |
-| 05 | main | `05-how.png` | `154:9` | How it works: nobody changes the fee by hand |  |
-| 06 | main | `06-picture.png` | `165:2` | The storm of 4 February 2026 |  |
-| 07 | main | `07-results.png` | `166:2` | Does it work: LPs lose less to arbitrage |  |
-| 08 | main | `08-prediction.png` | `167:17` | Not one more volatility fee |  |
-| 09 | main | `09-live.png` | `166:11` | What is live on Sepolia |  |
-| 10 | main | `10-demo.png` | `171:2` | Demo (stage version) | `demo-stage.mp4`, full-bleed |
-| 11 | main | `11-rollout.png` | `166:22` | Rollout: one desk, many chains |  |
-| 12 | main | `12-why-chainlink.png` | `166:54` | Why it matters, and why Chainlink CRE |  |
-| 13 | main | `13-team.png` | `166:79` | Team |  |
-| 14 | appendix | `14-appendix.png` | `171:5` | Appendix |  |
-| 15 | appendix | `15-a1-fee-rule.png` | `167:2` | Appendix: the fee rule |  |
-| 16 | appendix | `16-a2-live-pool.png` | `167:41` | Appendix: can a pool that is already live use clim? |  |
-| 17 | appendix | `17-a3-safety.png` | `168:2` | Appendix: if the desk lies or goes quiet |  |
-| 18 | appendix | `18-a4-limits.png` | `168:20` | Appendix: limits |  |
-| 19 | appendix | `19-a5-cre-evidence.png` | `168:34` | Appendix: CRE evidence |  |
-| 20 | appendix | `20-a6-full-demo.png` | `168:60` | Appendix: the full demo | `demo-full.mp4`, in the frame drawn on the slide |
+| 01 | `01-cover.png` | `154:7` | clim°: storm insurance for Uniswap v4 LPs | where each detail is in the notes |  |
+| 02 | `02-origin.png` | `154:8` | Where the idea comes from | why the loss grows with volatility (the old slide 03) |  |
+| 03 | `03-idea.png` | `164:2` | The idea: the fee follows the weather | the fee rule (the old appendix A1) |  |
+| 04 | `04-how.png` | `154:9` | How it works: nobody changes the fee by hand | the quorum and the degraded rule; the mentor's question 1 |  |
+| 05 | `05-results.png` | `166:2` | Does it work: LPs lose less to arbitrage | the 4 February storm (the old slide 06), the backtest's limits (A4) |  |
+| 06 | `06-prediction.png` | `167:17` | Not one more volatility fee |  |  |
+| 07 | `07-live.png` | `166:11` | What is live on Sepolia | safety (A3), the CRE evidence (A5), the live build's limits (A4); the live count (`live.json`) |  |
+| 08 | `08-demo.png` | `171:2` | Demo (stage version) | where the full video is | `demo-stage.mp4`, full-bleed |
+| 09 | `09-cre.png` | `198:3` | Why Chainlink CRE, and our feedback | why CRE (the old slide 12), the DON trust condition, the CRE evidence (A5), our feedback to Chainlink |  |
+| 10 | `10-roadmap.png` | `198:26` | Roadmap: not a new DEX, a fee engine for existing ones | the rollout with Fables (the old slide 11), a live pool (A2), the volume input, the team (the old slide 13), the Project link |  |
+
+From the 20-slide version: 01 and 02 are unchanged; 03 was 04; 04 was 05, with the caption under the CRE logo now "CRE workflow: every 30 s, the median of the four"; 05 was 07, with the footnote "4 Feb 2026 storm replay: −18.6 %. None of its 92 rolling 4-hour windows beats it; median −2.1 %."; 06 was 08; 07 was 09; 08 was 10; 09 and 10 are new.
 
 ---
 
 ## The 30-second pitch
 
-The current spoken pitch, its 30-second version included, is the maintainer's, in his private notes (outside the repo), next to the video script; it replaces the "four weather stations" pitch written here on 2026-10-06. Its structure is the one of "Demo script" above: how it works, the math, why the idea, the rollout to Fables and Chainlink CRE, then the live demo, in a full version under 4 minutes and a 30-second stage cut (slide 10). On stage, the deck's spoken lines are the speaker notes of `deck/v2/slides.json` (slide 01 opens the talk); the README keeps its own written summary.
+The current spoken pitch, its 30-second version included, is the maintainer's, in his private notes (outside the repo), next to the video script; it replaces the "four weather stations" pitch written here on 2026-10-06. Its structure is the one of "Demo script" above: how it works, the math, why the idea, the rollout to Fables and Chainlink CRE, then the live demo, in a full version under 4 minutes (the Project link) and a 30-second stage cut (slide 08). On stage, the deck's spoken lines are the speaker notes of `deck/v2/slides.json` (slide 01 opens the talk); the README keeps its own written summary.
 
 ---
 
@@ -4201,7 +4248,7 @@ Read the numbers in brackets from `lab/out/backtest-summary.json` and `shared/pa
 "Honestly, it would capture most of the gain: [inPoolVolGainSharePct.low to high, rounded to whole percent] in our lab. But a pool-internal number can be pushed by trading against the pool, it sees one venue only, and it goes blind when the pool is not traded. CRE gives four exchanges that must agree, a report the DON signs once deployed, one figure for many pools and chains, and a model check off-chain."
 
 **"Is the consensus real in your simulation?"**
-"No, and we say it on the limits slide. `cre workflow simulate` runs one node, and the Sepolia mock forwarder does not check signatures. So RiskDesk only accepts simulated reports from our operator key, and the demo shows a forged report being rejected. The workflow is written with CRE's consensus API, median per field, for a DON, but it has not run on one: we requested DON deploy access on 6 October and it was not granted during the hackathon."
+"No, and we say it on the slides (07 and 09). `cre workflow simulate` runs one node, and the Sepolia mock forwarder does not check signatures. So RiskDesk only accepts simulated reports from our operator key, and the demo shows a forged report being rejected. The workflow is written with CRE's consensus API, median per field, for a DON, but it has not run on one: we requested DON deploy access on 6 October and it was not granted during the hackathon."
 
 **"Is it profitable?"**
 "For LPs, modestly: [lpGainPctPerYear.low to high, 2 decimals] of capital per year on a full-range ETH position, that is [the same × $10,000] a year per million dollars. In the main scenario about [top5WeeksSharePct]% of the gain comes from the five stormiest weeks, and an asset twice as volatile gains [lpGainPctPerYear.volatileAssetHigh]. It is insurance, not yield. As a business, not as a cut of the hook fee: the credible product is a risk desk as a service for DEXs, starting in shadow mode with Fables."
@@ -4229,6 +4276,8 @@ Read the numbers in brackets from `lab/out/backtest-summary.json` and `shared/pa
 
 **Tagline:** Storm insurance for Uniswap v4 LPs: a fee that follows the market's weather, measured by a Chainlink CRE risk desk.
 
+**Project link (main-track field):** the full demo video's Google Drive link, `videoUrl` in `docs/submission/links.json` (Task 18); the 10-slide deck embeds only the 30-second stage cut. The live URL, https://clim-zeta.vercel.app, is on slides 01, 07 and 10 and in the README. If the full video was cut, the live URL.
+
 **Short description:** A liquidity provider is an insurer: arbitrage bots make it pay every time the market moves. clim gives it a premium that follows the market's weather: four exchanges, read every 30 seconds by a Chainlink CRE workflow and required to agree, publish one volatility figure on-chain, and a Uniswap v4 hook turns it into the fee of every swap, at the market price when it is calm and rising in a storm. Chainlink CRE is the only partner track we entered, on purpose: the product is built around it (the risk desk is the CRE workflow, and without a fresh CRE report the hook falls back to the safe fee).
 
 **Long description:**
@@ -4244,13 +4293,13 @@ clim is a volatility-indexed LP fee with a prediction you can check. A Chainlink
 
 **Spec coverage.**
 - README for judges: picture (Task 7, 14), 30-second pitch, how the fee is computed and that no transaction changes it (README text, sequence diagram), why Chainlink CRE, live-pool FAQ, architecture diagram, generated addresses and CRE transaction table (Tasks 4, 6, 13), Getting started (checked in Task 19), limits, references, team (Task 10, `team.json`).
-- Deck as .pptx (deck v2 since 2026-10-07, designed in Figma; this bullet first listed the 22 slides of deck v1): cover (01), where the idea comes from (02), problem (03), the idea (04), how it works and that nobody changes the fee (05), the 4 February storm in one picture (06), results with both comparisons (07), the prediction anyone can check (08), what is live (09), embedded stage demo (10), rollout with Fables (11), why Chainlink CRE (12), team (13), appendix with the fee rule, the live-pool question, safety, limits, CRE evidence and the full demo (14 to 20): Task 9 (history and replacement), Task 17.
+- Deck as .pptx (deck v2 since 2026-10-07, designed in Figma, cut to 10 slides the same day; this bullet first listed the 22 slides of deck v1, then the 20 of deck v2): cover with the live URL (01), where the idea comes from (02), the idea (03), how it works and that nobody changes the fee (04), results with both comparisons and the 4 February replay (05), the prediction anyone can check (06), what is live (07), embedded stage demo (08), why Chainlink CRE and our feedback (09), roadmap with Fables, and the team (10); no appendix: the fee rule, the live-pool question, safety, limits and the CRE evidence are in the speaker notes; the full demo video is the Project link: Task 9 (history and replacement), Task 17.
 - The maintainer's own video (on camera, then a live demo; script in his private notes), the checks of both files and the embedding (Tasks 15 to 17 and "Demo script").
-- Google Drive upload and sharing (Task 18). Submission checklist for the main track and the CRE track, with CRE evidence (Tasks 13, 21). Friction log final pass and send-ready message (Task 22). Vault notes, paths kept out of the repo (Task 23). 30-second pitch and the Q&A bank with the six required questions plus three more. Mentor questions 1 and 2 in `docs/faq.md`, the README, slide 05 (question 1) and slide 16 (question 2).
+- Google Drive upload and sharing (Task 18). Submission checklist for the main track and the CRE track, with CRE evidence (Tasks 13, 21). Friction log final pass and send-ready message (Task 22). Vault notes, paths kept out of the repo (Task 23). 30-second pitch and the Q&A bank with the six required questions plus three more. Mentor questions 1 and 2 in `docs/faq.md`, the README, slide 04 (question 1) and slide 10's speaker notes (question 2).
 - Rules verified from the Builderbase JSON, token2049.com and the T&C, and quoted at the top.
 
 **Placeholder scan.** Searched for "TBD", "TODO", "implement later", "similar to Task". None. The pptx validator path is found on disk (Task 9 Step 8). The angle-bracket values left (`<n>`, `<sigmaE9>`, transaction links, organizer answers, versions) are values only known at execution time, each with the exact command that produces it.
 
-**Type and name consistency.** One spec per input in `src/inputs.mjs` (`PARAMS_SPEC`, `BACKTEST_SPEC`, `REPLAY_SPEC`, `VALIDATION_SPEC`, `LINKS_SPEC`, `TEAM_SPEC`, `EVIDENCE_SPEC`, `REPORT_SPEC`), used by the checker and the README updater (deck v2 reads only `deck/v2/slides.json` and `live.json`); the lab specs match plan 03's "Output contracts" field for field, including the five fields requested from plan 03 and `lab/out/validation.json`; the deployments walker reads plan 04's shape without depending on it; script names, log paths and the `.gitignore` rules are plan 04's. `RiskReported` is decoded with the canonical signature `(uint32 indexed seq, uint40 tObs, uint32 sigmaApplied, uint32 sigmaReported, uint32 rv15E9, uint16 dvolE2, int24 refTick, uint16 dispBp, uint8 nSources, uint16 kE4, uint8 zone)`; `state()` as `(uint40,uint32,uint16,uint8,uint32)`; `quoteFee()` as `(uint24,uint8)`. `feePips` takes the same argument order as `ClimFeeMath.feePips`. The video file names `demo-stage.mp4` and `demo-full.mp4` match `deck/build-deck.mjs` and the `video.kind` of slides 10 and 20 in `deck/v2/slides.json` (the shot names and the build script of the first version were removed on 2026-10-07). Test counts on 2026-10-07: inputs 8, lab 6, fee 5, readme-blocks 10, evidence 6, deck 4, cre-evidence-text 1: 40 in total (36 when this plan was written).
+**Type and name consistency.** One spec per input in `src/inputs.mjs` (`PARAMS_SPEC`, `BACKTEST_SPEC`, `REPLAY_SPEC`, `VALIDATION_SPEC`, `LINKS_SPEC`, `TEAM_SPEC`, `EVIDENCE_SPEC`, `REPORT_SPEC`), used by the checker and the README updater (deck v2 reads only `deck/v2/slides.json` and `live.json`); the lab specs match plan 03's "Output contracts" field for field, including the five fields requested from plan 03 and `lab/out/validation.json`; the deployments walker reads plan 04's shape without depending on it; script names, log paths and the `.gitignore` rules are plan 04's. `RiskReported` is decoded with the canonical signature `(uint32 indexed seq, uint40 tObs, uint32 sigmaApplied, uint32 sigmaReported, uint32 rv15E9, uint16 dvolE2, int24 refTick, uint16 dispBp, uint8 nSources, uint16 kE4, uint8 zone)`; `state()` as `(uint40,uint32,uint16,uint8,uint32)`; `quoteFee()` as `(uint24,uint8)`. `feePips` takes the same argument order as `ClimFeeMath.feePips`. The video file name `demo-stage.mp4` matches `deck/build-deck.mjs` and the `video.kind` of slide 08 in `deck/v2/slides.json` (`demo-full.mp4` and slide 20 left with the 10-slide cut; the shot names and the build script of the first version were removed on 2026-10-07). Test counts on 2026-10-07: inputs 8, lab 6, fee 5, readme-blocks 10, evidence 6, deck 4, cre-evidence-text 1: 40 in total (36 when this plan was written).
 
-**Validated before writing.** Every code block of Tasks 2 to 9 was run on 2026-10-06 in a scratch copy: `npm test` 33/33 passing, then 36/36 after the fixer pass (rounding, validation input, replay-window context, dollars per $1M, the "More limits" slide; the fixer pass also rebuilt the deck from the real lab outputs and it passed `validate.py`) (with plan 04's `shared/src/units.ts` copied from its plan); the evidence collector end to end against anvil and against the public Sepolia RPC; the secret scan catching a planted key; both mermaid diagrams rendered with mermaid-cli; the video pipeline on synthetic 2880x1800 recordings (1920x1080, 30 fps, H.264 outputs); a 21-slide deck (22 after the fixer pass) with two embedded MP4s passing the pptx skill's `validate.py`, read back with markitdown, and rendered with LibreOffice 26.8.1 for a visual pass (fixes applied: video frames clear of the footer, tighter cards, line breaks in the formula card, shorter link labels). On 2026-10-07 the video pipeline and that deck were replaced by deck v2 and the maintainer's own video (Tasks 7 to 9, 15 to 17); deck v2 was checked with 40 passing tests and a LibreOffice render of its 20 slides.
+**Validated before writing.** Every code block of Tasks 2 to 9 was run on 2026-10-06 in a scratch copy: `npm test` 33/33 passing, then 36/36 after the fixer pass (rounding, validation input, replay-window context, dollars per $1M, the "More limits" slide; the fixer pass also rebuilt the deck from the real lab outputs and it passed `validate.py`) (with plan 04's `shared/src/units.ts` copied from its plan); the evidence collector end to end against anvil and against the public Sepolia RPC; the secret scan catching a planted key; both mermaid diagrams rendered with mermaid-cli; the video pipeline on synthetic 2880x1800 recordings (1920x1080, 30 fps, H.264 outputs); a 21-slide deck (22 after the fixer pass) with two embedded MP4s passing the pptx skill's `validate.py`, read back with markitdown, and rendered with LibreOffice 26.8.1 for a visual pass (fixes applied: video frames clear of the footer, tighter cards, line breaks in the formula card, shorter link labels). On 2026-10-07 the video pipeline and that deck were replaced by deck v2 and the maintainer's own video (Tasks 7 to 9, 15 to 17); deck v2 was checked with 40 passing tests and a LibreOffice render of its 20 slides; its 10-slide cut, with 40 passing tests and a draft build of the 10 exported PNGs (10 slides, 2.0 MB without the video).

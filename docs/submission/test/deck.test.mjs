@@ -23,36 +23,44 @@ function streams(file) {
   return execFileSync("ffprobe", ["-v", "error", "-show_entries", "stream=codec_type", "-of", "csv=p=0", file], { encoding: "utf8" }).trim().split("\n");
 }
 
-test("the v2 manifest has 20 slides, every image, the live numbers filled in and two video slots", () => {
+test("the manifest has 10 slides, every image, the live numbers filled in and one video slot, the stage cut on slide 08", () => {
   const slides = loadManifest();
-  assert.equal(slides.length, 20);
+  assert.equal(slides.length, 10);
   for (const s of slides) {
     assert.ok(s.title && s.text && s.notes, s.png);
     assert.ok(!/\{\{/.test(s.text + s.notes), s.png);
+    assert.match(s.notes, /\n\nSources \(not read aloud\): /, s.png);
   }
-  assert.deepEqual(slides.filter((s) => s.video).map((s) => [s.png, s.video.kind]), [["10-demo.png", "stage"], ["20-a6-full-demo.png", "full"]]);
-  assert.match(slides[8].text, /[\d,]+ CRE reports on the live desk, about one every 30 s \(RiskDesk seq, read /);
+  assert.deepEqual(slides.filter((s) => s.video).map((s) => [s.png, s.video.kind]), [["08-demo.png", "stage"]]);
+  assert.match(slides[6].text, /[\d,]+ CRE reports on the live desk, about one every 30 s \(RiskDesk seq, read /);
 });
 
-test("deck builds with 20 slides, notes carrying the slide text, and both videos with sound", async () => {
+test("deck builds with 10 slides, notes carrying the slide text and the sources, and the stage video with sound", async () => {
   const dir = mkdtempSync(path.join(os.tmpdir(), "clim-deck-"));
   const out = path.join(dir, "clim.pptx");
-  const r = await buildDeck({ videos: { stage: tinyVideo(dir, "demo-stage.mp4"), full: tinyVideo(dir, "demo-full.mp4", { seconds: 2 }) }, outFile: out, work: path.join(dir, "work") });
-  assert.equal(r.slides, 20);
-  assert.deepEqual(r.videos, ["stage", "full"]);
+  const r = await buildDeck({ videos: { stage: tinyVideo(dir, "demo-stage.mp4", { seconds: 2 }) }, outFile: out, work: path.join(dir, "work") });
+  assert.equal(r.slides, 10);
+  assert.deepEqual(r.videos, ["stage"]);
   const entries = zipList(out);
-  assert.equal(entries.filter((e) => /^ppt\/slides\/slide\d+\.xml$/.test(e)).length, 20);
-  assert.equal(entries.filter((e) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(e)).length, 20);
-  assert.equal(entries.filter((e) => /^ppt\/media\/.*\.mp4$/.test(e)).length, 2);
-  const notes9 = execFileSync("unzip", ["-p", out, "ppt/notesSlides/notesSlide9.xml"], { encoding: "utf8" });
-  assert.match(notes9, /Slide text: Live on Sepolia since 6 October\./);
-  assert.match(notes9, /Sources \(not read aloud\):/);
-  assert.ok(streams(path.join(dir, "work", "demo-full.mp4")).includes("audio"));
+  assert.equal(entries.filter((e) => /^ppt\/slides\/slide\d+\.xml$/.test(e)).length, 10);
+  assert.equal(entries.filter((e) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(e)).length, 10);
+  assert.equal(entries.filter((e) => /^ppt\/media\/.*\.mp4$/.test(e)).length, 1);
+  const slide8Rels = execFileSync("unzip", ["-p", out, "ppt/slides/_rels/slide8.xml.rels"], { encoding: "utf8" });
+  assert.match(slide8Rels, /\.mp4"/);
+  for (let i = 1; i <= 10; i++) {
+    const notes = execFileSync("unzip", ["-p", out, `ppt/notesSlides/notesSlide${i}.xml`], { encoding: "utf8" });
+    assert.match(notes, /Slide text: /, `notes of slide ${i}`);
+    assert.match(notes, /Sources \(not read aloud\):/, `notes of slide ${i}`);
+  }
+  const notes7 = execFileSync("unzip", ["-p", out, "ppt/notesSlides/notesSlide7.xml"], { encoding: "utf8" });
+  assert.match(notes7, /Slide text: Live on Sepolia since 6 October\./);
+  assert.ok(streams(path.join(dir, "work", "demo-stage.mp4")).includes("audio"));
 });
 
-test("deck refuses to build without videos unless allowed", async () => {
+test("deck refuses to build without the stage video unless allowed", async () => {
   const dir = mkdtempSync(path.join(os.tmpdir(), "clim-deck-"));
-  await assert.rejects(buildDeck({ videos: {}, outFile: path.join(dir, "a.pptx") }), /demo-stage\.mp4 or demo-full\.mp4 missing/);
+  await assert.rejects(buildDeck({ videos: {}, outFile: path.join(dir, "a.pptx") }), /demo-stage\.mp4 missing/);
+  await assert.rejects(buildDeck({ videos: { stage: path.join(dir, "absent.mp4") }, outFile: path.join(dir, "a.pptx") }), /demo-stage\.mp4 missing/);
   const r = await buildDeck({ videos: {}, outFile: path.join(dir, "out", "b.pptx"), allowMissingVideo: true }); // a missing output folder is created
   assert.deepEqual(r.videos, []);
 });

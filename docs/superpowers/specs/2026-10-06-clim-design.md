@@ -798,6 +798,7 @@ Clustering inflates the variance, so real requirements are larger. The simulatio
 - In the red zone, k = clamp(σ_arb/σ̂, 1, 2), where σ_arb is the volatility implied by the observed arbitrage frequency (§3.10). At P\* = 0.3, σ_arb was 0.91 × σ̂ in February and 1.05 × in October (`lab/out/backtest-summary.json`; 0.78 × and 1.03 × at the old P\* = 10 % setting).
 - k is one-sided, as in Basel and SR 11-7: it penalizes underestimating risk and never rewards overestimating it.
 - **In the hackathon build** the workflow sends `kE4 = 10,000` and `zone = 0`, and the validation runs in the lab. `RiskDesk` already clamps k to [1, 2], so turning k on later is only a workflow change.
+- A volume term (a judge's suggestion, §12) would share k and its [1, 2] bound.
 
 ---
 
@@ -805,7 +806,7 @@ Clustering inflates the variance, so real requirements are larger. The simulatio
 
 On stage there is no live demo. The demo is a recording embedded in the deck (.ppt or .keynote, shared through a Google Drive link).
 
-**Since 2026-10-07** the demo is the maintainer's own video, embedded in deck v2 (plan 06 Tasks 15 to 17; session log 2026-10-07, Decisions "Demo video"): the maintainer on camera, in his own words, then a live demo of the app on Sepolia. Its script is in his private notes. It replaces the screen-only 3-act plan below, which is kept for the record: the recording does not stop the loop, and the blind mode was shown once, on 2026-10-06 (plan 04 Task 23 smoke test).
+**Since 2026-10-07** the demo is the maintainer's own video, embedded in deck v2 (plan 06 Tasks 15 to 17; session log 2026-10-07, Decisions "Demo video"): the maintainer on camera, in his own words, then a live demo of the app on Sepolia. Its script is in his private notes. It replaces the screen-only 3-act plan below, which is kept for the record: the recording does not stop the loop, and the blind mode was shown once, on 2026-10-06 (plan 04 Task 23 smoke test). Since the deck was cut to 10 slides (later on 2026-10-07, after a Chainlink judge's advice; "Pitch structure" below), only the video's 30-second stage cut is embedded, full-bleed on slide 08; the full video is on Google Drive, and its link is the submission's Project link.
 
 **Principle.** Sepolia proves the plumbing, the lab proves the economics. October 2026 is calm, so the live run is visually flat and the highlight is the replay. (A real storm did reach the live desk on 7 October 2026, from 01:58 to 02:51 UTC: σ peaked at 242 %/yr and the fee at 26.50 bp; README, "What's live vs. simulated".)
 
@@ -840,13 +841,14 @@ In the original plan, the acts followed plan 06's first demo script: live first 
 - One chart: the Feb 4 replay.
 - One number: predicted against observed P_trade.
 - Plus a "not one more hook" slide, a competition slide (§11), a ready answer to "why Chainlink?" (FAQ), the math in the appendix, and the answer to the mentor's question on live pools (§5).
+- **The submitted deck (2026-10-07, after a Chainlink judge said judges read the slides simply, for the idea and the criteria, want CRE explained a bit, and like a slide with our CRE feedback):** 10 slides and no appendix: the cover with the live URL, where the idea comes from, the idea (the fee follows the weather), how it works, the results with the 4 February replay, the prediction anyone can check ("not one more volatility fee"), what is live on Sepolia, the 30-second stage video, why Chainlink CRE and our feedback to Chainlink, and the roadmap (not a new DEX, a fee engine for existing ones, Fables first) with the team. What the appendix held, the math, the live-pool answer, safety, limits and the CRE evidence, is in the speaker notes, which a reader (or an AI) reads first. The slide list is plan 06's "Deck content, slide by slide"; the 20-slide version is archived in the Figma file.
 
 **Never cut**
 - CRE → `onReport` → RiskDesk → hook f(σ̂), with its bounds and circuit breaker.
 - The twin pools: S at a fixed fee set at the lab's forecast of V's average fee (live), or at V's exact average (replay).
 - The CRE transaction hashes.
 - The observed-against-predicted P_trade chart.
-- The honest limits slide.
+- The honest limits (in the 10-slide deck: the slide captions and the speaker notes of slides 05 and 07; and the README's Limits).
 
 ---
 
@@ -868,7 +870,7 @@ In the original plan, the acts followed plan 06's first demo script: live first 
 
 ---
 
-## 10. Limits (kept in the deck)
+## 10. Limits (kept in the README and in the deck's speaker notes)
 
 1. **Latency.** The desk uses closed one-minute candles, so a price move enters a report only once its candle has closed (up to 60 s), then waits for the next report (every 30 s); that report reaches a block a median 14 s (p90 25 s) after its observation time (211 live reports, `cre/README.md`). In all, the fee lags the market by about a minute, up to about two. The first leg of a jump is arbitraged at the old fee.
 2. **A modest average gain.** At P\* = 0.3, at equal time-average fee, ARB falls by 15.3 % in the February 2026 storm, 5.5 % in calm October 2026 and 26.9 % over the year; at equal cost to traders, by 2.9 %, 2.3 % and 12.7 % (`lab/out/summary.json`). Against a four times deeper static 5 bp pool with aggregator routing, the LP gains −0.10 to +0.70 %/yr of capital across five retail scenarios (base +0.39 %), +0.40 % on a path twice as volatile, and 53 % of the gain comes from the 5 most turbulent weeks. These are simulations on one price path with a frictionless arbitrageur. It is insurance, not income. The audit's earlier figures at P\* = 10 % (−20 % / −24.5 %, and −14 % to +7 % at equal trader cost) are superseded: the lab reproduces −22.3 % / −25.0 % at P\* = 10 % but not the trader-cost range.
@@ -923,6 +925,13 @@ The FAQ explains why existing Chainlink Data Feeds and Data Streams do not fit.
 - **Signals to continue:** they wire in the number, pay for a pilot or co-sign a study.
 - **Otherwise:** publish the work as research (a paper, or an Uniswap Foundation or Chainlink grant).
 - **Higher-value targets next:** memecoins, where LVR exceeds fees, and tokenized stocks around the market open and close.
+- **Fees that also read volume (a judge's suggestion, 7 October 2026; design, not built).** Volume enters through k, which the desk already sends and `RiskDesk` clamps to [1, 2] (`K_MIN_E4`, `K_MAX_E4`), so the hook does not change:
+  - each run, the workflow reads the clim pool's recent `Swap` events with CRE's EVM client (`EVMClient.filterLogs`) and splits the volume into arbitrage (swaps that move the pool's price toward the venues' median, the arbitrageur of MMR 2023) and uninformed flow;
+  - k rises with the arbitrage share: in Glosten-Milgrom (1985) the spread pays for adverse selection by informed traders, and in Avellaneda-Stoikov (2008) a market maker's quotes depend on volatility and on how order arrivals respond to the spread;
+  - k then carries this term and the model-risk term of §7.6 inside the same bound, so in this build it can only raise the storm premium, and the floor stays the pair's market tier;
+  - lowering the fee to attract volume needs a desk that accepts k < 1, hence a new hook and new pools (`ClimHook.desk` is immutable), and it is not a sure win: Hasbrouck, Rivera and Saleh (2022) show that a higher DEX fee can raise volume by paying LPs to supply depth;
+  - before shipping, the lab backtests it against the same fixed-fee comparator, at equal time-average fee and at equal cost to traders (§2.7, §3.9), and with the same prediction check (§7), with P_trade = 1/(k·η\* + c).
+  - README Roadmap item 4 and the FAQ's last question ("Why not set the fee from volume too?") carry the same design.
 - **CRE feedback:** send the friction log (`docs/feedback/cre-friction-log.md`) to the Chainlink mentor after the hack.
 
 ---
@@ -937,7 +946,8 @@ The FAQ explains why existing Chainlink Data Feeds and Data Streams do not fit.
 - Basel Committee on Banking Supervision (January 1996). "Supervisory framework for the use of 'backtesting' in conjunction with the internal models approach to market risk capital requirements". https://www.bis.org/publ/bcbs22.htm
 - Kupiec, P. (1995). "Techniques for Verifying the Accuracy of Risk Measurement Models". The Journal of Derivatives 3(2), 73-84. doi:10.3905/jod.1995.407942.
 - Board of Governors of the Federal Reserve System and OCC (2011). SR 11-7, "Supervisory Guidance on Model Risk Management".
-- Glosten, Milgrom (1985); Avellaneda, Stoikov (2008), for the market-making framing.
+- Glosten, Milgrom (1985); Avellaneda, Stoikov (2008), for the market-making framing and the volume item of §12.
+- Hasbrouck, Rivera, Saleh (2022). "The Need for Fees at a DEX: How Increases in Fees Can Increase DEX Trading Volume". Working paper. For the volume item of §12.
 
 **Code read for this spec** (scratch clones, 2026-10-06)
 - `Uniswap/v4-core`, `main` at 46c6834 (2026-04-02) and tag `v4.0.0`: `src/PoolManager.sol`, `src/libraries/{LPFeeLibrary,Hooks,Pool,ProtocolFeeLibrary}.sol`, `src/ProtocolFees.sol`, `src/types/{PoolKey,PoolId,PoolOperation}.sol`, `src/interfaces/IPoolManager.sol`.

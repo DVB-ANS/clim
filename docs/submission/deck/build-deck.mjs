@@ -1,12 +1,13 @@
-// Builds docs/submission/out/clim.pptx from the Figma deck v2: one full-bleed PNG per slide (deck/v2/png/),
-// the slide text and speaker notes (deck/v2/slides.json, live numbers from deck/v2/live.json) and the two
-// demo videos dropped by the maintainer in out/video/ (demo-stage.mp4 full-bleed on slide 10, demo-full.mp4 on slide 20).
+// Builds docs/submission/out/clim.pptx from the Figma deck (10 slides): one full-bleed PNG per slide (deck/v2/png/),
+// the slide text and speaker notes (deck/v2/slides.json, live numbers from deck/v2/live.json) and the 30-second stage cut
+// of the demo video dropped by the maintainer in out/video/demo-stage.mp4 (full-bleed on slide 08). The full demo video
+// is not embedded: it goes on Google Drive and its link is the submission's Project link.
 //
-// Usage (from docs/submission): npm run deck                 the final deck, videos required
-//                               npm run deck -- --allow-missing-video   a draft without videos
+// Usage (from docs/submission): npm run deck                 the final deck, the stage video required
+//                               npm run deck -- --allow-missing-video   a draft without the video
 //                               node deck/build-deck.mjs --videos <dir> --out <file.pptx>
 //
-// Videos are copied as they are when they fit the size budget, otherwise re-encoded (H.264 + AAC, faststart)
+// The stage video is copied as it is when it fits the size budget, otherwise re-encoded (H.264 + AAC, faststart)
 // so that the whole .pptx stays under MAX_DECK_MB: Google Drive does not preview larger files.
 import fs from "node:fs";
 import path from "node:path";
@@ -70,25 +71,19 @@ export function posterFrame(video, outPng) {
   return `image/png;base64,${fs.readFileSync(outPng).toString("base64")}`;
 }
 
-// videos: { stage, full } source paths (or null); work: folder for the encoded copies and posters
+// videos: { stage } source path (or null); work: folder for the encoded copy and its poster
 export async function buildDeck({ videos = {}, outFile, allowMissingVideo = false, dir = V2_DIR, work = path.join(P.videoDir, "deck") } = {}) {
-  const slides = loadManifest(dir);
-  const have = { stage: videos.stage && fs.existsSync(videos.stage) ? videos.stage : null, full: videos.full && fs.existsSync(videos.full) ? videos.full : null };
-  if (!allowMissingVideo && (!have.stage || !have.full)) {
-    throw new Error(`demo-stage.mp4 or demo-full.mp4 missing in ${path.relative(REPO_ROOT, P.videoDir)}/: drop both there, or pass --allow-missing-video for a draft`);
+  const stage = videos.stage && fs.existsSync(videos.stage) ? videos.stage : null;
+  if (!allowMissingVideo && !stage) {
+    throw new Error(`demo-stage.mp4 missing in ${path.relative(REPO_ROOT, P.videoDir)}/: drop it there, or pass --allow-missing-video for a draft`);
   }
-  const imagesMb = slides.reduce((a, s) => a + mb(s.pngPath), 0);
-  const budget = MAX_DECK_MB - imagesMb - 1;
+  const slides = loadManifest(dir);
   const embed = {};
-  if (have.stage || have.full) {
-    const durs = { stage: have.stage ? probe(have.stage).duration : 0, full: have.full ? probe(have.full).duration : 0 };
-    const total = durs.stage + durs.full;
-    for (const kind of ["stage", "full"]) {
-      if (!have[kind]) continue;
-      const share = budget * (durs[kind] / total);
-      const file = fitVideo(have[kind], share, path.join(work, `demo-${kind}.mp4`));
-      embed[kind] = { file, cover: posterFrame(file, path.join(work, `poster-${kind}.png`)) };
-    }
+  if (stage) {
+    const imagesMb = slides.reduce((a, s) => a + mb(s.pngPath), 0);
+    const budget = MAX_DECK_MB - imagesMb - 1; // the whole budget goes to the stage video
+    const file = fitVideo(stage, budget, path.join(work, "demo-stage.mp4"));
+    embed.stage = { file, cover: posterFrame(file, path.join(work, "poster-stage.png")) };
   }
 
   const pres = new pptxgen();
@@ -119,9 +114,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const vdir = arg("--videos") ?? P.videoDir;
   const out = arg("--out") ?? path.join(P.outDir, "clim.pptx");
   const r = await buildDeck({
-    videos: { stage: path.join(vdir, "demo-stage.mp4"), full: path.join(vdir, "demo-full.mp4") },
+    videos: { stage: path.join(vdir, "demo-stage.mp4") },
     outFile: out,
     allowMissingVideo: process.argv.includes("--allow-missing-video"),
   });
-  console.log(`wrote ${path.relative(REPO_ROOT, r.outFile)}: ${r.slides} slides, videos: ${r.videos.join(", ") || "none (draft)"}, ${r.sizeMb.toFixed(1)} MB`);
+  console.log(`wrote ${path.relative(REPO_ROOT, r.outFile)}: ${r.slides} slides, video: ${r.videos.join(", ") || "none (draft)"}, ${r.sizeMb.toFixed(1)} MB`);
 }
