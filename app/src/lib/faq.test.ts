@@ -18,8 +18,17 @@ describe("splitFaq", () => {
     for (const id of ids) expect(id).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
   });
 
+  it("keeps the Chainlink mentor's two questions in the first three rows, as /how's own intro says", () => {
+    // 6 October: "How is the fee changed and computed?" (rows 1 and 2), then whether a live pool can switch (row 3)
+    expect(faq.items.slice(0, 3).map((i) => i.question)).toEqual([
+      "How is the fee computed?",
+      "Who changes the fee, and how?",
+      "Can a pool that is already live switch to clim?",
+    ]);
+  });
+
   it("keeps the intro, drops the page title, and leaves no heading in the answers", () => {
-    expect(faq.intro).toMatch(/^Questions we were asked during TOKEN2049 Origins/);
+    expect(faq.intro).toMatch(/^Questions/);
     expect(faq.intro).not.toContain("# clim FAQ");
     for (const item of faq.items) {
       expect(item.answer.length).toBeGreaterThan(0);

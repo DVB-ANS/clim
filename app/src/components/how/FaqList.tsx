@@ -1,5 +1,7 @@
 // The FAQ on /how as hairline accordion rows (native <details>, after the maintainer's reference): the
 // heading and intro on the left (sticky from lg), the questions on the right, every answer collapsed.
+// The questions and answers come from docs/faq.md; the intro is the app's own, so it says which
+// questions were really asked at the event (faq.test.ts keeps those rows first).
 // Rows open independently (no `name`), so nothing above the visitor moves. Each row's id is its
 // question's slug, so /how#can-the-owner-change-the-fee opens that row (FaqHashOpener); the browser's
 // find-in-page opens a row by itself. The open and close motion is in how.css.
@@ -48,7 +50,15 @@ export function FaqList() {
           Frequently asked questions
         </h2>
         <div className="faq-answer mt-4 max-w-[52ch] text-[15px] leading-[1.6] text-fg-muted">
-          <Markdown>{FAQ.intro}</Markdown>
+          <p>
+            Questions about clim, with precise answers. At TOKEN2049 Origins on 6 October, a Chainlink mentor asked two of them: how the fee
+            is changed and computed (the first two answers) and whether a pool that is already live can switch to clim (the third). The
+            others are the questions we expect from judges.
+          </p>
+          <p>
+            Code references point to <a href="https://github.com/DVB-ANS/clim">the clim repository</a> and to{" "}
+            <a href="https://github.com/Uniswap/v4-core">Uniswap v4 core</a>.
+          </p>
         </div>
       </div>
       <div className="mt-8 lg:mt-1">
