@@ -1,6 +1,6 @@
 # clim FAQ
 
-Questions we were asked during TOKEN2049 Origins, with precise answers. Code references point to this repository and to [Uniswap v4 core](https://github.com/Uniswap/v4-core).
+A Chainlink mentor asked the first two questions at TOKEN2049 Origins on 6 October 2026; the others are the ones we expect from judges. Precise answers. Code references point to this repository and to [Uniswap v4 core](https://github.com/Uniswap/v4-core).
 
 ## How is the fee computed?
 

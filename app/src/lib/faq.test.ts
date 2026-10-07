@@ -28,7 +28,7 @@ describe("splitFaq", () => {
   });
 
   it("keeps the intro, drops the page title, and leaves no heading in the answers", () => {
-    expect(faq.intro).toMatch(/^Questions/);
+    expect(faq.intro).toMatch(/^A Chainlink mentor asked the first two questions/);
     expect(faq.intro).not.toContain("# clim FAQ");
     for (const item of faq.items) {
       expect(item.answer.length).toBeGreaterThan(0);
