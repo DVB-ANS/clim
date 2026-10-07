@@ -3915,7 +3915,7 @@ cd /Users/fianso/Development/hackathons/clim/docs/submission && npm test 2>&1 | 
 ```
 Expected: `# pass 40`, `# fail 0`.
 
-- [ ] **Step 2: Read the live report count and write `deck/v2/live.json`** **End of session.**
+- [x] **Step 2: Read the live report count and write `deck/v2/live.json`** Done 2026-10-07: seq 2,211 read at 11:51 UTC (`live.json`), written into nodes 204:216 and 204:217 of frame 204:212, slide 07's last line now "Try it: watch it, check it on Etherscan or swap at clim-zeta.vercel.app" (slides.json too), `07-live.png` re-exported at 3840 x 2160 and checked.
 
 Do this right before the final build: the count grows by about 120 an hour while the loop runs. The fifth value of `state()` is `seq`, the number of reports the live desk applied.
 ```bash
@@ -3927,7 +3927,7 @@ cd /Users/fianso/Development/hackathons/clim && D=$(jq -r .riskDesks.live shared
 ```
 Expected: `{ "seq": <n>, "readUtc": "<d Mon HH:MM UTC>" }`, for example `"seq": 624` and `"readUtc": "6 Oct 22:00 UTC"`. The builder fills `{{LIVE_SEQ}}` (with a thousands comma, for example `1,234`) and `{{LIVE_SEQ_READ}}` in the slide text and notes of `slides.json` from this file.
 
-- [ ] **Step 3: Update slide 07 in Figma, then re-export it** **End of session.**
+- [x] **Step 3: Update slide 07 in Figma, then re-export it** Done 2026-10-07: seq 2,211 read at 11:51 UTC (`live.json`), written into nodes 204:216 and 204:217 of frame 204:212, slide 07's last line now "Try it: watch it, check it on Etherscan or swap at clim-zeta.vercel.app" (slides.json too), `07-live.png` re-exported at 3840 x 2160 and checked.
 
 In Figma file `LyeDZ1KdOYws6nTzD8dI76` (group `204:320` "Pres"), put the same two values as `live.json` in slide 07 (frame `204:212`, "2x 07 · What is live"), keeping the rest of each text and the number format of Step 2: `204:216` "LIVE seq" (the count) and `204:217` "LIVE seq read" (the read time). Slide 07 is the only slide with the live count since the 10-slide cut (the old slide 19's nodes were deleted with section `162:2`).
 
