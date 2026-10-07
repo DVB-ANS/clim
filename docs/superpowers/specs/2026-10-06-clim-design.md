@@ -1,9 +1,9 @@
 # clim · Design spec
 
-> **Status:** v3.2, 2026-10-06 (integration pass of plan 00: one token pair for both suites, `routers.arb`, the closed-candle rule, the full `shared/params.json` schema; fixer pass: `TestToken.faucet()`, the dashboard's wallet, `/swap` and `/lp` pages, 100,000 tETH per pool, a replay operator key, the directional toll stated qualitatively, demo acts reordered; 2026-10-07 consistency pass: the dashboard imported into `app/` with `/` the landing and `/app` the dashboard, DON consensus and signatures stated as what a DON deployment does while the build runs in the one-node simulator, §7 figures at P\* = 0.3, clim's own transactions in Appendix B). This is a living document: when the build or new research contradicts it, update it and log the change in `docs/sessions/<date>.md`.
+> **Status:** v3.2, 2026-10-06 (integration pass of plan 00: one token pair for both suites, `routers.arb`, the closed-candle rule, the full `shared/params.json` schema; fixer pass: `TestToken.faucet()`, the dashboard's wallet, `/swap` and `/lp` pages, 100,000 tETH per pool, a replay operator key, the directional toll stated qualitatively, demo acts reordered; 2026-10-07 consistency pass: the dashboard imported into `app/` with `/` the landing and `/app` the dashboard, DON consensus and signatures stated as what a DON deployment does while the build runs in the one-node simulator, §7 figures at P\* = 0.3, clim's own transactions in Appendix B; 2026-10-07 audit round 3: the model check and the decentralized desk stated as design where they are not built, S described as a fixed fee at the lab's forecast of V's average, the owner's power until renounce, the cron trigger for the loops, the measured mainnet gas, a solo team). This is a living document: when the build or new research contradicts it, update it and log the change in `docs/sessions/<date>.md`.
 > **Supersedes:** the team's private French design notes (v2, 2026-10-06 15:45 SGT) and the audit of the same day. This spec applies the post-audit calibration.
 > **Event:** TOKEN2049 Origins, Singapore, 2026-10-06 to 08. Tracks: Main track and Chainlink "Best workflow with CRE".
-> **Team:** Sofiane Ben Taleb (@gamween), building solo for now. Armand Séchon (@STOOOKEEE) and Noé Wales may join later.
+> **Team:** Sofiane Ben Taleb (@gamween), solo (DeVinci Blockchain, Paris; session log 2026-10-07, Decisions "Team").
 > **Plans:** `docs/superpowers/plans/2026-10-06-clim-00-master.md` (order and gates), then `01` to `06`.
 
 ---
@@ -14,7 +14,7 @@ clim is storm insurance for Uniswap v4 liquidity providers (LPs). When the marke
 
 - **The risk desk** is a Chainlink CRE workflow. Every 30 s it measures ETH realized volatility over the last 15 minutes on four venues (Coinbase, Kraken, Binance, Hyperliquid). It needs at least 3 of them to agree. It takes the median of each field with CRE's consensus API and writes a report to `RiskDesk.sol`. On a DON the nodes agree on that median and sign the report; the hackathon build runs the same workflow in the CRE simulator, on one node, through `MockKeystoneForwarder`, which checks no signature (§6.8).
 - **The quoting engine** is a Uniswap v4 hook (`ClimHook`). On every swap it reads `RiskDesk` and returns a symmetric LP fee with `OVERRIDE_FEE_FLAG`.
-- **The rule** comes from Milionis, Moallemi and Roughgarden (2023) and Nezlobin and Tassy (2025). Above the floor, it sets the fee so that a target share P\* of blocks is arbitraged. That gives a falsifiable prediction, and the desk checks it continuously.
+- **The rule** comes from Milionis, Moallemi and Roughgarden (2023) and Nezlobin and Tassy (2025). Above the floor, it sets the fee so that a target share P\* of blocks is arbitraged. That gives a falsifiable prediction, which the lab and the dashboard check against what happens (in this build the desk sends k = 1 and zone = 0, §7.6).
 
 **Parameters.** All of them are immutable in the hook. P\* = 0.3 (decided by the lab: `lab/out/pstar_decision.json`, `shared/params.json`, etaE4 = 25,093), before the hook is deployed (§2.6).
 
@@ -69,7 +69,7 @@ This measurement predates the hackathon. It is context for the problem, not a re
 - The LP is an insurer, and the fee is its premium.
 - The premium follows the weather: the pair's usual 5 bp when calm, more in a storm.
 - Chainlink CRE plays the part of four weather stations (exchanges) that must agree before the forecast is published.
-- The desk checks its own forecast: the model predicts how often blocks get arbitraged, and the desk compares that prediction with what happens.
+- The forecast is checkable: the model predicts how often blocks get arbitraged, and the lab and the dashboard compare that prediction with what happens. Having the desk itself do it, and raise k, is design only: in this build the workflow sends k = 1 and zone = 0 (§7.6).
 
 ### 2.2 A TradFi two-floor desk
 
@@ -77,7 +77,7 @@ A bank separates a slow **risk desk**, which measures volatility, sets limits an
 - **Risk desk, the CRE workflow.** It measures volatility on several venues and publishes the measure on-chain in a report (signed by the DON once deployed; one simulated node in the hackathon build, §6.8). It never quotes a price; it publishes measurements.
 - **Quoting engine, the v4 hook.** On every swap it applies a frozen policy: the fee is η\* standard deviations of the price move over half a block.
 
-Pitch sentence: "Our fee is the half-spread of a market maker who can only requote once per block. It equals η standard deviations of the price move during the arbitrage latency, with σ supplied by a decentralized risk desk that backtests its own model." We never say "optimal fee".
+Pitch sentence: "Our fee is the half-spread of a market maker who can only requote once per block. It equals η standard deviations of the price move during the arbitrage latency, with σ supplied by a multi-venue Chainlink CRE risk desk (one simulated node in this build, a DON in production) whose model is backtested in the lab and checked on the dashboard." We never say "optimal fee".
 
 ### 2.3 The math
 
@@ -286,7 +286,7 @@ clim/
 
 **Triggers.** Handlers are registered in this order:
 - **[0] cron → `onTick`**, schedule `"*/30 * * * * *"` (6 fields, seconds first). 30 s is the CRE minimum cron interval.
-- **[1] HTTP trigger → `onTick`**, used to drive simulation loops. HTTP triggers are rate-limited to 1 per 30 s, burst 1.
+- **[1] HTTP trigger → `onTick`**, tested in listen mode (friction log rows 11 and 12); the 30 s simulation loops run the cron handler instead, once per `simulate` (`--trigger-index 0`). HTTP triggers are rate-limited to 1 per 30 s, burst 1.
 
 **Config fields**
 | Field | Meaning |
@@ -420,10 +420,10 @@ return (base, 0)                                                       // normal
 **Pool V.** `fee = DYNAMIC_FEE_FLAG` (0x800000), `hooks = ClimHook`.
 
 **Pool S.** A static fee with `hooks = address(0)`.
-- **Comparison fairness:** S charges the same time-average fee as V. S's fee is immutable once the pool is initialized, so it must be chosen beforehand.
+- **Comparison fairness:** S is a fixed fee set at V's expected time-average fee. S's fee is immutable once the pool is initialized, so it must be chosen beforehand: the exact average for the replay pair, a forecast for the live pair.
 - **Replay pair:** S's fee is the exact time-average of V's fee over the replay window, which the lab computes from the replay path before deployment. At the old P\* = 10% setting this was 55.7 bp; at P\* = 0.3 (decided by the lab: `lab/out/pstar_decision.json`, `shared/params.json`, etaE4 = 25,093) it is 15.03 bp (`replayStaticFeePips` = 1,503).
-- **Live pair:** S's fee is the lab's forecast of V's time-average fee over the demo window, from the last 7 days of volatility. Under the post-audit calibration in a calm market, V sits at the 5 bp floor almost all the time, so S is close to 5 bp.
-- **Reporting:** the dashboard shows V's realized time-average fee next to S's fee. If they differ by more than 10%, the live comparison is labeled "not at equal fee", and the lab's comparison is the reference.
+- **Live pair:** S is a fixed fee set at the lab's forecast of V's time-average fee over the demo window, from the last 7 days of volatility (5.11 bp, `staticFeePips` = 511). Under the post-audit calibration in a calm market, V sits at the 5 bp floor almost all the time, so S is close to 5 bp. The forecast missed the 7 October storm: since then V's live average is above S's fee (the dashboard shows both), so the live pair is not at equal average fee.
+- **Reporting:** the dashboard shows V's realized time-average fee next to S's fee. If they differ by more than 10%, it says so (the average fees are more than 10% apart, so the window is not a like-for-like comparison), and the lab's comparison at equal fee is the reference.
 
 **Replay pair.** It shares the tETH/tUSD pair with the live pair, as in plan 04's deployments schema, but has its own `RiskDesk` (REPLAY flag set, with its own operator key as `simOperator`, so the live and replay CRE loops never send from the same key) and its own `ClimHook` bound to that desk. The PoolKeys stay distinct: replay V differs by its hook, and replay S by its fee, because `03_CreatePools` refuses a `replayStaticFeePips` equal to `staticFeePips`. The two pairs have independent prices; only token balances are shared.
 
@@ -644,7 +644,7 @@ The live inputs do change continuously, through reports: σ every 30 s, k ∈ [1
 | CRE DON (production) | Honest median of venue data | Median aggregation per field; signatures checked by `KeystoneForwarder`; on-chain checks and envelope |
 | Venues | Honest prices, at least 3 of 4 fresh | Quorum ≥ 3, median price per minute, published dispersion with a DEGRADED flag |
 | RiskDesk owner | Choice of forwarder and workflow identity | No setter for σ or the fee; envelope and fee clamp bound any abuse (§6.7) |
-| Operator keys (hackathon build) | Every simulated report: each desk's `simOperator` (on the live desk the same key as the owner; the replay desk has its own) | `tx.origin` guard, envelope and fee clamp; `disableSim()` ends it (§6.8) |
+| Operator keys (hackathon build) | Every simulated report: each desk's `simOperator` (on the live desk the same key as the owner; the replay desk has its own) | `tx.origin` guard, envelope and fee clamp; `disableSim()` ends the simulated path (§6.8), but on the live desk the same key, as owner, can still re-point the forwarder until ownership is renounced (§6.7) |
 | ClimHook | Nothing at runtime | Immutable code and parameters; holds no funds |
 
 ### 6.2 DON and consensus
@@ -704,6 +704,8 @@ The owner can, through `Ownable` and `ReceiverTemplate`, all `onlyOwner`:
 1. after `setForwarderAddress(KeystoneForwarder)`, `setExpectedWorkflowId(id)` and `disableSim()`, the owner calls `renounceOwnership()`;
 2. or the owner hands ownership to a multisig with a timelock.
 
+On a DON, once the expected workflow ID is pinned, simulation disabled and ownership renounced, no single key can write the desk.
+
 The hackathon deployment keeps an owner, because it must switch forwarders. On the live desk the owner key is also `simOperator`, so that key can post reports itself through `MockKeystoneForwarder` until `disableSim()`, and after it, as owner, through a forwarder it points the desk at: the owner key can post reports until ownership is renounced, always inside the envelope and the fee clamp. The README and FAQ say so.
 
 ### 6.8 Simulation caveats (the hackathon build)
@@ -729,7 +731,7 @@ The hackathon deployment keeps an owner, because it must switch forwarders. On t
 
 ---
 
-## 7. Validation: the desk checks its own model
+## 7. Validation: checking the model (lab and dashboard)
 
 ### 7.1 A falsifiable prediction
 
@@ -841,7 +843,7 @@ In the original plan, the acts followed plan 06's first demo script: live first 
 
 **Never cut**
 - CRE → `onReport` → RiskDesk → hook f(σ̂), with its bounds and circuit breaker.
-- The twin pools at equal average fee.
+- The twin pools: S at a fixed fee set at the lab's forecast of V's average fee (live), or at V's exact average (replay).
 - The CRE transaction hashes.
 - The observed-against-predicted P_trade chart.
 - The honest limits slide.
@@ -876,7 +878,7 @@ In the original plan, the acts followed plan 06's first demo script: live first 
 6. **DVOL.** It is a single source and carries little short-term information. No variance premium is visible at 1 minute (DVOL²/RV² ≈ 0.98).
 7. **Sources.** Binance returns HTTP 451 to US IPs, and where DON nodes run is unknown. USDT/USD basis and perp premiums are covered by the quorum, with no guarantee in a crisis.
 8. **Fast chains.** With Δt ≈ 0.25 s the floor dominates; an effective Δt must be calibrated.
-9. **Cost on Ethereum mainnet.** Publishing every 30 s would cost an estimated $60k to $110k a year in gas (audit estimate). An L2 is almost free but brings limit 8. Production would publish on deviation plus a heartbeat, or on an L2.
+9. **Cost on Ethereum mainnet.** Publishing every 30 s would cost an estimated $60k to $110k a year in gas (audit estimate), at 0.12 to 0.22 gwei and $2,700 per ETH: 175,253 gas per report (median of the live Sepolia reports through the mock forwarder) times about 1.05 million reports a year is about 184 ETH a year per gwei (about $500k a year at 1 gwei), before the DON forwarder's signature checks. An L2 is almost free but brings limit 8. Production would publish on deviation plus a heartbeat, or on an L2.
 10. **Governance.** Parameters are immutable, so a new profile means migrating liquidity (§5.7). The desk owner is a trust assumption until ownership is renounced (§6.7). Nothing has been audited.
 
 ---
@@ -896,9 +898,9 @@ In the original plan, the acts followed plan 06's first demo script: live first 
 Angstrom (Sorella) attacks LVR differently, through app-specific sequencing on v4. Apart from Meteora, these were found in pre-hack and design-phase research and not re-verified for this spec. **Never pitch "volatility-based fees" as the novelty.**
 
 **What we believe is defensible**
-1. The fee is quoted in units of σ, with a closed-form, **falsifiable** prediction (P_trade) that is checked continuously, with simulated, clustering-aware thresholds and a severity test.
+1. The fee is quoted in units of σ, with a closed-form, **falsifiable** prediction (P_trade) that is checked in the lab and on the dashboard, with simulated, clustering-aware thresholds and a severity test.
 2. σ comes from a **multi-venue, USD-normalized consensus**: a median per field (across the nodes on a DON; one simulated node in the hackathon build), a quorum, and published dispersion and flags.
-3. The desk **backtests its own model** in Basel style, with a one-sided model-risk multiplier.
+3. The model is **backtested** in Basel style (in the lab in this build), with a one-sided model-risk multiplier k that the desk would apply once the workflow sends it (design; k = 1 and zone = 0 here, §7.6).
 4. The LP's **P&L explain** can be recomputed from logs alone (`RiskReported` and `Swap`).
 5. A **negative result** on oracle-referenced directional tolls, tested during design and stated qualitatively (§2.9).
 
@@ -987,7 +989,7 @@ The FAQ explains why existing Chainlink Data Feeds and Data Streams do not fit.
 These go in the session log or the friction log when they are answered.
 
 1. Does `cre workflow simulate --broadcast` send the `onReport` transaction from the key in the CRE `.env`, so that `tx.origin == simOperator` holds? **Answered while planning (plan 04): yes.** Sepolia tx `0xe57a006e7585984137cb5064d6be6fc7b9353194760178b85a78274c8785fa2c` (another project's, mined before clim was deployed) sends `report()` from an EOA straight to the mock forwarder. Plan 02 Task 10 confirmed it on our own desk: clim's first report, tx `0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6`, goes from our operator key `0x53aB240f6cffC204FC22ac6722D9632d753a5A82` to the mock.
-2. Does the HTTP trigger work with `--broadcast`? If not, use a shell loop with the cron trigger, non-interactive, at trigger index 0.
+2. Does the HTTP trigger work with `--broadcast`? If not, use a shell loop with the cron trigger, non-interactive, at trigger index 0. **Answered (plan 02): the loops use the cron trigger at index 0, non-interactive, in a shell loop (`cre/scripts/sim-loop.sh`); the HTTP trigger was only tested, once in a dry run and in listen mode (friction log rows 11 and 12).**
 3. Can the simulator reach a localhost replay server? If not, use a public tunnel.
 4. Does `uniswap-hooks` v1.2.1 or `main` compile with the chosen v4-core and v4-periphery commits? Which `HookMiner` path applies (§3.6)? **Answered while planning (plan 01): v1.2.1 with its own pins (v4-core `d153b04`, v4-periphery `7ebd04b`) compiles with solc 0.8.26 / cancun, and `HookMiner` is `@uniswap/v4-periphery/src/utils/HookMiner.sol`.**
 5. Should OKX back up Binance in case of HTTP 451 in the DON? **Assigned:** plan 02 Task 10 Step 7 measures how often Binance is dropped; OKX is added only above 10 % of runs.

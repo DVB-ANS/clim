@@ -4,7 +4,7 @@
 
 **Goal:** A Chainlink CRE workflow, `cre/risk-desk`, that every 30 s measures ETH 15-minute realized volatility on four venues with a 3-of-4 quorum, reaches DON consensus field by field (median), and writes the canonical signed report to `RiskDesk.onReport` on Ethereum Sepolia. It is proven by `cre workflow simulate --broadcast` transactions, and by a DON deployment if deploy access is granted.
 
-**Architecture:** One TypeScript workflow with two handlers that share `onTick`: [0] cron `*/30 * * * * *`, [1] HTTP trigger (to drive simulation). In node mode it fetches six public endpoints concurrently and runs a pure estimator. In DON mode it aggregates with `ConsensusAggregationByFields(median)`, reads `RiskDesk.state()`, signs with `runtime.report`, writes with `EVMClient.writeReport`, then re-reads `state()` to confirm that the desk applied the report. The pure modules (estimator, parsers, report encoding) are built test-first on fixtures captured from the real endpoints. The wiring is built test-first with the SDK's test runtime and capability mocks.
+**Architecture:** One TypeScript workflow with two handlers that share `onTick`: [0] cron `*/30 * * * * *`, [1] HTTP trigger (tested in listen mode; the 30 s loops run the cron handler, `--trigger-index 0`). In node mode it fetches six public endpoints concurrently and runs a pure estimator. In DON mode it aggregates with `ConsensusAggregationByFields(median)`, reads `RiskDesk.state()`, signs with `runtime.report`, writes with `EVMClient.writeReport`, then re-reads `state()` to confirm that the desk applied the report. The pure modules (estimator, parsers, report encoding) are built test-first on fixtures captured from the real endpoints. The wiring is built test-first with the SDK's test runtime and capability mocks.
 
 **Tech Stack:** CRE CLI v1.37.0, `@chainlink/cre-sdk` 1.23.0, viem 2.57.3, zod 3.25.76, TypeScript 5.9.3, bun 1.3.9 (runtime, test runner, `cre-compile` to WASM), Foundry `cast` and `jq` for on-chain checks.
 
@@ -234,7 +234,9 @@ git commit -m "docs(cre): log CRE toolchain, deploy-access request and planning-
 ```yaml
 # clim CRE project settings (cre CLI >= 1.37).
 # Targets: staging-settings = live simulation, replay-settings = replay simulation,
-# production-settings = DON deployment (private registry). Every target must also exist in risk-desk/workflow.yaml.
+# production-settings = a DON target (private registry) that was never used: DON deploy access was not granted,
+# so its config.production.json keeps the placeholder desk 0x...dEaD (riskDesks.don is null in shared/deployments).
+# Every target must also exist in risk-desk/workflow.yaml.
 staging-settings:
   rpcs:
     - chain-name: ethereum-testnet-sepolia
@@ -2283,7 +2285,7 @@ A box "Simulation complete! Ready to deploy your workflow? Run cre account acces
 
   If n < 4, write the venue and the reason in the session log. If the reason is on the CRE side (for example egress or a timeout), also add a friction row.
 
-- [x] **Step 3: Run the HTTP handler once (the trigger used to drive simulation loops)**
+- [x] **Step 3: Run the HTTP handler once (tested here and in listen mode, Task 9 Step 4; the loops use the cron handler)**
 
 ```bash
 (cd cre && cre workflow simulate risk-desk --non-interactive --trigger-index 1 --http-payload '{}' --target staging-settings)
@@ -2956,7 +2958,7 @@ The risk desk is the CRE half of clim. Every 30 seconds it measures ETH realized
 
 ## What one execution does
 
-1. **Trigger.** Cron `*/30 * * * * *` (handler 0) or an HTTP trigger (handler 1, used to drive local simulation). Both run the same `onTick`.
+1. **Trigger.** Cron `*/30 * * * * *` (handler 0) or an HTTP trigger (handler 1, tested in listen mode). Both run the same `onTick`. The 30 s simulation loops use the cron handler: each `simulate` run fires it once (`--trigger-index 0` in `scripts/sim-loop.sh`, which `bun run cre-loop` in `bots/` wraps).
 2. **Observe, on every node** (`runInNodeMode`, 6 HTTP calls, sent concurrently):
    - 1-minute ETH candles from Coinbase Advanced (ETH-USD), Kraken (ETHUSD), Binance via `data-api.binance.vision` (ETHUSDT) and Hyperliquid (`candleSnapshot`, ETH perp);
    - Deribit ETH DVOL (diagnostic only);
@@ -3006,7 +3008,7 @@ Replay mode (`--target replay-settings`, `mode: "replay"`) fetches, for each con
 
 | Path | Role |
 |---|---|
-| `project.yaml` | Targets `staging-settings` (live simulation), `replay-settings`, `production-settings` (DON deployment), Sepolia RPC |
+| `project.yaml` | Targets `staging-settings` (live simulation) and `replay-settings`, Sepolia RPC. A third target, `production-settings`, is a DON target whose `config.production.json` keeps a placeholder desk address (`0x…dEaD`); it was never used, because DON deploy access was not granted |
 | `risk-desk/workflow.yaml` | Workflow name, entry point and config file per target |
 | `risk-desk/main.ts` | Runner entry point |
 | `risk-desk/workflow.ts` | Triggers, node-mode observation, consensus, report, write and confirmation |

@@ -81,7 +81,7 @@ Task 12 runs `npm run check`, which prints OK, MISSING or INVALID for each input
 | `.gitignore` | Modify: ignore `docs/submission/out/` (Task 1). |
 | `docs/submission/package.json` | Node package for the submission tooling (scripts: `test`, `check`, `check:final`, `evidence`, `readme`, `deck`, `deck:draft`, `evidence:text`, `scan`). |
 | `docs/submission/links.json` | Repo, live, deck and video URLs (filled as they exist). |
-| `docs/submission/team.json` | Team members shown in the README and the deck. |
+| `docs/submission/team.json` | Team members shown in the README (the deck's team slide is drawn in Figma). |
 | `docs/submission/src/paths.mjs` | Every input and output path, resolved from the repo root. |
 | `docs/submission/src/inputs.mjs` | JSON loader, structural specs (lab schemas of plan 05), address walker. |
 | `docs/submission/src/lab.mjs` | Facts derived from the lab outputs (replay statistics, severity range). |
@@ -185,6 +185,9 @@ exit=1
   "dependencies": {
     "pptxgenjs": "4.0.1",
     "viem": "2.57.3"
+  },
+  "overrides": {
+    "image-size": "2.0.4"
   }
 }
 ```
@@ -565,6 +568,7 @@ export const REPO_ROOT = path.resolve(SUBMISSION_DIR, "..", "..");
 
 export const P = {
   deployments: path.join(REPO_ROOT, "shared/deployments/sepolia.json"),
+  replayDesk: path.join(REPO_ROOT, "contracts/deployments/11155111/desk-replay.json"),
   params: path.join(REPO_ROOT, "shared/params.json"),
   backtest: path.join(REPO_ROOT, "lab/out/backtest-summary.json"),
   replay: path.join(REPO_ROOT, "lab/out/replay-2026-02-04.json"),
@@ -581,7 +585,7 @@ export const P = {
 
 `docs/submission/src/inputs.mjs`:
 ```js
-// Loaders and structural checks for every input the README and the deck consume.
+// Loaders and structural checks for every input the README generator and the evidence tools consume.
 import { readFileSync } from "node:fs";
 
 export function readJson(file) {
@@ -827,7 +831,7 @@ export function usdPerMillion(pctPerYear) {
   return `${pctPerYear < 0 ? "-" : ""}$${usd.toLocaleString("en-US")}`;
 }
 
-// The replay window against the rolling windows, said the same way in the README and the deck. The 4 February
+// The replay window against the rolling windows, said the same way in the README (deck v2's slides.json carries its text by hand). The 4 February
 // 12:00-16:00 window is not one of the rolling windows (those start at :16 past each hour): it is compared with
 // them, never ranked among them.
 export function replayChoiceNote(stats, pStar) {
@@ -925,7 +929,7 @@ Expected: FAIL with `Cannot find module '.../docs/submission/src/fee.mjs'`.
 
 `docs/submission/src/fee.mjs`:
 ```js
-// Fee helpers for the README and the deck. The formula itself lives in shared/src/units.ts (plan 04), the TypeScript
+// Fee helpers for the README. The formula itself lives in shared/src/units.ts (plan 04), the TypeScript
 // mirror of ClimFeeMath that the bots and the app also use; Node 22 imports it directly (type stripping).
 export {
   SECONDS_PER_YEAR,
@@ -978,7 +982,7 @@ const fx = (name) => readJson(new URL(`./fixtures/${name}`, import.meta.url));
 test("links: one bold row, empty URLs marked, the CRE documents linked", () => {
   const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example" }, { evidenceReady: true });
   assert.equal(out.split("\n").length, 1);
-  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* · /);
+  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\/app\)\*\* · /);
   assert.match(out, / · \*\*Video demo\*\* _\(added at submission\)_ · \*\*Deck\*\* _\(added at submission\)_ · /);
   assert.match(out, /\*\*\[CRE evidence\]\(docs\/evidence\/\)\*\*/);
   assert.match(out, /\*\*\[CRE DevEx report\]\(docs\/feedback\/cre-devex-report\.md\)\*\*/);
@@ -988,7 +992,7 @@ test("links: one bold row, empty URLs marked, the CRE documents linked", () => {
 
 test("links: CRE evidence falls back to cre/README.md until docs/evidence exists", () => {
   const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example" });
-  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* · /);
+  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\/app\)\*\* · /);
   assert.match(out, /\*\*\[CRE evidence\]\(cre\/README\.md#evidence\)\*\*/);
   assert.doesNotMatch(out, /docs\/evidence/);
   assert.match(renderAll({ links: fx("links.json"), evidence: fx("evidence.json") }).links, /\[CRE evidence\]\(docs\/evidence\/\)/);
@@ -1028,6 +1032,11 @@ test("deployments: unknown keys still listed, fixed-fee twins show their fee", (
   assert.match(out, /\|  \| `PoolModifyLiquidityTest` \| \[`0x88888888…8888`\]\([^)]+\) \|  \| test liquidity router: .+ does not tie a position to its owner \(see \[Limits\]\(#limits\)\) \|/);
   assert.match(out, /`RiskDesk` \(replay\) \| \[`0x77777777…7777`\]\([^)]+\) \| \[Sourcify\]\([^)]+\) \| received the CRE reports of the 4 February 2026 storm, replayed/);
   assert.doesNotMatch(out, /0x0000000000/);
+  assert.doesNotMatch(out, /Operator \(replay\)/);
+  // The replay desk's own simOperator, from contracts/deployments, is listed right after the live Operator.
+  const withReplayOp = renderDeployments(d, { replayDesk: { simOperator: "0x9999999999999999999999999999999999999999" } });
+  assert.match(withReplayOp, /\| Operator \| \[`0x55555555…5555`\]\([^)]+\) \|  \| [^\n]+\n\|  \| Operator \(replay\) \| \[`0x99999999…9999`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0x9999999999999999999999999999999999999999\) \|  \| the replay desk's `simOperator`: sent all 459 of its simulated reports/);
+  assert.doesNotMatch(renderDeployments(d, { replayDesk: { simOperator: d.deployer } }), /Operator \(replay\)/);
 });
 
 test("params and fee schedule at P* = 30%", () => {
@@ -1131,9 +1140,10 @@ export function link(url, text) {
 }
 
 // Until docs/evidence/ exists (plan 06 Task 13), "CRE evidence" points to the evidence section of cre/README.md.
+// The live URL is the site root (the landing page); the dashboard itself is at /app.
 export function renderLinks(links, { evidenceReady = false } = {}) {
   return [
-    link(links.liveUrl, "Open the dashboard"),
+    link(links.liveUrl && `${links.liveUrl.replace(/\/+$/, "")}/app`, "Open the dashboard"),
     link(links.videoUrl, "Video demo"),
     link(links.deckUrl, "Deck"),
     link(evidenceReady ? "docs/evidence/" : "cre/README.md#evidence", "CRE evidence"),
@@ -1184,7 +1194,11 @@ const DYNAMIC_FEE_FLAG = 0x800000;
 // no Sourcify link here.
 const SOURCIFY_VERIFIED = new Set(["riskDesks.live", "hooks.live", "riskDesks.replay", "hooks.replay", "tokens.tETH.address", "tokens.tUSD.address", "routers.arb"]);
 
-export function renderDeployments(deployments) {
+// The replay desk's own simOperator (contracts/deployments/11155111/desk-replay.json): the key that sent every replay
+// report. It is not in shared/deployments, so it is passed in separately and listed right after the live Operator.
+const REPLAY_OPERATOR_ROLE = "the replay desk's `simOperator`: sent all 459 of its simulated reports through `MockKeystoneForwarder` (simulation still on)";
+
+export function renderDeployments(deployments, { replayDesk = null } = {}) {
   const { addresses, poolIds } = collectAddresses(deployments);
   const byKey = new Map(addresses.map((a) => [a.label, a.address]));
   const known = new Set();
@@ -1192,7 +1206,12 @@ export function renderDeployments(deployments) {
     group,
     entries.flatMap(([key, label, role]) => {
       known.add(key);
-      return byKey.has(key) ? [{ label, address: byKey.get(key), role, verified: SOURCIFY_VERIFIED.has(key) }] : [];
+      const row = byKey.has(key) ? [{ label, address: byKey.get(key), role, verified: SOURCIFY_VERIFIED.has(key) }] : [];
+      const replayOp = replayDesk?.simOperator;
+      if (key === "deployer" && /^0x[0-9a-fA-F]{40}$/.test(replayOp ?? "") && replayOp.toLowerCase() !== byKey.get(key)?.toLowerCase()) {
+        row.push({ label: "Operator (replay)", address: replayOp, role: REPLAY_OPERATOR_ROLE, verified: false });
+      }
+      return row;
     }),
   ]);
   groups.push(["Other", addresses.filter((a) => !known.has(a.label)).map((a) => ({ label: `\`${a.label}\``, address: a.address, role: "", verified: false }))]);
@@ -1314,13 +1333,13 @@ const SOURCES = {
   team: "docs/submission/team.json",
 };
 
-export function renderAll({ deployments, params, backtest, replay, validation, links, evidence, team }) {
+export function renderAll({ deployments, params, backtest, replay, validation, links, evidence, team, replayDesk = null }) {
   return {
     links: links ? renderLinks(links, { evidenceReady: Boolean(evidence) }) : pending(SOURCES.links),
     results: backtest && replay ? renderResults(backtest, replay, validation) : pending(SOURCES.results),
     params: params ? renderParams(params) : pending(SOURCES.params),
     "fee-schedule": params ? renderFeeSchedule(params) : pending(SOURCES["fee-schedule"]),
-    deployments: deployments ? renderDeployments(deployments) : pending(SOURCES.deployments),
+    deployments: deployments ? renderDeployments(deployments, { replayDesk }) : pending(SOURCES.deployments),
     evidence: evidence ? renderEvidence(evidence) : pending(SOURCES.evidence),
     team: team ? renderTeam(team) : pending(SOURCES.team),
   };
@@ -1355,6 +1374,7 @@ const inputs = {
   links: load(P.links),
   evidence: load(P.evidence),
   team: load(P.team),
+  replayDesk: load(P.replayDesk),
 };
 
 if (inputs.params && provisionalErrors(inputs.params).length) {
@@ -1415,7 +1435,7 @@ Glue only (the checks themselves are tested in Task 2), so no new unit test.
 
 `docs/submission/src/check-inputs.mjs`:
 ```js
-// Prints OK / MISSING / INVALID for every input of the README and the deck. Usage: node src/check-inputs.mjs [--final]
+// Prints OK / MISSING / INVALID for every input of the README generator (deck v2 is checked by deck/build-deck.mjs, which reads deck/v2/slides.json and live.json). Usage: node src/check-inputs.mjs [--final]
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { P, REPO_ROOT } from "./paths.mjs";
@@ -1427,6 +1447,7 @@ const items = [
     ...(collectAddresses(d).addresses.length ? [] : ["no 0x address found"]),
     ...(deskAddresses(d).length ? [] : ["no address under a key containing 'desk'"]),
   ]],
+  [P.replayDesk, (d) => (/^0x[0-9a-fA-F]{40}$/.test(d.simOperator ?? "") ? [] : ["simOperator: not a 0x address"])],
   [P.params, (d) => [...check(PARAMS_SPEC, d), ...provisionalErrors(d)]],
   [P.backtest, (d) => [...schemaErrors(d, BACKTEST_SCHEMA), ...check(BACKTEST_SPEC, d)]],
   [P.replay, (d) => [...schemaErrors(d, REPLAY_SCHEMA), ...check(REPLAY_SPEC, d)]],
@@ -2643,7 +2664,7 @@ export function addSlides(pres, d) {
   stat(s11, { x: M, y: 1.6, w: 4.6, value: `${Math.round(bt.inPoolVolGainSharePct.low)}–${Math.round(bt.inPoolVolGainSharePct.high)}%`, label: "of the desk's gain is also captured by a volatility measured inside the pool (our lab). So CRE is about trust, not about the number.", color: C.sky, valueSize: 54, name: "s11-honest" });
   [
     ["Four exchanges must agree", "Nobody moves the fee with fake trades on the pool."],
-    ["One signed report", "On a DON it arrives through the KeystoneForwarder, with no keeper key. In simulation our operator key submits it."],
+    ["One signed report", "On a DON, once the owner renounces, it arrives through the KeystoneForwarder with no keeper key. In simulation our operator key submits it."],
     ["One figure, many pools and chains", "CRE writes to EVM chains and to Solana."],
     ["Model control off-chain", "k can only make the fee more prudent. k = 1 in this build: the model check runs in the lab."],
   ].forEach(([h, b], i) => {
@@ -2726,7 +2747,7 @@ export function addSlides(pres, d) {
     ["DVOL", "A single source with little short-term information: published as a diagnostic, never used in the fee."],
     ["Sources", "Binance answers HTTP 451 to US IPs, and where DON nodes run is unknown. A quorum of 3 of 4 survives one missing venue, not two."],
     ["Fast chains", "With sub-second blocks the formula sits at the floor until an effective Δt, the arbitrageurs' reaction time, is calibrated."],
-    ["Cost on Ethereum mainnet", "A report every 30 s would cost an estimated $60k to $110k a year in gas. Production would publish on deviation plus a heartbeat, or on an L2."],
+    ["Cost on Ethereum mainnet", "A report every 30 s would cost an estimated $60k to $110k a year in gas at 0.12 to 0.22 gwei and $2,700 per ETH. Production would publish on deviation plus a heartbeat, or on an L2."],
     ["Governance, not audited", "Immutable parameters: a new profile needs a new pool. The desk owner is a trust assumption until it renounces. Testnet code, not audited."],
   ].forEach(([h, b], i) => {
     const col = i % 2;
@@ -3015,7 +3036,7 @@ flowchart LR
    PoolManager calls `beforeSwap`; the hook reads `RiskDesk.state()` and returns the fee with
    `OVERRIDE_FEE_FLAG`. If the desk has been silent for longer than the kill delay (blind) or the
    venues disagree (degraded), the hook quotes at least the safe fee.
-4. **Dashboard** ([clim-zeta.vercel.app](https://clim-zeta.vercel.app), reading Sepolia). From
+4. **Dashboard** ([clim-zeta.vercel.app/app](https://clim-zeta.vercel.app/app), reading Sepolia). From
    `RiskReported` and `Swap` events it shows the desk, the clim pool's fee next to a fixed-fee twin
    pool and how often each one gets arbitraged (`/app`), plus the test-token faucet, the fee before
    a swap (`/swap`), liquidity for either pool (`/lp`) and every contract with its Etherscan and
@@ -3046,8 +3067,8 @@ On-chain it is integer arithmetic, without logarithms or square roots:
 
 ### Nobody "changes" the fee
 
-There is no keeper, no admin call and no fee-update transaction. The fee is recomputed inside every
-swap:
+No keeper sets the fee: there is no admin call and no fee-update transaction. The fee is
+recomputed inside every swap:
 
 ```mermaid
 sequenceDiagram
@@ -3098,10 +3119,12 @@ CRE is not what makes the number possible. It is what makes it **trustworthy**:
 
 - **Four exchanges must agree.** Nobody can push the fee around with fake trades on the pool, and a
   venue that freezes or diverges is dropped or flags the desk as degraded.
-- **On a DON: one signed report, no keeper key.** Reports come through Chainlink's
-  `KeystoneForwarder`, which checks the DON's signatures. Today, in simulation, the operator key
-  submits them through `MockKeystoneForwarder`, so that key plays the keeper, inside the envelope
-  (see [How it works](#how-it-works)).
+- **On a DON: one signed report, and no single key once the owner renounces.** Reports come
+  through Chainlink's `KeystoneForwarder`, which checks the DON's signatures: on a DON, once the
+  expected workflow ID is pinned, simulation disabled and ownership renounced, no single key can
+  write the desk (until then the owner key can re-point the forwarder). Today, in simulation, the
+  operator key submits the reports through `MockKeystoneForwarder`, so that one key is trusted to
+  post the volatility, inside the envelope (see [How it works](#how-it-works)).
 - **One figure for many pools and chains.** CRE can write the same report to other EVM chains and
   to Solana.
 - **Room for model control.** The desk could compare its own prediction with what happens on-chain
@@ -3124,7 +3147,7 @@ last updated on 2024-08-30): a storm that lasts an hour barely moves them ([FAQ]
 
 | File | What it does |
 |---|---|
-| [`cre/project.yaml`](cre/project.yaml) | The CRE project: targets `staging-settings` (live simulation), `replay-settings` and `production-settings` (DON deployment), Sepolia RPC |
+| [`cre/project.yaml`](cre/project.yaml) | The CRE project: targets `staging-settings` (live simulation) and `replay-settings`, Sepolia RPC. A third target, `production-settings`, is a DON target with a placeholder desk address, never used because DON deploy access was not granted |
 | [`cre/risk-desk/workflow.yaml`](cre/risk-desk/workflow.yaml) | Workflow name, entry point and config file per target |
 | [`cre/risk-desk/main.ts`](cre/risk-desk/main.ts) | The runner entry point |
 | [`cre/risk-desk/workflow.ts`](cre/risk-desk/workflow.ts) | Cron and HTTP triggers, node-mode observation, consensus by median, `runtime.report`, `EVMClient.writeReport` and the read-back of `RiskDesk.state()` |
@@ -3234,8 +3257,9 @@ and, for anything that writes on-chain, a Sepolia RPC URL and funded testnet key
 git clone --recurse-submodules https://github.com/DVB-ANS/clim && cd clim
 bun install                             # root workspace: shared and bots
 
-(cd contracts && forge test)            # contracts: unit and fuzz tests; the 3 Sepolia fork tests
-                                        # skip unless SEPOLIA_RPC_URL is set in contracts/.env (see .env.example)
+(cd contracts && forge test)            # contracts: unit and fuzz tests; without SEPOLIA_RPC_URL in contracts/.env
+                                        # (see .env.example) the 3 Sepolia fork tests skip: 73 passed, 2 skipped (75 total)
+                                        # (forge counts the 2-test fork suite, skipped in setUp, as one)
 (cd lab && uv sync && uv run pytest)    # lab: backtests and model checks; a fresh clone has no lab/data/
                                         # (gitignored), so 77 tests run and the 5 that read it skip
 
@@ -3312,8 +3336,10 @@ drives the fee.
 - **Sources.** Binance answers HTTP 451 to US IP addresses. A quorum of 3 out of 4 venues survives
   one missing venue, not two.
 - **Cost on mainnet.** Publishing every 30 s on Ethereum would cost an estimated $60k to $110k a
-  year in gas (design audit estimate); production would publish on deviation plus a heartbeat, or
-  on an L2.
+  year in gas at 0.12 to 0.22 gwei and $2,700 per ETH: 175,253 gas per report (the median of 1,359
+  live Sepolia reports through the mock forwarder, to 7 October) times about 1.05 million reports a
+  year is about 184 ETH a year per gwei of gas price (about $500k a year at 1 gwei), before the DON
+  forwarder's signature checks. Production would publish on deviation plus a heartbeat, or on an L2.
 - **Fast chains.** With sub-second blocks the formula sits at the floor until an effective Δt (the
   arbitrageurs' reaction time) is calibrated.
 - **Test liquidity router.** The pools' seed liquidity and the positions added at `/lp` go through
@@ -3485,7 +3511,7 @@ It would capture most of the gain: in our lab, a volatility computed from the po
 
 ## Is the CRE consensus real in your demo?
 
-Not in simulation, and we say so. `cre workflow simulate` runs a single node, and on Sepolia the `--broadcast` path goes through `MockKeystoneForwarder`, which does not verify signatures. We compensate in two ways: `RiskDesk` accepts simulated reports only when `tx.origin` is our operator key (the demo shows a forged report being rejected; that key is also the desk's owner, so in simulation it is the one trusted sender, see "Can the owner change the fee?"), and the workflow is written with the CRE consensus API (median of each field) for a DON, but it has not run on one: DON deploy access was requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon (still "Not enabled" on 7 October), so the DON deployment was cut. On a DON, reports would arrive through the production `KeystoneForwarder`; the owner would point `RiskDesk` at it and pin the expected workflow ID (`ReceiverTemplate`'s identity checks), and only then call `disableSim()` and renounce ownership.
+Not in simulation, and we say so. `cre workflow simulate` runs a single node, and on Sepolia the `--broadcast` path goes through `MockKeystoneForwarder`, which does not verify signatures. We compensate in two ways: `RiskDesk` accepts simulated reports only when `tx.origin` is our operator key (the demo shows a forged report being rejected; that key is also the desk's owner, so in simulation it is the one trusted sender, see "Can the owner change the fee?"), and the workflow is written with the CRE consensus API (median of each field) for a DON, but it has not run on one: DON deploy access was requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon (still "Not enabled" on 7 October), so the DON deployment was cut. On a DON, reports would arrive through the production `KeystoneForwarder`; the owner would point `RiskDesk` at it and pin the expected workflow ID (`ReceiverTemplate`'s identity checks), and only then call `disableSim()` and renounce ownership. From then on no single key can write the desk.
 
 ## Is it profitable?
 
@@ -3513,7 +3539,7 @@ Every report, whoever sends it, stays bounded:
 
 That still leaves room: from a calm 12% a year, 7 reports, a few minutes in all, reach the 1000% ceiling (about 109 bp at k = 1, the 150 bp cap at k = 2), and a report that declares more than 25 bp of dispersion flags the desk as degraded, which lifts the fee to at least the 30 bp safe fee.
 
-On a DON, `RiskDesk` would accept only the DON's signed reports: the owner switches to the `KeystoneForwarder` and pins the expected workflow ID (`ReceiverTemplate`'s identity checks) before it calls `disableSim()` (irreversible) and renounces ownership (or hands it to a timelocked multisig). The hackathon deployment keeps an owner because it must switch forwarders; DON deploy access was not granted during the hackathon, so that switch has not happened.
+On a DON, once the expected workflow ID is pinned, simulation disabled and ownership renounced, no single key can write the desk: `RiskDesk` then accepts only the DON's signed reports. The owner switches to the `KeystoneForwarder` and pins the expected workflow ID (`ReceiverTemplate`'s identity checks) before it calls `disableSim()` (irreversible) and renounces ownership (or hands it to a timelocked multisig). The hackathon deployment keeps an owner because it must switch forwarders; DON deploy access was not granted during the hackathon, so that switch has not happened.
 ````
 
 - [x] **Step 2: Check the anchors the README and the mentor message use**
@@ -3545,7 +3571,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/faq.md docs/session
 
 - [ ] **Step 1: Ask the maintainer two questions and record the answers** **Maintainer's step.** Question 1 is answered: a solo project, Sofiane Ben Taleb, as `team.json` already says (session log 2026-10-07, Decisions "Team"). Question 2 (the organizers' answer on `.pptx` and the stage pitch length) is not recorded yet.
 
-1. "Who is on the registered Builderbase team?" Edit `docs/submission/team.json` to list exactly those people (`name`, `github` handle or `""`, one-line `role`, optional `linkedin` URL). Known candidates: Sofiane Ben Taleb (@gamween), Armand Séchon (@STOOOKEEE), Noé Wales.
+1. "Who is on the registered Builderbase team?" Edit `docs/submission/team.json` to list exactly those people (`name`, `github` handle or `""`, one-line `role`, optional `linkedin` URL). Answered: Sofiane Ben Taleb (@gamween), solo.
 2. "Can you ask an organizer (help desk or Discord) whether a `.pptx` file is accepted for the '.ppt or .keynote' rule, and how long the top-5 stage pitch is?" Record the answers in today's session log:
 ```markdown
 - **Organizer answers:** .pptx accepted: <yes/no, who answered>. Stage pitch length: <minutes>.
@@ -3775,7 +3801,7 @@ Check: the stage cut is about 30 s; the full cut is under 240 s; `audio=` is not
 Rewritten on 2026-10-07 for deck v2: the slides are PNGs exported from the maintainer's Figma file, so a fix is made in Figma (and in `deck/v2/slides.json` when the text changes), never in the .pptx. Only the live report count changes at the last moment.
 
 **Files:**
-- Modify: `docs/submission/deck/v2/live.json`, `docs/submission/deck/v2/png/09-live.png`, `docs/submission/deck/v2/png/19-a5-cre-evidence.png`; in Figma file `LyeDZ1KdOYws6nTzD8dI76`, four text nodes of frames `166:11` (slide 09) and `168:34` (slide 19)
+- Modify: `docs/submission/deck/v2/live.json`, `docs/submission/deck/v2/png/07-results.png`, `docs/submission/deck/v2/png/09-live.png`, `docs/submission/deck/v2/png/12-why-chainlink.png`, `docs/submission/deck/v2/png/19-a5-cre-evidence.png`; in Figma file `LyeDZ1KdOYws6nTzD8dI76`, four text nodes of frames `166:11` (slide 09) and `168:34` (slide 19). Frames `166:2` (slide 07) and `166:54` (slide 12) are re-exported only: their text changed in `slides.json` (commit `133cdb9`) after their PNGs were last exported (`1cdd460`), and the Figma frames already carry it
 - Create (gitignored): `docs/submission/out/clim.pptx`, `docs/submission/out/video/deck/` (the embedded copies of both videos and their poster frames)
 
 - [x] **Step 1: The builder and its tests exist**
@@ -3798,17 +3824,17 @@ cd /Users/fianso/Development/hackathons/clim && D=$(jq -r .riskDesks.live shared
 ```
 Expected: `{ "seq": <n>, "readUtc": "<d Mon HH:MM UTC>" }`, for example `"seq": 624` and `"readUtc": "6 Oct 22:00 UTC"`. The builder fills `{{LIVE_SEQ}}` (with a thousands comma, for example `1,234`) and `{{LIVE_SEQ_READ}}` in the slide text and notes of `slides.json` from this file.
 
-- [ ] **Step 3: Update slides 09 and 19 in Figma and re-export them** **End of session.**
+- [ ] **Step 3: Update slides 09 and 19 in Figma, then re-export slides 07, 09, 12 and 19** **End of session.**
 
 In Figma file `LyeDZ1KdOYws6nTzD8dI76` (section `162:2`), put the same two values as `live.json` in these text nodes, keeping the rest of each text and the number format of Step 2:
 - slide 09 (frame `166:11`, "09 · What is live"): `172:10` "LIVE seq" (the count) and `172:11` "LIVE seq read" (the read time);
 - slide 19 (frame `168:34`, "A5 · CRE evidence"): `168:50` "LIVE seq big" (the count) and `168:52` "LIVE seq read" (the read time).
 
-Check that a longer number does not wrap or overlap. Export both frames as PNG at 2x over `docs/submission/deck/v2/png/09-live.png` and `docs/submission/deck/v2/png/19-a5-cre-evidence.png` (in Figma: select the frame, Export, 2x, PNG). Then:
+Check that a longer number does not wrap or overlap. Then check that every text in frames `166:2` (slide 07), `166:11` (slide 09), `166:54` (slide 12) and `168:34` (slide 19) matches that slide's `text` in `slides.json` word for word, apart from the two live values: slide 07 says "bridged to 12 s blocks", slide 09 carries the 7 Oct storm line and "DON deploy access was not granted in time", slide 12 opens with "Chainlink CRE, our only partner track, by choice". Fix any difference in Figma first. Export the four frames as PNG at 2x over `docs/submission/deck/v2/png/07-results.png`, `09-live.png`, `12-why-chainlink.png` and `19-a5-cre-evidence.png` (in Figma: select the frame, Export, 2x, PNG). Then:
 ```bash
-sips -g pixelWidth -g pixelHeight /Users/fianso/Development/hackathons/clim/docs/submission/deck/v2/png/09-live.png /Users/fianso/Development/hackathons/clim/docs/submission/deck/v2/png/19-a5-cre-evidence.png
+cd /Users/fianso/Development/hackathons/clim/docs/submission/deck/v2/png && sips -g pixelWidth -g pixelHeight 07-results.png 09-live.png 12-why-chainlink.png 19-a5-cre-evidence.png
 ```
-Expected: `pixelWidth: 3840` and `pixelHeight: 2160` for both. Open both with the Read tool: the count and the read time match `live.json`.
+Expected: `pixelWidth: 3840` and `pixelHeight: 2160` for all four. Open the four with the Read tool: on 09 and 19 the count and the read time match `live.json`; on 07 and 12 the text matches `slides.json`.
 
 - [ ] **Step 4: Build, check the size, render every slide, commit** **End of session.**
 
@@ -3831,11 +3857,11 @@ $D/mnt/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to pdf --outd
 cd /Users/fianso/Development/hackathons/clim/docs/submission/out && find . -maxdepth 1 -name 'slide-*.jpg' -delete && pdftoppm -jpeg -r 80 clim.pdf slide && ls -1 "$PWD"/slide-*.jpg
 ```
 Shells reset between agent calls: print `$D` and reuse the literal path. If 26.8.1 is gone, take the current version from https://download.documentfoundation.org/libreoffice/stable/; if the redirect lands on a slow mirror, pick a faster one from the same URL plus `.mirrorlist` and compare `shasum -a 256` with the URL plus `.sha256`. `hdiutil detach $D/mnt` when done.
-Expected: 20 images, `slide-01.jpg` to `slide-20.jpg`. Open every image with the Read tool (or dispatch a subagent to look at them fresh): each Figma slide full-bleed, in the order of "Deck content, slide by slide"; slides 09 and 19 show the new count; slide 10 shows the stage video's poster frame over the whole slide; slide 20 shows the full video's poster frame in the frame drawn on the slide. A wrong slide is fixed in Figma (and in `slides.json` if its text changed), re-exported, and the deck rebuilt.
+Expected: 20 images, `slide-01.jpg` to `slide-20.jpg`. Open every image with the Read tool (or dispatch a subagent to look at them fresh): each Figma slide full-bleed, in the order of "Deck content, slide by slide"; slides 09 and 19 show the new count; slide 07 says "bridged to 12 s blocks" and slide 12 says "our only partner track, by choice"; slide 10 shows the stage video's poster frame over the whole slide; slide 20 shows the full video's poster frame in the frame drawn on the slide. A wrong slide is fixed in Figma (and in `slides.json` if its text changed), re-exported, and the deck rebuilt.
 
-4. Commit the new count and the two PNGs:
+4. Commit the new count and the four PNGs:
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck/v2/live.json docs/submission/deck/v2/png/09-live.png docs/submission/deck/v2/png/19-a5-cre-evidence.png && git commit -m "chore(deck): live report count on slides 09 and 19"
+cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck/v2/live.json docs/submission/deck/v2/png/07-results.png docs/submission/deck/v2/png/09-live.png docs/submission/deck/v2/png/12-why-chainlink.png docs/submission/deck/v2/png/19-a5-cre-evidence.png && git commit -m "chore(deck): live report count on slides 09 and 19; slides 07 and 12 re-exported with their final text"
 ```
 
 - [ ] **Step 5 (maintainer): Play it in PowerPoint (or Keynote) and set the stage video to start by itself** **Maintainer's step.**
@@ -4086,9 +4112,9 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/sessions && git com
 - [ ] **Step 2: Private vault notes (never committed)** **End of session.**
 
 Read `CLAUDE.local.md` (gitignored) for the vault paths and writing rules, then update, in French:
-- the hackathon Overview note: `result` in the front matter (submitted, tracks), the links (repo, live URL, Drive folder, demo video), and its "Dans ce dossier" section;
+- the hackathon Overview note: `result` (submitted, tracks) and `team` (Sofiane Ben Taleb only, as `docs/submission/team.json`) in the front matter, the links (repo, live URL, Drive folder, demo video), and its "Dans ce dossier" section;
 - the Feedbacks note: what was submitted, the organizers' answers from Task 12, every feedback received, and what is left to do after the hackathon (send the mentor message, Fables shadow mode);
-- the one-pagers `clim - FR.md` (French) and `clim - EN.md` (English), kept identical: the final numbers of the README's Results block (P\* = 0.3, both comparisons, the replay with its median window, the LP gain in % and in dollars per $1M) and the links. Plan 03 Task 17 Step 6b did a first pass; check nothing older is left (for example "−14 % to +7 %", "+0.1 to +0.5 %", "up to +1 %", "85-97 %").
+- the one-pagers `clim - FR.md` (French) and `clim - EN.md` (English), kept identical: the final numbers of the README's Results block (P\* = 0.3, both comparisons, the replay with its median window, the LP gain in % and in dollars per $1M) and the links. Plan 03 Task 17 Step 6b did a first pass; check nothing older is left (for example "−14 % to +7 %", "+0.1 to +0.5 %", "up to +1 %", "85-97 %"); also replace the replay range "74 to 225%" / "74 à 225 %" with 34 % to 296 % (`lab/out/summary.json`), "toll" / "péage" with "premium" / "prime", "decentralized risk desk" / "desk de risque décentralisé" and "the nodes ... sign a report" / "signent un rapport" with the CRE workflow on one simulated node (DON deployment cut, access not granted), and the "Team:" / "Équipe :" line with the solo name.
 Follow the vault rules in `CLAUDE.local.md` (no em dashes, no contractions in English, wiki links only to notes that exist). Do not copy any vault path or content into the repository.
 
 - [ ] **Step 3 (only if selected for the top 5): stage preparation** **Maintainer's step.**
@@ -4180,7 +4206,7 @@ Read the numbers in brackets from `lab/out/backtest-summary.json` and `shared/pa
 **Short description:** A liquidity provider is an insurer: arbitrage bots make it pay every time the market moves. clim gives it a premium that follows the market's weather: four exchanges, read every 30 seconds by a Chainlink CRE workflow and required to agree, publish one volatility figure on-chain, and a Uniswap v4 hook turns it into the fee of every swap, at the market price when it is calm and rising in a storm. Chainlink CRE is the only partner track we entered, on purpose: the product is built around it (the risk desk is the CRE workflow, and without a fresh CRE report the hook falls back to the safe fee).
 
 **Long description:**
-clim is a volatility-indexed LP fee with a prediction you can check. A Chainlink CRE workflow (the "risk desk") fetches one-minute ETH prices from Coinbase, Kraken, Binance and Hyperliquid, drops stale venues, requires a quorum of three, computes 15-minute realized volatility and venue dispersion, takes the median of each field with CRE's consensus API, and writes one report to `RiskDesk.sol` every 30 seconds. During the hackathon it runs in the CRE simulator (`cre workflow simulate --broadcast`, one node), and the operator key sends each report through Chainlink's MockKeystoneForwarder on Sepolia: DON deploy access was requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon, so the DON deployment was cut. The workflow is written with the consensus API for a DON, where the nodes would sign the report, and has not run on one. Chainlink CRE is the only partner track we entered, on purpose: the product is built around it, and without a fresh CRE report the hook falls back to the safe fee. A Uniswap v4 hook built on OpenZeppelin's `BaseOverrideFee` reads the desk inside every swap and returns the fee: the pair's market tier when it is calm, η standard deviations of the half-block price move in a storm, and a safe fee if the desk goes silent or the venues disagree. η is chosen so that a known share of blocks gets arbitraged (Milionis, Moallemi and Roughgarden 2023; Nezlobin and Tassy 2025), which we check against what happens on-chain and on historical data. Live on Sepolia with twin pools (clim and a fixed fee at the same average), our own arbitrage and retail bots, an on-chain replay of the 4 February 2026 storm, and a dashboard; on 7 October 2026 the live desk priced a real storm (volatility up to 242 % a year, fee up to 26.50 bp). Numbers, limits and evidence are in the README.
+clim is a volatility-indexed LP fee with a prediction you can check. A Chainlink CRE workflow (the "risk desk") fetches one-minute ETH prices from Coinbase, Kraken, Binance and Hyperliquid, drops stale venues, requires a quorum of three, computes 15-minute realized volatility and venue dispersion, takes the median of each field with CRE's consensus API, and writes one report to `RiskDesk.sol` every 30 seconds. During the hackathon it runs in the CRE simulator (`cre workflow simulate --broadcast`, one node), and the operator key sends each report through Chainlink's MockKeystoneForwarder on Sepolia: DON deploy access was requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon, so the DON deployment was cut. The workflow is written with the consensus API for a DON, where the nodes would sign the report, and has not run on one. Chainlink CRE is the only partner track we entered, on purpose: the product is built around it, and without a fresh CRE report the hook falls back to the safe fee. A Uniswap v4 hook built on OpenZeppelin's `BaseOverrideFee` reads the desk inside every swap and returns the fee: the pair's market tier when it is calm, η standard deviations of the half-block price move in a storm, and a safe fee if the desk goes silent or the venues disagree. η is chosen so that a known share of blocks gets arbitraged (Milionis, Moallemi and Roughgarden 2023; Nezlobin and Tassy 2025), which we check against what happens on-chain and on historical data. Live on Sepolia with twin pools (the clim pool, and a fixed-fee twin whose fee was set before deployment at the lab's forecast of clim's average fee; the live averages differ since the 7 October storm), our own arbitrage and retail bots, a finished on-chain replay of the 4 February 2026 storm, and a dashboard; on 7 October 2026 the live desk priced a real storm (volatility up to 242 % a year, fee up to 26.50 bp). Numbers, limits and evidence are in the README.
 
 **Built with:** Chainlink CRE (TypeScript SDK, cron trigger, HTTP capability, consensus by median, EVM write), Uniswap v4 hooks, OpenZeppelin uniswap-hooks, Solidity and Foundry, TypeScript, viem and Bun bots, Next.js, Python. Network: Ethereum Sepolia.
 
@@ -4199,6 +4225,6 @@ clim is a volatility-indexed LP fee with a prediction you can check. A Chainlink
 
 **Placeholder scan.** Searched for "TBD", "TODO", "implement later", "similar to Task". None. The pptx validator path is found on disk (Task 9 Step 8). The angle-bracket values left (`<n>`, `<sigmaE9>`, transaction links, organizer answers, versions) are values only known at execution time, each with the exact command that produces it.
 
-**Type and name consistency.** One spec per input in `src/inputs.mjs` (`PARAMS_SPEC`, `BACKTEST_SPEC`, `REPLAY_SPEC`, `VALIDATION_SPEC`, `LINKS_SPEC`, `TEAM_SPEC`, `EVIDENCE_SPEC`, `REPORT_SPEC`), used by the checker, the README updater and the deck; the lab specs match plan 03's "Output contracts" field for field, including the five fields requested from plan 03 and `lab/out/validation.json`; the deployments walker reads plan 04's shape without depending on it; script names, log paths and the `.gitignore` rules are plan 04's. `RiskReported` is decoded with the canonical signature `(uint32 indexed seq, uint40 tObs, uint32 sigmaApplied, uint32 sigmaReported, uint32 rv15E9, uint16 dvolE2, int24 refTick, uint16 dispBp, uint8 nSources, uint16 kE4, uint8 zone)`; `state()` as `(uint40,uint32,uint16,uint8,uint32)`; `quoteFee()` as `(uint24,uint8)`. `feePips` takes the same argument order as `ClimFeeMath.feePips`. The video file names `demo-stage.mp4` and `demo-full.mp4` match `deck/build-deck.mjs` and the `video.kind` of slides 10 and 20 in `deck/v2/slides.json` (the shot names and the build script of the first version were removed on 2026-10-07). Test counts on 2026-10-07: inputs 8, lab 6, fee 5, readme-blocks 10, evidence 6, deck 4, cre-evidence-text 1: 40 in total (36 when this plan was written).
+**Type and name consistency.** One spec per input in `src/inputs.mjs` (`PARAMS_SPEC`, `BACKTEST_SPEC`, `REPLAY_SPEC`, `VALIDATION_SPEC`, `LINKS_SPEC`, `TEAM_SPEC`, `EVIDENCE_SPEC`, `REPORT_SPEC`), used by the checker and the README updater (deck v2 reads only `deck/v2/slides.json` and `live.json`); the lab specs match plan 03's "Output contracts" field for field, including the five fields requested from plan 03 and `lab/out/validation.json`; the deployments walker reads plan 04's shape without depending on it; script names, log paths and the `.gitignore` rules are plan 04's. `RiskReported` is decoded with the canonical signature `(uint32 indexed seq, uint40 tObs, uint32 sigmaApplied, uint32 sigmaReported, uint32 rv15E9, uint16 dvolE2, int24 refTick, uint16 dispBp, uint8 nSources, uint16 kE4, uint8 zone)`; `state()` as `(uint40,uint32,uint16,uint8,uint32)`; `quoteFee()` as `(uint24,uint8)`. `feePips` takes the same argument order as `ClimFeeMath.feePips`. The video file names `demo-stage.mp4` and `demo-full.mp4` match `deck/build-deck.mjs` and the `video.kind` of slides 10 and 20 in `deck/v2/slides.json` (the shot names and the build script of the first version were removed on 2026-10-07). Test counts on 2026-10-07: inputs 8, lab 6, fee 5, readme-blocks 10, evidence 6, deck 4, cre-evidence-text 1: 40 in total (36 when this plan was written).
 
 **Validated before writing.** Every code block of Tasks 2 to 9 was run on 2026-10-06 in a scratch copy: `npm test` 33/33 passing, then 36/36 after the fixer pass (rounding, validation input, replay-window context, dollars per $1M, the "More limits" slide; the fixer pass also rebuilt the deck from the real lab outputs and it passed `validate.py`) (with plan 04's `shared/src/units.ts` copied from its plan); the evidence collector end to end against anvil and against the public Sepolia RPC; the secret scan catching a planted key; both mermaid diagrams rendered with mermaid-cli; the video pipeline on synthetic 2880x1800 recordings (1920x1080, 30 fps, H.264 outputs); a 21-slide deck (22 after the fixer pass) with two embedded MP4s passing the pptx skill's `validate.py`, read back with markitdown, and rendered with LibreOffice 26.8.1 for a visual pass (fixes applied: video frames clear of the footer, tighter cards, line breaks in the formula card, shorter link labels). On 2026-10-07 the video pipeline and that deck were replaced by deck v2 and the maintainer's own video (Tasks 7 to 9, 15 to 17); deck v2 was checked with 40 passing tests and a LibreOffice render of its 20 slides.
