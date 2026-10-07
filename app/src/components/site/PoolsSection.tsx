@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { windowLabel } from "@/lib/story";
 import { params } from "@/lib/config";
+import { spanLabel } from "@/lib/ledger";
+import { verdictResult, windowLabel } from "@/lib/story";
 import { formatTusd, pipsToBp } from "@/lib/units";
 import { AnimatedCounter } from "../AnimatedCounter";
 import { LaunchLink } from "./LaunchLink";
@@ -12,23 +13,22 @@ import type { LandingData } from "./useLandingData";
 import { WeatherMini } from "./WeatherMini";
 
 const bp = (x: number) => `${x.toFixed(2)} bp`;
-const pct = (x: number) => `${Math.abs(x).toFixed(0)} %`;
 const FLOOR = pipsToBp(params.feeMinPips);
 const pill = "inline-flex min-h-10 items-center rounded-full px-4 text-[14px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 /**
  * "Two pools, one market": the window's weather (σ's peak ringed in pink, what each pool charged then),
  * then pool V against pool S, its static twin, on the app's own P&L maths. The verdict only says "same
- * average fee" when PnlPanel's 10 % rule holds, and only credits a storm when σ took V's fee off its
- * floor; otherwise it says V charged more only in its safe modes. Amounts are in tUSD (test tokens);
- * every figure is labelled simulated in mock mode.
+ * average fee" when PnlPanel's 10 % rule holds, only credits a storm when σ took V's fee off its
+ * floor, and names the time V spent in its safe modes (desk outages, not the weather) whenever there
+ * was any. Amounts are in tUSD (test tokens); every figure is labelled simulated in mock mode.
  */
 export function PoolsSection({ d }: { d: LandingData }) {
   const { storm, verdict: v, simulated } = d;
-  // "x % less lost to arbitrage and y % more hedged LP P&L", the verdict's numbers
-  const result = v
-    ? `${v.arbKnown ? `${pct(v.arbChangePct)} ${v.arbChangePct <= 0 ? "less" : "more"} lost to arbitrage and ` : ""}${pct(v.pnlChangePct)} ${v.pnlChangePct >= 0 ? "more" : "less"} hedged LP P&L`
-    : "";
+  // "x % less lost to arbitrage and y % less lost by its hedged LPs", the verdict's numbers
+  const result = v ? verdictResult(v) : "";
+  // time in a safe mode (desk silent or venues apart): the hook charged its safe fee, whatever the weather
+  const safeSec = v ? v.regimes.blindSec + v.regimes.degradedSec : 0;
   const rolling = (x: number): ReactNode => (
     <>
       <AnimatedCounter value={x} decimals={2} className="-my-[0.25em]" /> bp
@@ -128,13 +128,16 @@ export function PoolsSection({ d }: { d: LandingData }) {
             />
             <p className="mt-6 max-w-3xl font-display text-[24px] leading-snug tracking-[-0.01em]">
               {v.sameAvgFee && storm?.stormy ? (
-                <>Same average fee. Pool V charged it when the storm came: {result}.</>
+                <>
+                  Same average fee. Pool V charged it when the storm came
+                  {safeSec > 0 ? ` (and for ${spanLabel(safeSec)} in its safe modes, while the desk was silent or the venues apart)` : ""}: {result}.
+                </>
               ) : v.sameAvgFee && storm ? (
                 <>
                   Same average fee, but no storm in this window: σ peaked at {storm.peakSigma.toFixed(0)} %/yr, below the{" "}
                   {storm.floorSigma.toFixed(0)} %/yr where V&apos;s fee leaves its {FLOOR} bp floor.{" "}
-                  {v.V.feeMax > FLOOR
-                    ? `V charged more only in its safe modes (desk silent or venues apart): that, not the weather, is behind its ${result}.`
+                  {safeSec > 0
+                    ? `V charged more only in its safe modes, for ${spanLabel(safeSec)} (desk silent or venues apart): that, not the weather, is behind the result: ${result}.`
                     : `V charged its floor throughout: ${result}.`}{" "}
                   For a storm, see{" "}
                   <Link href="/replay" className="text-link underline">
@@ -154,7 +157,7 @@ export function PoolsSection({ d }: { d: LandingData }) {
             <p className="mt-3 text-[13px] text-fg-muted">
               {simulated ? `Simulated: the same swaps and arbitrage bot on both pools over the last ${windowLabel(v.hours)}, ` : `Over the last ${windowLabel(v.hours)}, `}
               valued from the logs as in the app&apos;s P&amp;L explain (delta-hedged: retail fees − arbitrage), in tUSD, the pair&apos;s test
-              token.
+              token. Every retail order goes to both pools, so neither loses flow to the cheaper one, as it would through a router.
             </p>
           </>
         ) : (

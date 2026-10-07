@@ -1,12 +1,12 @@
 # clim · dashboard
 
-The public terminal of clim's risk desk: storm insurance for Uniswap v4 LPs. A Chainlink CRE workflow publishes ETH volatility to `RiskDesk` every 30 s, and `ClimHook` sets pool V's fee on every swap from it. Pool S, the same pair with a fixed fee, is the control. Today the workflow runs in CRE's simulator on one node, and the operator key sends each report through `MockKeystoneForwarder`; a Chainlink DON is the deployment target.
+The public terminal of clim's risk desk: storm insurance for Uniswap v4 LPs. A Chainlink CRE workflow publishes ETH volatility to `RiskDesk` every 30 s, and `ClimHook` sets pool V's fee on every swap from it. Pool S, the same pair with a fixed fee, is the control. The workflow runs in CRE's simulator on one node, and the operator key sends each report through `MockKeystoneForwarder`. It is written with CRE's consensus API for a Chainlink DON but has not run on one: DON deploy access, requested on 6 October, was not granted during the hackathon, so the DON deployment was cut.
 
 Pages: `/` (landing), `/app` (dashboard), `/replay`, `/lab`, `/how`, `/swap` (see the fee before you pay it), `/lp` (faucet, full-range liquidity, your position), `/credits` (third-party notices). Live: https://clim-zeta.vercel.app
 
 This is the `app/` folder of the clim monorepo ([DVB-ANS/clim](https://github.com/DVB-ANS/clim)). It was built after kickoff in a separate checkout and imported here with `git subtree`, history kept (master plan Task 14); it now changes only in this folder.
 
-The look follows refero's Ventriloc style (layout and type) in pink, blue and white: Chainlink Blue for actions and pool V, Uniswap's pink for σ and the storm. Every colour, radius and font is a token in `src/app/globals.css` and `src/lib/theme.ts`.
+The look follows refero's Ventriloc style (layout and type) in pink, blue and white: Chainlink Blue for actions and pool V, Uniswap's pink for σ and the storm. Every color, radius and font is a token in `src/app/globals.css` and `src/lib/theme.ts`.
 
 ## Data sources
 
@@ -45,7 +45,7 @@ npm run build
 - `npm run sync` copies `shared/deployments/sepolia.json`, `shared/params.json`, `lab/out/*.json` and `docs/faq.md` from the repo into `src/generated/` and `public/data/lab/`; a missing file falls back to `src/fixtures/`. It reads the parent folder as the repo root (`CLIM_ROOT` overrides it). Commit the generated files: Vercel only uploads `app/`.
 - `npm run snapshot -- live` (or `replay`) freezes a pair's logs into `public/data/chain/<pair>.json`.
 - `npm run e2e:onchain -- <env file>` runs `/swap` and `/lp` end to end on Sepolia with the app's own call builders: faucet, a 0.5 tETH swap on V and on S (each `Swap.fee` checked against `ClimHook.quoteFee()` and S's fixed fee), then a 1 tETH full-range add and remove on both pools. The env file holds `TEST_PRIVATE_KEY` for a testnet key, which is never printed; `--out <file>` writes a summary.
-- `npm run fixtures` rewrites the synthetic lab fixtures (`src/fixtures/lab/`, labelled "fixture"); `npm run dither` regenerates the dithered storm texture.
+- `npm run fixtures` rewrites the synthetic lab fixtures (`src/fixtures/lab/`, labeled "fixture"); `npm run dither` regenerates the dithered storm texture; `npm run logos` and `npm run world-dots` regenerate `src/components/site/logos.ts` and `src/lib/worldDots.ts` from the dev dependencies `@web3icons/core` and `dotted-map`.
 
 ## Environment
 
@@ -69,4 +69,4 @@ Decisions and deviations from plan 05 are logged in the repo's `docs/sessions/20
 
 ## Credits
 
-Components adapted from [React Bits](https://reactbits.dev), [Rare UI](https://rareui.com) and [ObsidianUI](https://www.obsidianui.dev); patterns after [Aceternity UI](https://ui.aceternity.com); ordered dithering after [Dither it!](https://ditheritv3.netlify.app). Sources, commits and licences, and the npm packages with notice requirements: `THIRD_PARTY_NOTICES.md` (also served at `/credits`).
+Components adapted from [React Bits](https://reactbits.dev), [Rare UI](https://rareui.com) and [ObsidianUI](https://www.obsidianui.dev); patterns after [Aceternity UI](https://ui.aceternity.com); ordered dithering after [Dither it!](https://ditheritv3.netlify.app). Sources, commits and licenses, and the npm packages with notice requirements: `THIRD_PARTY_NOTICES.md` (also served at `/credits`).

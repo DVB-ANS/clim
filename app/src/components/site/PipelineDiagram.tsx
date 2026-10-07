@@ -70,7 +70,7 @@ function Node({ kind, name, children, className = "" }: { kind: "venue" | "desk"
  * The risk desk's pipeline as a live architecture canvas: four venues feed a Chainlink CRE workflow
  * (Deribit's DVOL is logged alongside, dashed: it does not enter σ), which takes the median of each
  * field and writes one report to RiskDesk; ClimHook reads it inside each swap and prices pools V and S.
- * Today the workflow runs in CRE's one-node simulator (a DON, whose nodes sign the report, is the target).
+ * The workflow runs in CRE's one-node simulator (written for a DON, whose nodes would sign the report; not deployed on one).
  * A packet runs the rails on every new report. The drawing needs 770 px to keep its text at 12 px or
  * more, so a narrower box (phones, and the two-column panel on wide screens) gets the same pipeline as
  * stacked HTML cards instead (a container query on this component's own width).
@@ -178,8 +178,6 @@ export function PipelineDiagram({ live, simulated = false }: { live: Live; simul
           <circle key={`dot-${d}`} ref={(el) => { dots.current[i] = el; }} r={4} fill="var(--clim-signal)" opacity={0} />
         ))}
       </svg>
-      <div className="hidden @min-[770px]:block">
-      </div>
 
       {/* narrow box: the same pipeline, stacked, in real text */}
       <div className="p-3 @min-[770px]:hidden" role="group" aria-label="Risk desk pipeline">

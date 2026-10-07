@@ -14,7 +14,7 @@ export function predictedPTrade(feePips: number, sigmaE9: number, sqrtHalfDtE6: 
   return 1 / (feePips / 1e6 / noise + NT_CONSTANT);
 }
 
-/** σ_arb: the annualised volatility that reproduces the observed arbitrage frequency at the mean fee. */
+/** σ_arb: the annualized volatility that reproduces the observed arbitrage frequency at the mean fee. */
 export function sigmaArbAnnualPct(meanFeePips: number, pObserved: number, sqrtHalfDtE6: number): number {
   const denom = 1 / pObserved - NT_CONSTANT;
   if (!(pObserved > 0) || denom <= 0) return Number.NaN;

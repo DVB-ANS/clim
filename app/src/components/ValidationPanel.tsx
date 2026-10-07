@@ -45,9 +45,9 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
       title="Validation: predicted vs observed arbitrage frequency"
       subtitle={
         <>
-          Share of blocks with an arbitrage on V over the last {band.windowBlocks} blocks, against the model&apos;s prediction from the fee
-          and σ (the formula is on <Link className="text-link underline" href="/how#premium">How it works</Link>). Band: where 95% of the
-          model&apos;s simulated runs land.
+          Share of blocks with an arbitrage, against the model&apos;s prediction from the fee and σ (the formula is on{" "}
+          <Link className="text-link underline" href="/how#premium">How it works</Link>). The table counts the whole run; the chart follows V
+          over rolling {band.windowBlocks}-block windows, with a band where 95% of the model&apos;s simulated {band.windowBlocks}-block runs land.
         </>
       }
       className="col-span-full"
@@ -90,10 +90,10 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart accessibilityLayer={false} data={result.series} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
                   <CartesianGrid stroke={COLORS.grid} vertical={false} />
-                  <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} tickFormatter={utcTime} tick={{ fontSize: 11, fill: COLORS.muted }} />
-                  <YAxis tickFormatter={(v) => pct(Number(v))} tick={{ fontSize: 11, fill: COLORS.muted }} width={56} />
+                  <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} tickFormatter={utcTime} tick={{ fontSize: 12, fill: COLORS.muted }} />
+                  <YAxis tickFormatter={(v) => pct(Number(v))} tick={{ fontSize: 12, fill: COLORS.muted }} width={56} />
                   <Tooltip {...TOOLTIP} content={<ChartTooltip only={["observed", "predicted", "band95"]} labelFormat={(t) => `${utcTime(Number(t))} UTC`} valueFormat={(v) => pct(v)} />} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Area dataKey="band95" name="95% band (model)" stroke="none" fill={COLORS.band} isAnimationActive={false} />
                   <Line dataKey="predicted" name="Predicted" stroke={COLORS.ink} strokeDasharray="4 3" strokeWidth={2} dot={false} isAnimationActive={false} />
                   <Line dataKey="observed" name="Observed on V" stroke={COLORS.V} strokeWidth={2} dot={false} isAnimationActive={false} />

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useMemo } from "react";
 import type { ClimData } from "@/hooks/useClimData";
 import { deployments, params } from "@/lib/config";
-import { grouped, pnlSentence, relativePct, signed } from "@/lib/ledger";
+import { feeRegimes, grouped, pnlCaveat, pnlSentence, relativePct, signed } from "@/lib/ledger";
 import { pnlExplain, type PnlRow } from "@/lib/pnl";
 import { timeAverageFeeBp, weatherSeries } from "@/lib/series";
 import { formatBp, pipsToBp } from "@/lib/units";
@@ -77,9 +77,12 @@ export function PnlPanel({ data }: { data: ClimData }) {
   }, [data.pair, data.swaps, data.reports, data.arbRouter]);
   const feeCheck = useMemo(() => {
     if (!data.pair || data.reports.length === 0) return null;
-    const v = timeAverageFeeBp(weatherSeries(data.reports, params, data.nowSec), data.nowSec);
+    const points = weatherSeries(data.reports, params, data.nowSec);
+    const v = timeAverageFeeBp(points, data.nowSec);
     const s = pipsToBp(data.pair.S.key.fee);
-    return { v, s, equal: Math.abs(v - s) <= 0.1 * s };
+    // where V's fee sat above its floor, and why: what the headline may and may not credit to the weather
+    const caveat = pnlCaveat(feeRegimes(points, data.nowSec, pipsToBp(params.feeMinPips)), pipsToBp(params.feeMinPips), pipsToBp(params.feeSafePips));
+    return { v, s, equal: Math.abs(v - s) <= 0.1 * s, caveat };
   }, [data.pair, data.reports, data.nowSec]);
   if (!rows || !data.pair) return null;
   const { v, s }: { v: PnlRow; s: PnlRow } = rows;
@@ -115,6 +118,7 @@ export function PnlPanel({ data }: { data: ClimData }) {
             />
           </p>
           <p className="mt-2 text-[15px] leading-relaxed text-fg-muted">{sentence}</p>
+          {feeCheck ? <p className="mt-2 text-[13px] leading-relaxed text-fg-muted">{feeCheck.caveat}</p> : null}
           <div className="mt-4">
             <Bars v={vNet} s={sNet} />
           </div>
@@ -124,7 +128,7 @@ export function PnlPanel({ data }: { data: ClimData }) {
                 <>
                   <StatusMark status="done" size={14} className="mt-[3px]" />
                   <span>
-                    Average fee: V {formatBp(feeCheck.v, 2)}, S {formatBp(feeCheck.s, 2)}: within 10%, a fair comparison.
+                    Average fee: V {formatBp(feeCheck.v, 2)}, S {formatBp(feeCheck.s, 2)}: within 10% of each other.
                   </span>
                 </>
               ) : (
@@ -196,9 +200,16 @@ export function PnlPanel({ data }: { data: ClimData }) {
               <Line className="border-t border-line py-2" label="Volume" v={grouped(v.volumeUsd)} s={grouped(s.volumeUsd)} />
               <Line className="border-t border-line py-2" label="Fees paid by arbitrageurs" v={grouped(v.feeArbUsd)} s={grouped(s.feeArbUsd)} />
               <Line
+                className="border-t border-line py-2"
+                label="Lost to arbitrage before fees, measured"
+                note="lost to arbitrage + fees paid by arbitrageurs"
+                v={grouped(vArb + R(v.feeArbUsd))}
+                s={grouped(sArb + R(s.feeArbUsd))}
+              />
+              <Line
                 className="border-y border-line py-2"
                 label="LVR, model"
-                note="what the LP loses to arbitrage before fees (≈ lost to arbitrage + fees paid by arbitrageurs)"
+                note="the model's estimate of the same loss, from the desk's prices (one every 30 s) and the pool's depth: close to the measured loss in calm markets, it can fall well below it in a fast move, when the price jumps between two reports"
                 v={grouped(v.lvrUsd)}
                 s={grouped(s.lvrUsd)}
               />

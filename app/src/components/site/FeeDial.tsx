@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { params } from "@/lib/config";
 import { feePips } from "@/lib/feeMath";
-import { reachableFeeMaxBp, SIGMA_DESK_MAX_E9, sigmaAtFee } from "@/lib/story";
+import { K_DESK_MAX_E4, reachableFeeMaxBp, SIGMA_DESK_MAX_E9, sigmaAtFee } from "@/lib/story";
 import { annualPctToSigmaE9, pipsToBp, sigmaE9ToAnnualPct } from "@/lib/units";
 
 const SIGMA_MAX = Math.round(sigmaE9ToAnnualPct(SIGMA_DESK_MAX_E9)); // 1000 %/yr: the most the desk publishes
@@ -45,6 +45,9 @@ export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000, simulated =
     .join("");
   const safe = pipsToBp(params.feeSafePips);
   const reachable = reachableFeeMaxBp(params, kE4);
+  const k = (e4: number) => Number((e4 / 10_000).toFixed(2));
+  // σ at which the cap binds once a report raises k to the most the desk accepts (RiskDesk clamps k to [1, 2])
+  const capAtKMax = sigmaAtFee(FEE_MAX, params, K_DESK_MAX_E4);
   const chip = "rounded-full border border-line px-3 py-1 text-xs text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-accent";
   const pctY = (bp: number) => `${(y(bp) / H) * 100}%`;
 
@@ -83,11 +86,11 @@ export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000, simulated =
           {sigmaNow !== undefined ? <circle cx={x(sigmaNow)} cy={y(feeAt(sigmaNow, kE4))} r={5} fill="var(--clim-pink)" stroke="var(--clim-surface)" strokeWidth={2} /> : null}
           <circle cx={x(sigma)} cy={y(fee)} r={6.5} fill="var(--clim-v)" stroke="var(--clim-surface)" strokeWidth={2.5} />
         </svg>
-        <span aria-hidden className="absolute left-1 -translate-y-full pb-0.5 text-[11px] text-fg-subtle" style={{ top: pctY(safe) }}>
+        <span aria-hidden className="absolute left-1 -translate-y-full pb-0.5 text-xs text-fg-subtle" style={{ top: pctY(safe) }}>
           safe-mode floor · {safe} bp
         </span>
         {feeSBp !== undefined ? (
-          <span aria-hidden className="absolute right-1 -translate-y-full pb-0.5 text-[11px] text-fg-subtle" style={{ top: pctY(feeSBp) }}>
+          <span aria-hidden className="absolute right-1 -translate-y-full pb-0.5 text-xs text-fg-subtle" style={{ top: pctY(feeSBp) }}>
             pool S · {feeSBp.toFixed(2)} bp
           </span>
         ) : null}
@@ -106,7 +109,7 @@ export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000, simulated =
         aria-valuetext={`σ ${Math.round(sigma)} %/yr, fee ${fee.toFixed(2)} bp${fee <= pipsToBp(params.feeMinPips) ? " (floor)" : ""}`}
         className="mt-2 w-full accent-[var(--clim-accent)]"
       />
-      <div aria-hidden className="relative h-4 text-[11px] text-fg-subtle">
+      <div aria-hidden className="relative h-4 text-xs text-fg-subtle">
         <span className="absolute left-0">calm</span>
         <span className="absolute -translate-x-1/2" style={{ left: `${share(100) * 100}%` }}>
           100 %
@@ -119,8 +122,10 @@ export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000, simulated =
       <p className="mt-3 text-xs text-fg-muted">
         The hook&apos;s formula with {params.fixture ? "fixture" : "the lab's"} parameters
         {reachable < FEE_MAX
-          ? `: at the desk's ${SIGMA_MAX} %/yr ceiling it charges ${reachable.toFixed(2)} bp, so its ${FEE_MAX} bp cap is never reached`
-          : `; the ${FEE_MAX} bp cap needs σ ≈ ${Math.round(sigmaAtFee(FEE_MAX, params, kE4))} %/yr`}
+          ? `: at the desk's ${SIGMA_MAX} %/yr ceiling and k = ${k(kE4)} it charges ${reachable.toFixed(2)} bp, so the ${FEE_MAX} bp cap binds only when a report raises k${
+              capAtKMax <= SIGMA_MAX ? ` (up to ${k(K_DESK_MAX_E4)}: from about ${Math.round(capAtKMax)} %/yr at k = ${k(K_DESK_MAX_E4)})` : ""
+            }`
+          : `; with k = ${k(kE4)}, the ${FEE_MAX} bp cap needs σ ≈ ${Math.round(sigmaAtFee(FEE_MAX, params, kE4))} %/yr`}
         . The pink dot is the desk&apos;s σ now{simulated ? " (simulated)" : ""}.
       </p>
     </div>

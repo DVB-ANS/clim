@@ -7,8 +7,8 @@ export const DISP_MAX_BP = 25; // mirror of RiskDesk DISP_MAX: above it the repo
 
 export type WeatherPoint = {
   t: number; // unix seconds: when this desk state became readable by the hook (report inclusion) or went blind
-  sigmaPct: number; // sigma applied by RiskDesk (after the envelope), annualised %
-  sigmaReportedPct: number; // sigma proposed by the CRE workflow, annualised %
+  sigmaPct: number; // sigma applied by RiskDesk (after the envelope), annualized %
+  sigmaReportedPct: number; // sigma proposed by the CRE workflow, annualized %
   dvolPct: number | null; // null when the desk reported dvolE2 = 0 (DVOL unavailable, or replay mode)
   feeVBp: number; // fee the hook quotes at t
   mode: FeeMode;

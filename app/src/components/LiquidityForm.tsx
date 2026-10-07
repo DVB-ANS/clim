@@ -93,7 +93,8 @@ export function LiquidityForm({ mode, busy, balances, quote, onAdd, pools, ethUs
         </ActionButton>
         {children}
         <p className="text-xs text-fg-subtle">
-          The router keeps users apart by salt, which is not an access control: fine on a testnet with test tokens, not in production.
+          Positions go through Uniswap&apos;s PoolModifyLiquidityTest router on Sepolia, a test contract that does not tie a position to its
+          wallet: anyone who knows the salt (here, your address) can remove it. Fine for a testnet demo with test tokens, never for real funds.
         </p>
       </div>
     </section>

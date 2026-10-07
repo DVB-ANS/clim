@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { blocksSpan, grouped, niceMax, pnlSentence, relativePct, scalePct, signed, utcStamp } from "./ledger";
+import { FeeMode } from "./feeMath";
+import { blocksSpan, feeRegimes, grouped, niceMax, pnlCaveat, pnlSentence, relativePct, scalePct, signed, spanLabel, utcStamp } from "./ledger";
 
 describe("niceMax: the end of the volatility scale", () => {
   it("is the smallest step at least 1.1 times the largest reading", () => {
@@ -75,5 +76,40 @@ describe("blocksSpan", () => {
     expect(blocksSpan(300)).toBe("about 1 h");
     expect(blocksSpan(450)).toBe("about 1.5 h");
     expect(blocksSpan(100)).toBe("about 20 min");
+  });
+});
+
+describe("what sits behind the P&L headline", () => {
+  // a calm start at the floor, a storm step, a blind spell at the safe fee, a degraded report, calm again
+  const points = [
+    { t: 0, feeVBp: 5, mode: FeeMode.Normal },
+    { t: 600, feeVBp: 12.4, mode: FeeMode.Normal },
+    { t: 900, feeVBp: 30, mode: FeeMode.Blind },
+    { t: 1_320, feeVBp: 30, mode: FeeMode.Degraded },
+    { t: 1_350, feeVBp: 5, mode: FeeMode.Normal },
+  ];
+  it("splits the time V's fee spent above its floor into storm, blind and degraded", () => {
+    expect(feeRegimes(points, 2_000, 5)).toEqual({ stormSec: 300, blindSec: 420, degradedSec: 30 });
+    expect(feeRegimes(points, 1_000, 5)).toEqual({ stormSec: 300, blindSec: 100, degradedSec: 0 }); // cut at `to`
+    expect(feeRegimes([], 100, 5)).toEqual({ stormSec: 0, blindSec: 0, degradedSec: 0 });
+  });
+  it("rounds a span for a sentence", () => {
+    expect(spanLabel(27)).toBe("27 s");
+    expect(spanLabel(391)).toBe("7 min");
+    expect(spanLabel(7_500)).toBe("2 h 05 min");
+  });
+  it("never credits the weather for a safe mode, and says the retail flow is mirrored", () => {
+    const tail =
+      " Every retail order also goes to both pools at once, so neither loses flow when it costs more; through a router, each order would go to the cheaper pool, which only the lab's aggregator scenario models.";
+    expect(pnlCaveat({ stormSec: 0, blindSec: 391, degradedSec: 0 }, 5, 30)).toBe(
+      `σ never took V's fee off its 5 bp floor in this window: V charged more only for 7 min in blind mode (the desk silent), at 30 bp or more, so the gap comes from desk outages, not from the weather.${tail}`,
+    );
+    expect(pnlCaveat({ stormSec: 1_800, blindSec: 391, degradedSec: 30 }, 5, 30)).toBe(
+      `V's fee left its 5 bp floor for 30 min because σ rose, and sat at 30 bp or more for 7 min in blind mode (the desk silent) and 30 s in degraded mode (the venues apart): that part of V's premium came from the desk's safe modes, not from the weather.${tail}`,
+    );
+    expect(pnlCaveat({ stormSec: 1_800, blindSec: 0, degradedSec: 0 }, 5, 30)).toBe(
+      `V's fee left its 5 bp floor for 30 min, each time because σ rose; no safe mode in this window.${tail}`,
+    );
+    expect(pnlCaveat({ stormSec: 0, blindSec: 0, degradedSec: 0 }, 5, 30)).toBe(`V's fee stayed at its 5 bp floor throughout: no premium is behind the gap.${tail}`);
   });
 });

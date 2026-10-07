@@ -71,7 +71,7 @@ export function makeMockWorld(o: { nowSec: number; params: FeeParams; seed?: num
     S: { poolId: computePoolId(keyS), key: keyS },
   };
 
-  // Vol regime (annualised %): calm 35%, a storm peaking at 180% around 55% of the run.
+  // Vol regime (annualized %): calm 35%, a storm peaking at 180% around 55% of the run.
   const volPct = (t: number) => 35 + 145 * Math.exp(-((((t - t0) / (o.nowSec - t0) - 0.55) / 0.07) ** 2));
   const phase = (t: number) => (t - t0) / (o.nowSec - t0);
   const gap = (t: number) => phase(t) > 0.85 && phase(t) < 0.87; // CRE loop cut: no reports

@@ -14,7 +14,7 @@ export function PoolsKey({ variant, staticFeePips, className }: { variant: Pools
   const fee = formatBp(pipsToBp(staticFeePips), 2);
   const sText =
     variant === "replay"
-      ? `Same pair and same depth as V, with a fixed fee of ${fee}: V's exact average fee over the replay window.`
+      ? `Same pair and same depth as V, with a fixed fee of ${fee}: V's average fee over the same window in the lab's replay. On chain, V's own average came out a little higher (the P&L card gives it).`
       : variant === "mock"
         ? `Same pair and same depth as V, with a fixed fee of ${fee} (simulated data).`
         : `Same pair and same depth as V, with a fixed fee of ${fee}: the lab's forecast of V's average fee.`;
@@ -39,8 +39,8 @@ export function PoolsKey({ variant, staticFeePips, className }: { variant: Pools
         />
       </div>
       <p className="mt-3 text-[13px] leading-relaxed text-fg-subtle">
-        Both pools get the same retail swaps and the same arbitrage bot. At the same average fee, any gap between them comes from when V
-        charges its premium.
+        Both pools get the same retail swaps (every order goes to both) and the same arbitrage bot. At the same average fee, any gap
+        between them comes from when V charges more: in a storm, or in a safe mode while the desk is silent or the venues disagree.
       </p>
     </section>
   );

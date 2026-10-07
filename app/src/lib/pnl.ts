@@ -5,7 +5,9 @@ import { tickToEthUsd } from "./units";
 
 /**
  * LP P&L explain from logs only (Milionis-Moallemi-Roughgarden): a delta-hedged LP earns
- * FEE_retail - ARB, and LVR ~= ARB + FEE_arb. Amounts are 18-decimal raw units; results in USD.
+ * FEE_retail - ARB, and, in the model, LVR ~= ARB + FEE_arb (measured, ARB + FEE_arb can run well
+ * above the LVR below in a fast move: it samples the desk's price only every 30 s). Amounts are
+ * 18-decimal raw units; results in USD.
  * - Arbitrage swaps are valued at the arbitrageur's own reference price, recovered from the
  *   post-swap pool price: the arb bot (plan 04) pushes the pool exactly to the edge of the
  *   no-arbitrage band [m(1 - f), m / (1 - f)], so m = P_after / (1 - f) when it bought ETH and
@@ -87,7 +89,7 @@ export function pnlExplain(o: {
   return row;
 }
 
-/** σ_BE = 2·sqrt(F / (L·sqrt(m))): above this annualised volatility, fee income F (USD/s) is below LVR. */
+/** σ_BE = 2·sqrt(F / (L·sqrt(m))): above this annualized volatility, fee income F (USD/s) is below LVR. */
 export function sigmaBreakEvenAnnualPct(feeUsdPerSec: number, liquidity: number, ethUsd: number): number {
   const depthUsd = (liquidity * Math.sqrt(ethUsd)) / E18;
   if (depthUsd <= 0 || feeUsdPerSec < 0) return Number.NaN;

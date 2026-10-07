@@ -5,7 +5,7 @@ import { FeeMode, type FeeParams, feePips } from "./feeMath";
 import { makeMockWorld, MOCK_STATIC_FEE_PIPS } from "./mock";
 import { pnlExplain } from "./pnl";
 import { timeAverageFeeBp, weatherSeries } from "./series";
-import { poolsVerdict, reachableFeeMaxBp, safetyCounts, sameAverageFee, sigmaAtFee, stormSummary, windowLabel } from "./story";
+import { poolsVerdict, reachableFeeMaxBp, safetyCounts, sameAverageFee, sigmaAtFee, stormSummary, verdictResult, windowLabel } from "./story";
 import { annualPctToSigmaE9, sigmaE9ToAnnualPct } from "./units";
 
 const params: FeeParams = { etaE4: 41_760, sqrtHalfDtE6: 2_449_490, feeMinPips: 500, feeMaxPips: 15_000, feeSafePips: 3_000, tauKillSec: 180 };
@@ -237,5 +237,25 @@ describe("display helpers", () => {
   it("only compares arbitrage when the router is known and S has seen some", () => {
     expect(poolsVerdict(reports, params, pools)?.arbKnown).toBe(true);
     expect(poolsVerdict(reports, params, { ...pools, arbRouter: undefined })?.arbKnown).toBe(false);
+  });
+});
+
+describe("verdictResult: the landing verdict's numbers, worded as /app's headline", () => {
+  const pool = (netUsd: number) => ({ netUsd }) as Parameters<typeof verdictResult>[0]["V"];
+  it("says two losses as less lost, not as more P&L", () => {
+    expect(verdictResult({ V: pool(-12_355), S: pool(-15_186), arbKnown: true, arbChangePct: -17.2, pnlChangePct: 18.6 })).toBe(
+      "17 % less lost to arbitrage and 19 % less lost by its hedged LPs",
+    );
+  });
+  it("says two gains as more P&L, and drops the % when the signs differ", () => {
+    expect(verdictResult({ V: pool(561), S: pool(514), arbKnown: false, arbChangePct: 0, pnlChangePct: 9.1 })).toBe("9 % more hedged LP P&L");
+    expect(verdictResult({ V: pool(20), S: pool(-10), arbKnown: false, arbChangePct: 0, pnlChangePct: 300 })).toBe("a hedged LP P&L in profit where S's lost");
+    expect(verdictResult({ V: pool(-20), S: pool(10), arbKnown: false, arbChangePct: 0, pnlChangePct: -300 })).toBe("a hedged LP P&L at a loss where S's gained");
+  });
+  it("carries the window's fee regimes for the safe-mode clause", () => {
+    const v = poolsVerdict(reports, params, pools)!;
+    const r = v.regimes;
+    expect(r.stormSec + r.blindSec + r.degradedSec).toBeGreaterThan(0);
+    expect(r.stormSec + r.blindSec + r.degradedSec).toBeLessThanOrEqual(v.hours * 3_600 + 60);
   });
 });

@@ -43,9 +43,11 @@ export function SafetyPanel({ data }: { data: ClimData }) {
         </li>
         <li className="text-fg-muted">
           No function sets σ, the fee or the hook parameters. In this build the owner key is also the live desk&apos;s simulation operator (the
-          replay desk has its own), so until disableSim() it can post reports itself, inside the same bounds as any report: σ ×2 up or ×0.8
-          down per report, 10% to 1000% a year, and a fee clamped to {pipsToBp(params.feeMinPips)} to {pipsToBp(params.feeMaxPips)} bp. On a
-          DON, only the nodes&apos; signed reports count.
+          replay desk has its own), so until it disables simulation and renounces ownership it can post reports itself: through the mock
+          forwarder while simulation is on, or through a forwarder it sets afterwards. Every report stays inside the same bounds: σ ×2 up or
+          ×0.8 down per report, 10% to 1000% a year, and a fee clamped to {pipsToBp(params.feeMinPips)} to {pipsToBp(params.feeMaxPips)} bp.
+          On a DON, only reports the nodes sign for clim&apos;s workflow ID would count, once the owner pins that ID, disables simulation and
+          renounces ownership.
         </li>
       </ul>
     </Panel>

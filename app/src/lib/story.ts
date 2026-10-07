@@ -7,6 +7,7 @@ import type { Address } from "viem";
 import type { DeskReport, SwapRow } from "./decode";
 import type { PairDeployment } from "./deployments";
 import { type FeeParams, feePips, quoteFee } from "./feeMath";
+import { type FeeRegimes, feeRegimes } from "./ledger";
 import { type PnlRow, pnlExplain } from "./pnl";
 import { blindEpisodes, deskStateOf, DISP_MAX_BP, timeAverageFeeBp, weatherSeries } from "./series";
 import { PIPS_PER_BP, pipsToBp, sigmaE9ToAnnualPct } from "./units";
@@ -77,6 +78,7 @@ export type PoolsVerdict = {
   arbChangePct: number; // PnlPanel's "ARB on V vs S": V.arbUsd / S.arbUsd - 1, in % (negative: V lost less to arbitrage)
   arbKnown: boolean; // the arbitrage router is known and S has seen arbitrage: only then may the copy compare it
   pnlChangePct: number; // V's hedged LP P&L against S's, in % of |S's| (positive: V's LPs made more)
+  regimes: FeeRegimes; // how long V's fee sat above its floor because of σ, and how long in a safe mode
   hours: number; // window length
 };
 
@@ -115,8 +117,30 @@ export function poolsVerdict(
     arbChangePct: S.arbUsd !== 0 ? (V.arbUsd / S.arbUsd - 1) * 100 : 0,
     arbKnown: !!o.arbRouter && S.arbSwaps > 0 && S.arbUsd !== 0,
     pnlChangePct: S.netUsd !== 0 ? ((V.netUsd - S.netUsd) / Math.abs(S.netUsd)) * 100 : 0,
+    regimes: feeRegimes(points, o.nowSec, pipsToBp(params.feeMinPips)),
     hours,
   };
+}
+
+const wholePct = (x: number) => `${Math.abs(x).toFixed(0)} %`;
+
+/**
+ * The landing verdict's numbers, worded as /app's P&L headline words them: "17 % less lost to arbitrage
+ * and 21 % less lost by its hedged LPs" when both pools lose, "... 9 % more hedged LP P&L" when both
+ * gain, and no % when one gains and the other loses.
+ */
+export function verdictResult(v: Pick<PoolsVerdict, "V" | "S" | "arbKnown" | "arbChangePct" | "pnlChangePct">): string {
+  const arb = v.arbKnown ? `${wholePct(v.arbChangePct)} ${v.arbChangePct <= 0 ? "less" : "more"} lost to arbitrage and ` : "";
+  const vNet = v.V.netUsd, sNet = v.S.netUsd;
+  const pnl =
+    vNet < 0 && sNet < 0
+      ? `${wholePct(v.pnlChangePct)} ${v.pnlChangePct >= 0 ? "less" : "more"} lost by its hedged LPs`
+      : vNet >= 0 && sNet < 0
+        ? "a hedged LP P&L in profit where S's lost"
+        : vNet < 0 && sNet > 0
+          ? "a hedged LP P&L at a loss where S's gained"
+          : `${wholePct(v.pnlChangePct)} ${v.pnlChangePct >= 0 ? "more" : "less"} hedged LP P&L`;
+  return `${arb}${pnl}`;
 }
 
 export type SafetyCounts = {
@@ -144,6 +168,9 @@ const SIGMA_E9_LIMIT = 2 ** 40;
 
 /** RiskDesk.SIGMA_MAX_E9 (1,780,730): the highest σ the desk will publish, 1000 %/yr. */
 export const SIGMA_DESK_MAX_E9 = 1_780_730;
+
+/** RiskDesk.K_MAX_E4: a report may raise the model-risk multiplier k up to 2 (the desk clamps it to [1, 2]). */
+export const K_DESK_MAX_E4 = 20_000;
 
 /** The highest fee a report can make the hook charge in normal mode (bp): its cap, or less when the desk's σ ceiling comes first. */
 export function reachableFeeMaxBp(params: FeeParams, kE4 = 10_000): number {

@@ -17,7 +17,7 @@ const FEE_MIN = pipsToBp(params.feeMinPips), FEE_MAX = pipsToBp(params.feeMaxPip
 
 /**
  * "How it works": Ventriloc's stacked service panels, numbered as the report travels. 01 the venues
- * measure, 02 the workflow takes one median (in CRE's one-node simulator today, a DON as the target),
+ * measure, 02 the workflow takes one median (in CRE's one-node simulator; written for a DON, not deployed on one),
  * 03 the hook charges (an interactive dial on its real formula), 04 the safe modes, with what the desk
  * did over the window.
  */
@@ -57,7 +57,7 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated 
             }
           >
             <p>
-              Every 30 seconds a Chainlink CRE workflow reads one-minute ETH candles from four exchanges and computes the 15-minute realised
+              Every 30 seconds a Chainlink CRE workflow reads one-minute ETH candles from four exchanges and computes the 15-minute realized
               volatility, σ. Deribit&apos;s DVOL is logged alongside, for comparison; it does not enter σ.
             </p>
             <p>A venue whose last candle is older than 120 s is dropped; with fewer than three, there is no report.</p>
@@ -80,11 +80,13 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated 
             <p>The workflow takes the median of each field with CRE&apos;s consensus API and writes one report to RiskDesk, which keeps the latest one for the hook.</p>
             <p>
               Today it runs in CRE&apos;s simulator, on one node: our operator key sends each report through MockKeystoneForwarder, which checks no
-              signature. The target is a DON, where the same workflow runs unchanged and the nodes sign the report.
+              signature. It is written with CRE&apos;s consensus API for a DON, whose nodes would sign the report, but it has not run on one: DON
+              deploy access, requested on 6 October, was not granted during the hackathon.
             </p>
             <p>
-              No function sets σ or the fee. In this build the owner key is also the simulation operator, so until disableSim() it can post reports
-              itself, inside the same bounds as any report: σ ×2 up or ×0.8 down per report, 10% to 1000% a year, a fee of {FEE_MIN} to {FEE_MAX} bp.
+              No function sets σ or the fee. In this build the owner key is also the simulation operator, so until it disables simulation and
+              renounces ownership it can post reports itself (through the mock forwarder, or later through a forwarder it sets), inside the same
+              bounds as any report: σ ×2 up or ×0.8 down per report, 10% to 1000% a year, a fee of {FEE_MIN} to {FEE_MAX} bp.
             </p>
           </ServiceSection>
 

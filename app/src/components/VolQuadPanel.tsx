@@ -52,7 +52,7 @@ export function VolQuadPanel({ data, band }: { data: ClimData; band: LabPTradeBa
   }, [data.reports, data.swaps, data.pair, data.state, data.arbRouter, data.nowSec, band.windowBlocks]);
 
   const rows: Reading[] = [
-    { label: "Realised", sub: "last 15 min, the desk's RV15", value: q?.rv ?? Number.NaN, mark: "bg-sigma" },
+    { label: "Realized", sub: "last 15 min, the desk's RV15", value: q?.rv ?? Number.NaN, mark: "bg-sigma" },
     {
       label: "Read from arbitrage on V",
       sub: data.arbRouter
@@ -143,11 +143,11 @@ export function VolQuadPanel({ data, band }: { data: ClimData; band: LabPTradeBa
           <>
             {q.rv < be ? (
               <span className="text-fg">
-                Realised σ ({formatPct(q.rv)}) is below V&apos;s break-even ({formatPct(be)}): at this weather, V&apos;s fees cover its LVR.
+                Realized σ ({formatPct(q.rv)}) is below V&apos;s break-even ({formatPct(be)}): at this weather, V&apos;s fees cover its LVR.
               </span>
             ) : (
               <span className="text-sigma-ink">
-                Realised σ ({formatPct(q.rv)}) is above V&apos;s break-even ({formatPct(be)}): if it stays there, V&apos;s fees will not cover its LVR.
+                Realized σ ({formatPct(q.rv)}) is above V&apos;s break-even ({formatPct(be)}): if it stays there, V&apos;s fees will not cover its LVR.
               </span>
             )}{" "}
             <span className="text-fg-subtle">Break-even uses V&apos;s fee income since its first swap.</span>

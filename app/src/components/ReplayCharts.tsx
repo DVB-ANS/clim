@@ -7,7 +7,7 @@ import { extent } from "@/lib/series";
 import { COLORS, utcTime } from "@/lib/theme";
 import { ChartTooltip, TOOLTIP } from "./ChartTooltip";
 
-const tick = { fontSize: 11, fill: COLORS.muted };
+const tick = { fontSize: 12, fill: COLORS.muted };
 // legends read "Pool V, Pool S", in the order the cards name them (Recharts sorts alphabetically by default)
 const vFirst = (item: { value?: unknown }) => (item.value === "Pool V" ? 0 : 1);
 
@@ -39,7 +39,9 @@ export function ReplayCharts({ replay }: { replay: LabReplay }) {
         <ChartTooltip
           only={["price", "sigmaAnnualPct", "feeVBp", "feeSBp", "arbCumVUsd", "arbCumSUsd"]}
           labelFormat={(t) => `${utcTime(Number(t))} UTC`}
-          valueFormat={(v, key) => (key === "sigmaAnnualPct" ? `${v.toFixed(1)}%` : key.startsWith("fee") ? `${v.toFixed(2)} bp` : usd(v))}
+          valueFormat={(v, key) =>
+            key === "sigmaAnnualPct" ? `${v.toFixed(1)}%` : key.startsWith("fee") ? `${v.toFixed(2)} bp` : key.startsWith("arb") ? `${usd(v)} per $1M` : usd(v)
+          }
         />
       }
     />
@@ -54,7 +56,7 @@ export function ReplayCharts({ replay }: { replay: LabReplay }) {
           </LineChart>
         </Row>
       ) : null}
-      <Row title="σ from the desk (annualised %)" text={`σ from the desk over the replay: ${span(data.map((r) => r.sigmaAnnualPct), (v) => `${v.toFixed(0)}%`)} a year.`}>
+      <Row title="σ from the desk (annualized %)" text={`σ from the desk over the replay: ${span(data.map((r) => r.sigmaAnnualPct), (v) => `${v.toFixed(0)}%`)} a year.`}>
         <LineChart accessibilityLayer={false} data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
           <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis unit="%" tick={tick} width={56} />{tip}
           <Line type="stepAfter" dataKey="sigmaAnnualPct" name="σ" stroke={COLORS.sigma} dot={false} strokeWidth={2} isAnimationActive={false} />
@@ -65,17 +67,17 @@ export function ReplayCharts({ replay }: { replay: LabReplay }) {
         text={`Fee over the replay: pool V ${span(data.map((r) => r.feeVBp), (v) => `${v.toFixed(1)} bp`)}, pool S fixed at ${replay.feeSBp.toFixed(2)} bp, V's average.`}
       >
         <LineChart accessibilityLayer={false} data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
-          <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis unit=" bp" tick={tick} width={56} />{tip}<Legend wrapperStyle={{ fontSize: 11 }} itemSorter={vFirst} />
+          <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis unit=" bp" tick={tick} width={56} />{tip}<Legend wrapperStyle={{ fontSize: 12 }} itemSorter={vFirst} />
           <Line type="stepAfter" dataKey="feeVBp" name="Pool V" stroke={COLORS.V} dot={false} strokeWidth={2} isAnimationActive={false} />
           <Line type="stepAfter" dataKey="feeSBp" name="Pool S" stroke={COLORS.S} strokeDasharray="6 3" dot={false} strokeWidth={2} isAnimationActive={false} />
         </LineChart>
       </Row>
       <Row
-        title="Lost to arbitrage, cumulative, net of the fees arbitrageurs paid (USD)"
-        text={last ? `Cumulative LP losses to arbitrage net of fees at the end of the replay: pool V ${usd(last.arbCumVUsd)}, pool S ${usd(last.arbCumSUsd)}.` : "No data."}
+        title="Lost to arbitrage, cumulative, net of the fees arbitrageurs paid (USD per $1M of liquidity, lab)"
+        text={last ? `Cumulative LP losses to arbitrage net of fees at the end of the lab's replay: pool V ${usd(last.arbCumVUsd)}, pool S ${usd(last.arbCumSUsd)} per $1M of liquidity.` : "No data."}
       >
         <LineChart accessibilityLayer={false} data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
-          <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis tick={tick} width={56} />{tip}<Legend wrapperStyle={{ fontSize: 11 }} itemSorter={vFirst} />
+          <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis tick={tick} width={56} />{tip}<Legend wrapperStyle={{ fontSize: 12 }} itemSorter={vFirst} />
           <Line dataKey="arbCumVUsd" name="Pool V" stroke={COLORS.V} dot={false} strokeWidth={2} isAnimationActive={false} />
           <Line dataKey="arbCumSUsd" name="Pool S" stroke={COLORS.S} strokeDasharray="6 3" dot={false} strokeWidth={2} isAnimationActive={false} />
         </LineChart>

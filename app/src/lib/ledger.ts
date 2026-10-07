@@ -1,6 +1,7 @@
 // Display helpers for the /app comparison cards: the volatility scale against V's break-even and the
 // LP profit-and-loss ledger of pool V against pool S. Pure functions, so the copy is tested.
 
+import { FeeMode } from "./feeMath";
 import { utcTime } from "./theme";
 
 /** The steps the volatility scale may end on, in % a year. */
@@ -72,6 +73,58 @@ export function pnlSentence(o: { vNet: number; sNet: number; sinceSec?: number; 
   const pct = relativePct(o.vNet, o.sNet);
   const by = Number.isFinite(pct) ? `${Math.abs(pct).toFixed(1)}% ` : "";
   return `${when}, pool V's hedged LP earned ${by}${d > 0 ? "more" : "less"} than pool S's${tail}`;
+}
+
+/** How long pool V's fee sat above its floor over a window, and why: σ in normal mode (the weather), or a safe mode. */
+export type FeeRegimes = {
+  stormSec: number; // normal mode, fee above the floor: σ lifted it
+  blindSec: number; // blind mode: the desk silent for more than tauKillSec, fee at the safe floor or more
+  degradedSec: number; // degraded mode: the venues apart, fee at the safe floor or more
+};
+
+/** FeeRegimes of the hook's step series (weatherSeries) from its first point to `to`. */
+export function feeRegimes(points: ReadonlyArray<{ t: number; feeVBp: number; mode: FeeMode }>, to: number, floorBp: number): FeeRegimes {
+  const r: FeeRegimes = { stormSec: 0, blindSec: 0, degradedSec: 0 };
+  points.forEach((p, i) => {
+    const span = Math.max(0, Math.min(to, i + 1 < points.length ? points[i + 1].t : to) - p.t);
+    if (p.mode === FeeMode.Blind) r.blindSec += span;
+    else if (p.mode === FeeMode.Degraded) r.degradedSec += span;
+    else if (p.feeVBp > floorBp + 1e-9) r.stormSec += span;
+  });
+  return r;
+}
+
+/** "45 s", "7 min", "2 h 05 min": a duration rounded for a sentence. */
+export function spanLabel(sec: number): string {
+  const s = Math.max(0, Math.round(sec));
+  if (s < 60) return `${s} s`;
+  const min = Math.round(s / 60);
+  if (min < 60) return `${min} min`;
+  return `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")} min`;
+}
+
+/**
+ * What sits behind the P&L headline, read from the same window: how long σ lifted V's fee off its
+ * floor, how long a safe mode held it at the safe fee instead (desk outages, not the weather), and
+ * that every retail order is mirrored to both pools, so no flow moves to the cheaper one.
+ */
+export function pnlCaveat(r: FeeRegimes, floorBp: number, safeBp: number): string {
+  const safeParts = [
+    r.blindSec > 0 ? `${spanLabel(r.blindSec)} in blind mode (the desk silent)` : null,
+    r.degradedSec > 0 ? `${spanLabel(r.degradedSec)} in degraded mode (the venues apart)` : null,
+  ].filter((x): x is string => x !== null);
+  const safe = safeParts.join(" and ");
+  const why = r.degradedSec > 0 ? "the desk's safe modes" : "desk outages";
+  const storm = spanLabel(r.stormSec);
+  const first =
+    r.stormSec > 0 && safe
+      ? `V's fee left its ${floorBp} bp floor for ${storm} because σ rose, and sat at ${safeBp} bp or more for ${safe}: that part of V's premium came from ${why}, not from the weather.`
+      : r.stormSec > 0
+        ? `V's fee left its ${floorBp} bp floor for ${storm}, each time because σ rose; no safe mode in this window.`
+        : safe
+          ? `σ never took V's fee off its ${floorBp} bp floor in this window: V charged more only for ${safe}, at ${safeBp} bp or more, so the gap comes from ${why}, not from the weather.`
+          : `V's fee stayed at its ${floorBp} bp floor throughout: no premium is behind the gap.`;
+  return `${first} Every retail order also goes to both pools at once, so neither loses flow when it costs more; through a router, each order would go to the cheaper pool, which only the lab's aggregator scenario models.`;
 }
 
 /** "about 1 h", "about 20 min": a span of Sepolia blocks (12 s each) in words. */

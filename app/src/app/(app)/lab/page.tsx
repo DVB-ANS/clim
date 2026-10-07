@@ -21,8 +21,10 @@ export default function LabPage() {
         <BacktestTable summary={s} />
         <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
           <li>
-            LP gain, full-range ETH: {signedPct(lo)} to {signedPct(hi)} of capital per year ({usdPerMillion(lo)} to {usdPerMillion(hi)} a year per $1M of liquidity).
-            In the main scenario, about {roundPct(s.lpGain.shareFromTop5WeeksPct)} of the gain is earned in the five most turbulent weeks; the same scenario on an
+            LP gain against a static 5 bp pool in the one-year backtest (1-minute data bridged to 12 s blocks), full-range ETH, across 5 retail
+            scenarios: {signedPct(lo)} to {signedPct(hi)} of capital per year ({usdPerMillion(lo)} to {usdPerMillion(hi)} a year per $1M of
+            liquidity). In the main scenario (an aggregator routes retail between clim and a static 5 bp pool four times deeper), about{" "}
+            {roundPct(s.lpGain.shareFromTop5WeeksPct)} of the gain is earned in the five most turbulent weeks; the same scenario on an
             asset twice as volatile (the same year with every return doubled) gains {signedPct(s.lpGain.volatileAssetPctPerYearMax)} a year.
           </li>
           <li>The model predicts how often arbitrage happens; it underestimates how much it takes: observed ARB/LVR is {s.modelSeverityRatio[0].toFixed(2)} to {s.modelSeverityRatio[1].toFixed(2)} times the model.</li>

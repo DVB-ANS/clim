@@ -64,7 +64,7 @@ export function contractGroups(d: Deployments): ContractGroup[] {
       title: "Chainlink",
       rows: [
         ...row("MockKeystoneForwarder", d.chainlink.mockKeystoneForwarder, "delivers the reports of cre workflow simulate --broadcast; checks no signature"),
-        ...row("KeystoneForwarder", d.chainlink.keystoneForwarder, "delivers DON-signed reports; for a DON deployment, not used by this demo"),
+        ...row("KeystoneForwarder", d.chainlink.keystoneForwarder, "delivers DON-signed reports; not used: the DON deployment was cut"),
       ],
     },
     {
