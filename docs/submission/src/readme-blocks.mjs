@@ -49,7 +49,7 @@ const DEPLOYMENT_GROUPS = [
     ["uniswap.poolManager", "`PoolManager`", "the v4 singleton; calls the hook on every swap"],
     ["uniswap.stateView", "`StateView`", "pool state reads"],
     ["uniswap.poolSwapTest", "`PoolSwapTest`", "test swap router, used by the retail bot"],
-    ["uniswap.poolModifyLiquidityTest", "`PoolModifyLiquidityTest`", "test liquidity router"],
+    ["uniswap.poolModifyLiquidityTest", "`PoolModifyLiquidityTest`", "test liquidity router: the pools' seed liquidity and the `/lp` positions; it does not tie a position to its owner (see [Limits](#limits))"],
   ]],
   ["Chainlink", [
     ["cre.mockForwarder", "`MockKeystoneForwarder`", "delivers `cre workflow simulate --broadcast` reports; checks no signature"],

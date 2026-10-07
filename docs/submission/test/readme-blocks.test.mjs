@@ -48,12 +48,14 @@ test("deployments: unknown keys still listed, fixed-fee twins show their fee", (
   d.deployer = "0x5555555555555555555555555555555555555555";
   d.riskDesks.replay = "0x7777777777777777777777777777777777777777";
   d.extra = { thing: "0x6666666666666666666666666666666666666666" };
+  d.uniswap.poolModifyLiquidityTest = "0x8888888888888888888888888888888888888888";
   d.pools.liveS = { key: { ...d.pools.liveV.key, hooks: "0x0000000000000000000000000000000000000000", fee: 511 }, poolId: "0x" + "b".repeat(64) };
   const out = renderDeployments(d);
   assert.match(out, /\| Operator \| \[`0x55555555…5555`\]\([^)]+\) \|  \| deployer, owner of both desks, the live desk's `simOperator`/);
   assert.match(out, /\| \*\*Other\*\* \| `extra\.thing` \| \[`0x66666666…6666`\]/);
   assert.ok(out.indexOf("**Other**") > out.indexOf("**Test tokens and bots**"));
   assert.match(out, /\| fixed-fee twin \(live\) \| 5\.11 bp, fixed \| `0xbbbbbbbb…bbbb` \|/);
+  assert.match(out, /\|  \| `PoolModifyLiquidityTest` \| \[`0x88888888…8888`\]\([^)]+\) \|  \| test liquidity router: .+ does not tie a position to its owner \(see \[Limits\]\(#limits\)\) \|/);
   assert.match(out, /`RiskDesk` \(replay\) \| \[`0x77777777…7777`\]\([^)]+\) \| \[Sourcify\]\([^)]+\) \| received the CRE reports of the 4 February 2026 storm, replayed/);
   assert.doesNotMatch(out, /0x0000000000/);
 });
