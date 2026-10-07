@@ -68,15 +68,15 @@
     {
       "png": "08-demo.png",
       "figma": "204:221",
-      "title": "Demo (stage version)",
-      "text": "Demo video, stage version.",
-      "notes": "The demo: the risk desk reporting on Sepolia, the fee rising with the weather, and the dashboard reading the chain.\n\nSources (not read aloud): this slide embeds the 30-second stage cut of the maintainer's demo video, full-bleed (docs/submission/out/video/demo-stage.mp4; live demos are not allowed on stage). The full demo video is on Google Drive and is the submission's Project link (videoUrl in docs/submission/links.json); the app itself is at https://clim-zeta.vercel.app.",
+      "title": "The demo, in 40 seconds",
+      "text": "The demo, in 40 seconds. A short cut, recorded on the live Sepolia deployment. Short version, 40 s. The full demo, 4 min 20 s, is in the submission and in the repo. youtu.be/xbfjvNv6KR0. github.com/DVB-ANS/clim. Sepolia testnet. CRE in simulation.",
+      "notes": "The demo, in 40 seconds: the storm this morning, the risk desk running on Sepolia, the 7 October storm priced live, and my conclusion.\n\nSources (not read aloud): this slide embeds the 40-second stage cut of the maintainer's demo video, framed on the slide (docs/submission/out/video/demo-stage.mp4; live demos are not allowed on stage). The full demo video, 4 min 20 s, is https://youtu.be/xbfjvNv6KR0 (videoUrl in docs/submission/links.json) and is linked from the README; the app itself is at https://clim-zeta.vercel.app.",
       "video": {
         "kind": "stage",
-        "x": 0,
-        "y": 0,
-        "w": 1920,
-        "h": 1080
+        "x": 120,
+        "y": 336,
+        "w": 992,
+        "h": 558
       }
     },
     {

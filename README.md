@@ -13,7 +13,7 @@
 **TOKEN2049 Origins · Singapore, October 2026 · Main track and Chainlink "Best workflow with CRE"**
 
 <!-- clim:begin links -->
-**[Open the dashboard](https://clim-zeta.vercel.app/app)** · **Video demo** _(added at submission)_ · **Deck** _(added at submission)_ · **[CRE evidence](docs/evidence/)** · **[CRE DevEx report](docs/feedback/cre-devex-report.md)** · **[CRE friction log](docs/feedback/cre-friction-log.md)**
+**[Open the dashboard](https://clim-zeta.vercel.app/app)** · **[Video demo](https://youtu.be/xbfjvNv6KR0)** · **Deck** _(added at submission)_ · **[CRE evidence](docs/evidence/)** · **[CRE DevEx report](docs/feedback/cre-devex-report.md)** · **[CRE friction log](docs/feedback/cre-friction-log.md)**
 <!-- clim:end links -->
 
 </div>
