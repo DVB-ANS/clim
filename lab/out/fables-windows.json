@@ -1,0 +1,470 @@
+{
+  "schema": "clim.lab.fables-windows/1",
+  "generatedAt": "2026-10-07T10:13:39Z",
+  "scan": {
+    "source": "Binance spot ETHUSDT 1-minute klines (close), GET https://api.binance.com/api/v3/klines",
+    "fromUtc": "2026-07-01T00:00:00Z",
+    "lastCandleOpenUtc": "2026-10-07T08:37:00Z",
+    "klines": 141638,
+    "gapsForwardFilled": 0,
+    "estimator": "RV15 = sqrt(sum of the 15 squared 1-minute log returns of the last 16 closes / 900 s), annualized over 365 days (%/yr); Binance only, not the desk's four-venue median",
+    "windowConvention": "240-minute windows [start, end); mean of the RV15 values known at the minute ends in (start, end]; greedy non-overlapping top windows by mean; peakAtUtc is the minute end at which the peak RV15 is known",
+    "climModel": "climModelMeanFeeBp12s: clim's shipped rule (12 s) on the desk model fed by these 1-minute closes (RiskDesk envelope, 30 s reports, 12 s latency)"
+  },
+  "fables": {
+    "poolInitialized": {
+      "block": 41259014,
+      "timeUtc": "2026-08-20T07:58:27Z",
+      "tx": "0x1c00f72a65cd83238e496d21776d783974b4e8baf707c7881da6c61a8d5f5a71"
+    },
+    "firstFeePoked": {
+      "block": 44214000,
+      "timeUtc": "2026-08-23T18:19:01Z",
+      "tx": "0xc5528f2945f0094314a16e672f63ebcb5db0cf029f7d4844a5040a91938037a5"
+    },
+    "configs": [
+      {
+        "block": 41252076,
+        "timeUtc": "2026-08-20T07:46:52Z",
+        "floorPips": 100,
+        "flatPips": 450,
+        "capPips": 3000
+      },
+      {
+        "block": 56022455,
+        "timeUtc": "2026-09-06T13:43:44Z",
+        "floorPips": 100,
+        "flatPips": 700,
+        "capPips": 6000
+      }
+    ],
+    "feePokedLogs": 5645
+  },
+  "topWindows": [
+    {
+      "rank": 1,
+      "label": "2026-08-19 20:07-2026-08-20 00:07 UTC",
+      "startTs": 1787170020,
+      "endTs": 1787184420,
+      "startUtc": "2026-08-19T20:07:00Z",
+      "endUtc": "2026-08-20T00:07:00Z",
+      "meanRv15": 165.81379,
+      "peakRv15": 620.11198,
+      "peakAtUtc": "2026-08-19T21:05:00Z",
+      "state": "beforePool"
+    },
+    {
+      "rank": 2,
+      "label": "2026-09-11 12:30-16:30 UTC",
+      "startTs": 1789129800,
+      "endTs": 1789144200,
+      "startUtc": "2026-09-11T12:30:00Z",
+      "endUtc": "2026-09-11T16:30:00Z",
+      "meanRv15": 146.85166,
+      "peakRv15": 445.60626,
+      "peakAtUtc": "2026-09-11T14:04:00Z",
+      "state": "keeperLive",
+      "config": "100/700/6000",
+      "keeperMeanFeeBp": 43.717833,
+      "keeperPctAtCap": 41.666667,
+      "climModelMeanFeeBp12s": 16.041125,
+      "keeperOverClim": 2.7253596,
+      "keeperLiveRank": 1
+    },
+    {
+      "rank": 3,
+      "label": "2026-08-22 05:07-09:07 UTC",
+      "startTs": 1787375220,
+      "endTs": 1787389620,
+      "startUtc": "2026-08-22T05:07:00Z",
+      "endUtc": "2026-08-22T09:07:00Z",
+      "meanRv15": 120.72798,
+      "peakRv15": 711.61188,
+      "peakAtUtc": "2026-08-22T05:22:00Z",
+      "state": "poolLiveNoKeeper",
+      "config": "100/450/3000",
+      "keeperMeanFeeBp": 4.5,
+      "keeperPctAtCap": 0.0,
+      "climModelMeanFeeBp12s": 13.335375,
+      "keeperOverClim": 0.33744833
+    },
+    {
+      "rank": 4,
+      "label": "2026-08-19 14:29-18:29 UTC",
+      "startTs": 1787149740,
+      "endTs": 1787164140,
+      "startUtc": "2026-08-19T14:29:00Z",
+      "endUtc": "2026-08-19T18:29:00Z",
+      "meanRv15": 119.58385,
+      "peakRv15": 552.92946,
+      "peakAtUtc": "2026-08-19T15:37:00Z",
+      "state": "beforePool"
+    },
+    {
+      "rank": 5,
+      "label": "2026-08-21 20:24-2026-08-22 00:24 UTC",
+      "startTs": 1787343840,
+      "endTs": 1787358240,
+      "startUtc": "2026-08-21T20:24:00Z",
+      "endUtc": "2026-08-22T00:24:00Z",
+      "meanRv15": 114.03226,
+      "peakRv15": 232.68922,
+      "peakAtUtc": "2026-08-21T22:04:00Z",
+      "state": "poolLiveNoKeeper",
+      "config": "100/450/3000",
+      "keeperMeanFeeBp": 4.5,
+      "keeperPctAtCap": 0.0,
+      "climModelMeanFeeBp12s": 12.491167,
+      "keeperOverClim": 0.36025458
+    },
+    {
+      "rank": 6,
+      "label": "2026-07-02 12:29-16:29 UTC",
+      "startTs": 1782995340,
+      "endTs": 1783009740,
+      "startUtc": "2026-07-02T12:29:00Z",
+      "endUtc": "2026-07-02T16:29:00Z",
+      "meanRv15": 107.95097,
+      "peakRv15": 261.19616,
+      "peakAtUtc": "2026-07-02T13:40:00Z",
+      "state": "beforePool"
+    },
+    {
+      "rank": 7,
+      "label": "2026-08-21 08:18-12:18 UTC",
+      "startTs": 1787300280,
+      "endTs": 1787314680,
+      "startUtc": "2026-08-21T08:18:00Z",
+      "endUtc": "2026-08-21T12:18:00Z",
+      "meanRv15": 102.97874,
+      "peakRv15": 203.54526,
+      "peakAtUtc": "2026-08-21T09:15:00Z",
+      "state": "poolLiveNoKeeper",
+      "config": "100/450/3000",
+      "keeperMeanFeeBp": 4.5,
+      "keeperPctAtCap": 0.0,
+      "climModelMeanFeeBp12s": 11.279333,
+      "keeperOverClim": 0.39895975
+    },
+    {
+      "rank": 8,
+      "label": "2026-09-04 12:04-16:04 UTC",
+      "startTs": 1788523440,
+      "endTs": 1788537840,
+      "startUtc": "2026-09-04T12:04:00Z",
+      "endUtc": "2026-09-04T16:04:00Z",
+      "meanRv15": 96.8142,
+      "peakRv15": 456.91981,
+      "peakAtUtc": "2026-09-04T12:45:00Z",
+      "state": "keeperLive",
+      "config": "100/450/3000",
+      "keeperMeanFeeBp": 21.77875,
+      "keeperPctAtCap": 52.5,
+      "climModelMeanFeeBp12s": 10.766042,
+      "keeperOverClim": 2.0229115,
+      "keeperLiveRank": 2
+    },
+    {
+      "rank": 9,
+      "label": "2026-08-23 13:18-17:18 UTC",
+      "startTs": 1787491080,
+      "endTs": 1787505480,
+      "startUtc": "2026-08-23T13:18:00Z",
+      "endUtc": "2026-08-23T17:18:00Z",
+      "meanRv15": 96.730792,
+      "peakRv15": 445.57372,
+      "peakAtUtc": "2026-08-23T14:56:00Z",
+      "state": "poolLiveNoKeeper",
+      "config": "100/450/3000",
+      "keeperMeanFeeBp": 4.5,
+      "keeperPctAtCap": 0.0,
+      "climModelMeanFeeBp12s": 10.656208,
+      "keeperOverClim": 0.42228904
+    },
+    {
+      "rank": 10,
+      "label": "2026-08-20 13:30-17:30 UTC",
+      "startTs": 1787232600,
+      "endTs": 1787247000,
+      "startUtc": "2026-08-20T13:30:00Z",
+      "endUtc": "2026-08-20T17:30:00Z",
+      "meanRv15": 96.12117,
+      "peakRv15": 202.30112,
+      "peakAtUtc": "2026-08-20T13:43:00Z",
+      "state": "poolLiveNoKeeper",
+      "config": "100/450/3000",
+      "keeperMeanFeeBp": 4.5,
+      "keeperPctAtCap": 0.0,
+      "climModelMeanFeeBp12s": 10.518417,
+      "keeperOverClim": 0.42782104
+    },
+    {
+      "rank": 11,
+      "label": "2026-07-06 12:43-16:43 UTC",
+      "startTs": 1783341780,
+      "endTs": 1783356180,
+      "startUtc": "2026-07-06T12:43:00Z",
+      "endUtc": "2026-07-06T16:43:00Z",
+      "meanRv15": 94.967304,
+      "peakRv15": 184.68556,
+      "peakAtUtc": "2026-07-06T14:26:00Z",
+      "state": "beforePool"
+    },
+    {
+      "rank": 12,
+      "label": "2026-09-16 16:49-20:49 UTC",
+      "startTs": 1789577340,
+      "endTs": 1789591740,
+      "startUtc": "2026-09-16T16:49:00Z",
+      "endUtc": "2026-09-16T20:49:00Z",
+      "meanRv15": 94.336742,
+      "peakRv15": 225.3551,
+      "peakAtUtc": "2026-09-16T18:43:00Z",
+      "state": "keeperLive",
+      "config": "100/700/6000",
+      "keeperMeanFeeBp": 29.8335,
+      "keeperPctAtCap": 27.5,
+      "climModelMeanFeeBp12s": 10.47625,
+      "keeperOverClim": 2.847727,
+      "keeperLiveRank": 3
+    },
+    {
+      "rank": 13,
+      "label": "2026-09-15 17:31-21:31 UTC",
+      "startTs": 1789493460,
+      "endTs": 1789507860,
+      "startUtc": "2026-09-15T17:31:00Z",
+      "endUtc": "2026-09-15T21:31:00Z",
+      "meanRv15": 92.045753,
+      "peakRv15": 264.7475,
+      "peakAtUtc": "2026-09-15T18:55:00Z",
+      "state": "keeperLive",
+      "config": "100/700/6000",
+      "keeperMeanFeeBp": 27.365,
+      "keeperPctAtCap": 18.333333,
+      "climModelMeanFeeBp12s": 10.098708,
+      "keeperOverClim": 2.7097525,
+      "keeperLiveRank": 4
+    },
+    {
+      "rank": 14,
+      "label": "2026-09-18 13:39-17:39 UTC",
+      "startTs": 1789738740,
+      "endTs": 1789753140,
+      "startUtc": "2026-09-18T13:39:00Z",
+      "endUtc": "2026-09-18T17:39:00Z",
+      "meanRv15": 90.772474,
+      "peakRv15": 209.16453,
+      "peakAtUtc": "2026-09-18T13:56:00Z",
+      "state": "keeperLive",
+      "config": "100/700/6000",
+      "keeperMeanFeeBp": 30.295667,
+      "keeperPctAtCap": 16.666667,
+      "climModelMeanFeeBp12s": 9.91675,
+      "keeperOverClim": 3.0549995,
+      "keeperLiveRank": 5
+    },
+    {
+      "rank": 15,
+      "label": "2026-08-24 13:36-17:36 UTC",
+      "startTs": 1787578560,
+      "endTs": 1787592960,
+      "startUtc": "2026-08-24T13:36:00Z",
+      "endUtc": "2026-08-24T17:36:00Z",
+      "meanRv15": 89.793522,
+      "peakRv15": 146.81764,
+      "peakAtUtc": "2026-08-24T13:47:00Z",
+      "state": "keeperLive",
+      "config": "100/450/3000",
+      "keeperMeanFeeBp": 27.325333,
+      "keeperPctAtCap": 65.0,
+      "climModelMeanFeeBp12s": 9.82175,
+      "keeperOverClim": 2.7821247,
+      "keeperLiveRank": 6
+    },
+    {
+      "rank": 16,
+      "label": "2026-07-14 12:21-16:21 UTC",
+      "startTs": 1784031660,
+      "endTs": 1784046060,
+      "startUtc": "2026-07-14T12:21:00Z",
+      "endUtc": "2026-07-14T16:21:00Z",
+      "meanRv15": 89.654079,
+      "peakRv15": 213.26946,
+      "peakAtUtc": "2026-07-14T12:43:00Z",
+      "state": "beforePool"
+    },
+    {
+      "rank": 17,
+      "label": "2026-08-28 13:48-17:48 UTC",
+      "startTs": 1787924880,
+      "endTs": 1787939280,
+      "startUtc": "2026-08-28T13:48:00Z",
+      "endUtc": "2026-08-28T17:48:00Z",
+      "meanRv15": 87.067363,
+      "peakRv15": 182.50695,
+      "peakAtUtc": "2026-08-28T16:38:00Z",
+      "state": "keeperLive",
+      "config": "100/450/3000",
+      "keeperMeanFeeBp": 24.785083,
+      "keeperPctAtCap": 21.666667,
+      "climModelMeanFeeBp12s": 9.5682083,
+      "keeperOverClim": 2.5903578,
+      "keeperLiveRank": 7
+    },
+    {
+      "rank": 18,
+      "label": "2026-08-20 08:10-12:10 UTC",
+      "startTs": 1787213400,
+      "endTs": 1787227800,
+      "startUtc": "2026-08-20T08:10:00Z",
+      "endUtc": "2026-08-20T12:10:00Z",
+      "meanRv15": 87.03506,
+      "peakRv15": 196.02885,
+      "peakAtUtc": "2026-08-20T08:21:00Z",
+      "state": "poolLiveNoKeeper",
+      "config": "100/450/3000",
+      "keeperMeanFeeBp": 4.5,
+      "keeperPctAtCap": 0.0,
+      "climModelMeanFeeBp12s": 9.60725,
+      "keeperOverClim": 0.46839626
+    },
+    {
+      "rank": 19,
+      "label": "2026-09-21 12:54-16:54 UTC",
+      "startTs": 1789995240,
+      "endTs": 1790009640,
+      "startUtc": "2026-09-21T12:54:00Z",
+      "endUtc": "2026-09-21T16:54:00Z",
+      "meanRv15": 85.3773,
+      "peakRv15": 123.83808,
+      "peakAtUtc": "2026-09-21T14:59:00Z",
+      "state": "keeperLive",
+      "config": "100/700/6000",
+      "keeperMeanFeeBp": 30.198,
+      "keeperPctAtCap": 9.1666667,
+      "climModelMeanFeeBp12s": 9.34325,
+      "keeperOverClim": 3.2320659,
+      "keeperLiveRank": 8
+    },
+    {
+      "rank": 20,
+      "label": "2026-07-13 00:02-04:02 UTC",
+      "startTs": 1783900920,
+      "endTs": 1783915320,
+      "startUtc": "2026-07-13T00:02:00Z",
+      "endUtc": "2026-07-13T04:02:00Z",
+      "meanRv15": 81.733073,
+      "peakRv15": 190.66566,
+      "peakAtUtc": "2026-07-13T00:15:00Z",
+      "state": "beforePool"
+    }
+  ],
+  "keeperShape": {
+    "fromUtc": "2026-09-06T14:43:00Z",
+    "toUtc": "2026-10-07T03:28:00Z",
+    "days": 30.53125,
+    "minutes": 43965,
+    "config": "100/700/6000",
+    "corrFeeRv15": 0.82826581,
+    "corrFeeRv15BelowCap": 0.78135649,
+    "keeperMeanFeeBp": 10.545075,
+    "climModelMeanFeeBp12s": 5.6824485,
+    "pctTimeAtFlat": 75.030138,
+    "pctTimeAtCap": 1.5671557,
+    "bins": [
+      {
+        "rv15FromPctYr": 0,
+        "rv15ToPctYr": 40,
+        "minutes": 28816,
+        "keeperMedianBp": 7.0,
+        "keeperP10Bp": 7.0,
+        "keeperP90Bp": 7.0,
+        "climModelMedianBp12s": 5.0
+      },
+      {
+        "rv15FromPctYr": 40,
+        "rv15ToPctYr": 60,
+        "minutes": 9503,
+        "keeperMedianBp": 7.94,
+        "keeperP10Bp": 7.0,
+        "keeperP90Bp": 16.05,
+        "climModelMedianBp12s": 5.18
+      },
+      {
+        "rv15FromPctYr": 60,
+        "rv15ToPctYr": 80,
+        "minutes": 3270,
+        "keeperMedianBp": 18.54,
+        "keeperP10Bp": 11.38,
+        "keeperP90Bp": 30.49,
+        "climModelMedianBp12s": 7.4
+      },
+      {
+        "rv15FromPctYr": 80,
+        "rv15ToPctYr": 100,
+        "minutes": 1181,
+        "keeperMedianBp": 29.45,
+        "keeperP10Bp": 16.67,
+        "keeperP90Bp": 50.77,
+        "climModelMedianBp12s": 9.58
+      },
+      {
+        "rv15FromPctYr": 100,
+        "rv15ToPctYr": 150,
+        "minutes": 890,
+        "keeperMedianBp": 47.66,
+        "keeperP10Bp": 26.729,
+        "keeperP90Bp": 60.0,
+        "climModelMedianBp12s": 12.345
+      },
+      {
+        "rv15FromPctYr": 150,
+        "rv15ToPctYr": null,
+        "minutes": 305,
+        "keeperMedianBp": 60.0,
+        "keeperP10Bp": 60.0,
+        "keeperP90Bp": 60.0,
+        "climModelMedianBp12s": 21.31
+      }
+    ],
+    "leadLag": [
+      {
+        "rv15KnownMinutesLater": -5,
+        "corr": 0.66705968
+      },
+      {
+        "rv15KnownMinutesLater": -2,
+        "corr": 0.76222662
+      },
+      {
+        "rv15KnownMinutesLater": -1,
+        "corr": 0.79713312
+      },
+      {
+        "rv15KnownMinutesLater": 0,
+        "corr": 0.82826581
+      },
+      {
+        "rv15KnownMinutesLater": 1,
+        "corr": 0.83068351
+      },
+      {
+        "rv15KnownMinutesLater": 2,
+        "corr": 0.82887931
+      },
+      {
+        "rv15KnownMinutesLater": 5,
+        "corr": 0.80367413
+      }
+    ],
+    "pokes": 4641,
+    "pctPokesOnMinuteBoundary": 77.828054,
+    "ttlSecValues": [
+      7200
+    ],
+    "medianSecBetweenPokes": 179.0,
+    "lastFeePokedUtc": "2026-10-07T03:27:01Z",
+    "note": "from one hour after the current config to the last FeePoked before the scan end; keeper fee from its FeePoked logs on a 1-minute grid vs Binance RV15 known at the same minute end; leadLag: corr(keeper fee at t, RV15 known L minutes later), so a peak at L > 0 means the fee moves before RV15"
+  }
+}
