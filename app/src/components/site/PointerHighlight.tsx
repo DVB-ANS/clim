@@ -62,7 +62,7 @@ export function PointerHighlight({
           variants={pointer}
           transition={{ default: draw, scale: { delay, duration: 0.2, ease: "easeOut" } }}
         >
-          <Cursor label={label} still dot flip className="-right-px -top-px w-max" />
+          <Cursor label={label} still dot flip arrow={false} className="-right-px -top-px w-max" />
         </motion.span>
       </span>
     </motion.span>

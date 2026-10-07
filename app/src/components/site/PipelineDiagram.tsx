@@ -1,7 +1,6 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef } from "react";
-import { Cursor } from "./Cursor";
 
 type Live = { seq?: number; sigmaPct?: number; dispBp?: number; sources?: number; feeVBp?: number; feeSBp?: number };
 
@@ -180,7 +179,6 @@ export function PipelineDiagram({ live, simulated = false }: { live: Live; simul
         ))}
       </svg>
       <div className="hidden @min-[770px]:block">
-        <Cursor label="Chainlink CRE" className="left-[24%] top-[13%]" />
       </div>
 
       {/* narrow box: the same pipeline, stacked, in real text */}

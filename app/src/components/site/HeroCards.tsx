@@ -2,7 +2,6 @@
 
 import type { WeatherPoint } from "@/lib/series";
 import { AnimatedCounter } from "../AnimatedCounter";
-import { Cursor } from "./Cursor";
 import { LcdStorm } from "./LcdStorm";
 import { WeatherMini } from "./WeatherMini";
 
@@ -50,7 +49,6 @@ export function HeroCards({ live }: { live: HeroLive }) {
           </div>
         </div>
         <WeatherMini points={live.points} staticFeeBp={live.feeSBp ?? 0} className="mt-3 h-auto w-full" />
-        <Cursor label="Chainlink CRE" className="left-[42%] top-[38%]" />
       </article>
 
       <article className={`${card} rise relative p-4 lg:absolute lg:left-0 lg:top-[262px] lg:w-[50%]`} style={{ animationDelay: "240ms" }}>
@@ -70,7 +68,6 @@ export function HeroCards({ live }: { live: HeroLive }) {
           </Chip>
         </div>
         <Spark points={live.points} />
-        <Cursor label="ClimHook" className="right-[8%] top-[44%]" delay="-2s" />
       </article>
 
       <article
@@ -92,7 +89,6 @@ export function HeroCards({ live }: { live: HeroLive }) {
             <span className="text-right text-xs font-bold uppercase">{live.modeLabel ?? ""}</span>
           </div>
         </div>
-        <Cursor label="LP" className="left-[18%] top-[30%]" delay="-4s" />
       </article>
     </div>
   );
