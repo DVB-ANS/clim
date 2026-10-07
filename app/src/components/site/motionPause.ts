@@ -3,8 +3,8 @@
 import { useSyncExternalStore } from "react";
 
 // The landing's page-wide motion switch (WCAG 2.2.2: anything that moves on its own for more than 5 s
-// can be paused). The report ticker's button flips it; it pauses the infinite loops only: the ticker, the
-// two canvases (useCanvasLoop), the map's arcs and the scroll cue (.motion-loop in globals.css). The
+// can be paused). The "Pause motion" button under the hero (MotionToggle) flips it; it pauses the infinite
+// loops only: the isobar canvas (useCanvasLoop), the map's arcs and the scroll cue (.motion-loop in globals.css). The
 // one-off entrances keep running. It lives on <html data-motion="paused"> so CSS can read it too.
 let paused = false;
 const listeners = new Set<() => void>();

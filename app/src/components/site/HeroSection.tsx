@@ -1,12 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import type { CSSProperties } from "react";
 import { params } from "@/lib/config";
 import { silentLabel } from "@/lib/guide";
 import { pipsToBp } from "@/lib/units";
-import { AnimatedCounter } from "../AnimatedCounter";
-import { linkCls } from "../ui";
 import { Wordmark } from "../Wordmark";
 import { HeroCards } from "./HeroCards";
 import { LaunchButton } from "./LaunchButton";
@@ -18,19 +15,17 @@ const HEADLINE = ["Your", "Liquidity.", "Our", "Risk", "Desk.", "Fees", "That", 
 
 /**
  * The hero, with no bar above it: the wordmark, the promise (its words rise one by one, then a pink box
- * draws around "Storm" with the desk's σ on its tag), one sentence of mechanism, Launch app first
- * and largest, a trust line (live, or since when the desk has been silent), and the desk's cards on the right. "Scroll to learn more" closes it.
+ * draws around "Storm"), one sentence of mechanism, Launch app first and largest, and the desk's cards
+ * on the right (the CL-1 card says so when the desk has gone silent). "Scroll to learn more" closes it.
  */
 export function HeroSection({ d }: { d: LandingData }) {
-  const sigma = d.sigmaPct;
-  const silentSince = d.silentSince;
-  const silent = silentSince !== undefined;
+  const silent = d.silentSince !== undefined && d.last ? silentLabel(d.silentSince, d.last.seq) : undefined;
   return (
     <section id="top" aria-labelledby="hero-title" className="relative overflow-x-clip bg-surface">
       <div className="mx-auto flex min-h-svh max-w-[1200px] flex-col px-4">
         <div className="flex items-center justify-between gap-4 py-5">
           <Wordmark className="text-[30px]" />
-          <span className="rounded-full bg-surface-2 px-3 py-1 text-xs text-fg-muted">Ethereum Sepolia{d.simulated ? " · simulated" : ""}</span>
+          <span className="rounded-full bg-surface-2 px-3 py-1 text-xs text-fg-muted">Ethereum Sepolia</span>
         </div>
 
         <div className="grid flex-1 items-center gap-12 pb-8 pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
@@ -45,9 +40,7 @@ export function HeroSection({ d }: { d: LandingData }) {
                 </span>
               ))}
               <span className="rise-word" style={{ "--i": HEADLINE.length } as CSSProperties}>
-                <PointerHighlight label={`σ ${sigma === undefined ? "…" : sigma.toFixed(1)} %/yr`} className="text-sigma">
-                  Storm
-                </PointerHighlight>
+                <PointerHighlight className="text-sigma">Storm</PointerHighlight>
                 .
               </span>
             </h1>
@@ -73,34 +66,8 @@ export function HeroSection({ d }: { d: LandingData }) {
                 </svg>
               </a>
             </div>
-            <p className="rise mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-fg-subtle" style={{ animationDelay: "450ms" }}>
-              <span aria-hidden className={`size-2 rounded-full ${silent ? "bg-fg-subtle" : "bg-pink"}`} />
-              {silentSince !== undefined && d.last ? (
-                <>
-                  <span>{silentLabel(silentSince, d.last.seq)}</span>
-                  <span>· CRE simulator, 1 node ·</span>
-                  <Link className={linkCls} href="/app#start" aria-label="Why the desk is silent">
-                    why
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <span>Live from the desk</span>
-                  {d.last ? (
-                    <span>
-                      · report #{d.last.seq} · {d.last.nSources}/4 venues · σ{" "}
-                      {sigma === undefined ? "…" : <AnimatedCounter value={sigma} decimals={1} className="-my-[0.25em]" />} %/yr
-                    </span>
-                  ) : null}
-                  {!d.simulated ? <span>· CRE simulator, 1 node</span> : null}
-                  {d.simulated ? <span>· simulated</span> : null}
-                </>
-              )}
-            </p>
           </div>
-          <HeroCards
-            live={{ points: d.points, feeVBp: d.feeVBp, feeSBp: d.feeSBp, sigmaPct: sigma, modeLabel: d.modeLabel, seq: d.last?.seq, simulated: d.simulated }}
-          />
+          <HeroCards live={{ points: d.points, feeVBp: d.feeVBp, feeSBp: d.feeSBp, sigmaPct: d.sigmaPct, modeLabel: d.modeLabel, seq: d.last?.seq, silent }} />
         </div>
 
         <a

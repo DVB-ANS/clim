@@ -20,8 +20,6 @@ Everything shown comes from Ethereum Sepolia and from files synced from the rest
 
 Pool values are in tUSD: the pair's tokens are faucet test tokens (tETH, tUSD), not money. The lab's backtests on real market data are the only figures in US dollars.
 
-A build without the synced deployment (or with `NEXT_PUBLIC_CLIM_SOURCE=mock`) falls back to a deterministic mock chain and a simulated mode on `/swap` and `/lp`; production never does.
-
 ## Run
 
 From the repo root:
@@ -44,10 +42,10 @@ npm run build
 
 ## Scripts
 
-- `npm run sync` copies `shared/deployments/sepolia.json`, `shared/params.json`, `lab/out/*.json` and `docs/faq.md` from the repo into `src/generated/` and `public/data/lab/`; a missing file falls back to `src/fixtures/`. It reads the parent folder as the repo root (`CLIM_ROOT` overrides it). Commit the generated files: Vercel only uploads `app/`.
+- `npm run sync` copies `shared/deployments/sepolia.json`, `shared/params.json`, `lab/out/*.json` and `docs/faq.md` from the repo into `src/generated/` and `public/data/lab/`; a missing file fails the sync (the app ships real data only). It reads the parent folder as the repo root (`CLIM_ROOT` overrides it). Commit the generated files: Vercel only uploads `app/`.
 - `npm run snapshot -- live` (or `replay`) freezes a pair's logs into `public/data/chain/<pair>.json`.
 - `npm run e2e:onchain -- <env file>` runs `/swap` and `/lp` end to end on Sepolia with the app's own call builders: faucet, a 0.5 tETH swap on V and on S (each `Swap.fee` checked against `ClimHook.quoteFee()` and S's fixed fee), then a 1 tETH full-range add and remove on both pools. The env file holds `TEST_PRIVATE_KEY` for a testnet key, which is never printed; `--out <file>` writes a summary.
-- `npm run fixtures` rewrites the synthetic lab fixtures (`src/fixtures/lab/`, labeled "fixture"); `npm run dither` regenerates the dithered storm texture; `npm run logos` and `npm run world-dots` regenerate `src/components/site/logos.ts` and `src/lib/worldDots.ts` from the dev dependencies `@web3icons/core` and `dotted-map`.
+- `npm run dither` regenerates the dithered storm texture; `npm run logos` and `npm run world-dots` regenerate `src/components/site/logos.ts` and `src/lib/worldDots.ts` from the dev dependencies `@web3icons/core` and `dotted-map`.
 - `npm run licenses` regenerates `public/third-party-licenses.txt`, the license text of every npm package in the site's dependencies (`generate-license-file`). Run it by hand before a deploy that changes dependencies; the build does not.
 
 ## Environment
@@ -56,7 +54,6 @@ See `.env.example`; production sets none of them.
 
 - `NEXT_PUBLIC_SEPOLIA_RPC_URL`: optional, tried before the public RPCs.
 - `NEXT_PUBLIC_WC_PROJECT_ID`: optional WalletConnect project id (https://cloud.reown.com). Injected wallets (MetaMask, Rabby, …) work without it; with it, WalletConnect, Coinbase and Rainbow are added.
-- `NEXT_PUBLIC_CLIM_SOURCE=mock`: forces the mock chain.
 
 ## Deploy
 

@@ -5,7 +5,7 @@ import type { PoolName } from "@/lib/swap";
 import { utcTime } from "@/lib/theme";
 import { formatAmount, formatTusdCents } from "@/lib/units";
 import { TokenIcon } from "./dex";
-import { ActionButton, type TxMode } from "./TxModeSwitch";
+import { ActionButton } from "./ChainNote";
 
 const POOL_LABEL: Record<PoolName, string> = { V: "Pool V · clim", S: "Pool S · static twin" };
 
@@ -32,8 +32,9 @@ function Compare({ mine, other, pool, otherPool }: { mine: number; other: number
 }
 
 /** "Your positions": value, fees, and the P&L of the same liquidity in the twin pool. */
-export function PositionPanel({ mode, views, busy, onRemove }: {
-  mode: TxMode;
+export function PositionPanel({ off, views, busy, onRemove }: {
+  /** On-chain writes are off in this build (no live pair or tokens): ChainNote says why. */
+  off?: boolean;
   views: PositionView[];
   busy: boolean;
   onRemove: (pool: PoolName) => void;
@@ -45,9 +46,7 @@ export function PositionPanel({ mode, views, busy, onRemove }: {
           Your positions
         </h2>
         <p className="text-sm text-fg-subtle">
-          {mode === "mock"
-            ? "Simulated: valued at the pool price, fees and P&L as your share of the pool's series over the whole simulated window."
-            : "Liquidity and uncollected fees from Uniswap v4's StateView; P&L as your share of the pool's series since you added liquidity."}
+          {"Liquidity and uncollected fees from Uniswap v4's StateView; P&L as your share of the pool's series since you added liquidity."}
         </p>
       </div>
       {views.length === 0 ? (
@@ -96,10 +95,10 @@ export function PositionPanel({ mode, views, busy, onRemove }: {
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <ActionButton mode={mode} disabled={busy} onClick={() => onRemove(v.pool)}>
+                <ActionButton disabled={off || busy} onClick={() => onRemove(v.pool)}>
                   Remove all liquidity
                 </ActionButton>
-                {mode === "chain" ? <span className="text-xs text-fg-subtle">Removing also collects the fees.</span> : null}
+                <span className="text-xs text-fg-subtle">Removing also collects the fees.</span>
               </div>
             </article>
           );

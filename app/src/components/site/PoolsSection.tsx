@@ -22,11 +22,10 @@ const pill = "inline-flex min-h-10 items-center rounded-full px-4 text-[14px] fo
  * average fee" when PnlPanel's 10 % rule holds, only credits a storm when σ took V's fee off its
  * floor, and names the time V spent in its safe modes (desk outages, not the weather) whenever there
  * was any. When a safe mode, not σ, set V's top fee in the window, V's card says so: its subtitle adds
- * the safe fee and a note gives the top fee σ alone reached. Amounts are in tUSD (test tokens); every
- * figure is labelled simulated in mock mode.
+ * the safe fee and a note gives the top fee σ alone reached. Amounts are in tUSD (test tokens).
  */
 export function PoolsSection({ d }: { d: LandingData }) {
-  const { storm, verdict: v, simulated } = d;
+  const { storm, verdict: v } = d;
   // "x % less lost to arbitrage and y % less lost by its hedged LPs", the verdict's numbers
   const result = v ? verdictResult(v) : "";
   // time in a safe mode (desk silent or venues apart): the hook charged its safe fee, whatever the weather
@@ -59,7 +58,6 @@ export function PoolsSection({ d }: { d: LandingData }) {
             <p className="text-[15px] font-medium">The window&apos;s weather</p>
             <p className="text-xs text-fg-subtle">
               σ and the fee it set, last {storm ? windowLabel(storm.hours) : "hours"}
-              {simulated ? " · simulated" : ""}
             </p>
             <WeatherMini
               points={d.windowPoints}
@@ -169,7 +167,7 @@ export function PoolsSection({ d }: { d: LandingData }) {
               )}
             </p>
             <p className="mt-3 text-[13px] text-fg-muted">
-              {simulated ? `Simulated: the same swaps and arbitrage bot on both pools over the last ${windowLabel(v.hours)}, ` : `Over the last ${windowLabel(v.hours)}, `}
+              {`Over the last ${windowLabel(v.hours)}, `}
               valued from the logs as in the app&apos;s P&amp;L explain (delta-hedged: retail fees − arbitrage), in tUSD, the pair&apos;s test
               token. Every retail order goes to both pools, so neither loses flow to the cheaper one, as it would through a router.
             </p>

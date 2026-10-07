@@ -6,7 +6,7 @@ import { type CanvasTokens, canvasTokens } from "./canvasTokens";
 import { useCanvasLoop } from "./useCanvasLoop";
 
 /** Isobars of the market's weather: a low whose depth follows σ, drifting over a slow pressure field. */
-export function IsobarCanvas({ sigmaPct, className = "" }: { sigmaPct: number; className?: string }) {
+export function IsobarCanvas({ sigmaPct, className = "" }: { sigmaPct?: number; className?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const clock = useRef({ phase: 0, t: 0 });
   const tokens = useRef<CanvasTokens | null>(null);
@@ -20,7 +20,8 @@ export function IsobarCanvas({ sigmaPct, className = "" }: { sigmaPct: number; c
     const p = c.phase;
     g.clearRect(0, 0, w, h);
     const cols = 64, rows = Math.max(8, Math.round((cols * h) / w)), cw = w / cols, ch = h / rows;
-    const depth = 1.4 + sigmaPct / 45;
+    // the shape needs a depth before the first report; the σ label waits for it
+    const depth = 1.4 + (sigmaPct ?? 40) / 45;
     const lx = 0.6 + 0.05 * Math.sin(p * 0.7), ly = 0.5 + 0.06 * Math.cos(p * 0.9), aspect = w / h;
     const F = new Float32Array((cols + 1) * (rows + 1));
     for (let j = 0; j <= rows; j++) {
@@ -46,9 +47,11 @@ export function IsobarCanvas({ sigmaPct, className = "" }: { sigmaPct: number; c
     g.fillStyle = k.sigma;
     g.font = `500 ${22 * dpr}px ${k.display}`;
     g.fillText("L", lx * w - 7 * dpr, ly * h + 8 * dpr);
-    g.fillStyle = k.fg;
-    g.font = `500 ${12 * dpr}px ${k.ui}`;
-    g.fillText(`σ ${sigmaPct.toFixed(0)}%`, lx * w + 14 * dpr, ly * h + 6 * dpr);
+    if (sigmaPct !== undefined) {
+      g.fillStyle = k.fg;
+      g.font = `500 ${12 * dpr}px ${k.ui}`;
+      g.fillText(`σ ${sigmaPct.toFixed(0)}%`, lx * w + 14 * dpr, ly * h + 6 * dpr);
+    }
   });
   return <canvas ref={ref} aria-hidden className={className} />;
 }

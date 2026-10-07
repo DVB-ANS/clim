@@ -75,7 +75,7 @@ function Node({ kind, name, children, className = "" }: { kind: "venue" | "desk"
  * more, so a narrower box (phones, and the two-column panel on wide screens) gets the same pipeline as
  * stacked HTML cards instead (a container query on this component's own width).
  */
-export function PipelineDiagram({ live, simulated = false }: { live: Live; simulated?: boolean }) {
+export function PipelineDiagram({ live }: { live: Live }) {
   const paths = useRef<(SVGPathElement | null)[]>([]);
   const dots = useRef<(SVGCircleElement | null)[]>([]);
 
@@ -112,7 +112,7 @@ export function PipelineDiagram({ live, simulated = false }: { live: Live; simul
     "Four venues feed a Chainlink CRE workflow (Deribit DVOL is logged alongside), run today in CRE's one-node simulator; its median report goes to RiskDesk on Ethereum Sepolia, and ClimHook reads it to price pools V and S";
   return (
     <div className="@container relative rounded-md border border-line bg-surface">
-      <div className="border-b border-line px-4 py-2.5 text-xs text-fg-subtle">clim · risk desk pipeline{simulated ? " · simulated" : ""}</div>
+      <div className="border-b border-line px-4 py-2.5 text-xs text-fg-subtle">clim · risk desk pipeline</div>
 
       {/* wide box: the drawing, at 1:1 or larger */}
       <svg viewBox="0 0 770 350" className="hidden h-auto w-full @min-[770px]:block" role="img" aria-label={label}>

@@ -1,6 +1,5 @@
 // TypeScript port of contracts/src/libraries/ClimFeeMath.sol and ClimHook.quoteFee().
-// Used to draw the theoretical curve, to rebuild the fee step series from RiskReported logs,
-// and to run the app on mock data. The hook on-chain stays the source of truth.
+// Used to draw the theoretical curve and to rebuild the fee step series from RiskReported logs. The hook on-chain stays the source of truth.
 
 export const FLAG_DEGRADED = 1; // bit 0, set by RiskDesk when dispBp > 25
 export const FLAG_REPLAY = 2; // bit 1, set at construction on replay desks

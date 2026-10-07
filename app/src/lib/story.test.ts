@@ -2,7 +2,7 @@ import type { Hex } from "viem";
 import { describe, expect, it } from "vitest";
 import { type DeskReport, decodeReports, decodeSwaps, type SwapRow } from "./decode";
 import { FeeMode, type FeeParams, feePips } from "./feeMath";
-import { makeMockWorld, MOCK_STATIC_FEE_PIPS } from "./mock";
+import { makeMockWorld, MOCK_STATIC_FEE_PIPS } from "@/test/world";
 import { pnlExplain } from "./pnl";
 import { timeAverageFeeBp, weatherSeries } from "./series";
 import { poolsVerdict, reachableFeeMaxBp, safetyCounts, sameAverageFee, sigmaAtFee, stormSummary, verdictResult, windowLabel } from "./story";
@@ -11,7 +11,7 @@ import { annualPctToSigmaE9, sigmaE9ToAnnualPct } from "./units";
 const params: FeeParams = { etaE4: 41_760, sqrtHalfDtE6: 2_449_490, feeMinPips: 500, feeMaxPips: 15_000, feeSafePips: 3_000, tauKillSec: 180 };
 const NOW = 1_791_300_000;
 
-// The landing's 6 h mock, as useClimData builds it.
+// A deterministic 6 h test chain.
 const world = makeMockWorld({ nowSec: NOW, params, seed: 7 });
 const reports = decodeReports(world.deskLogs);
 const swaps = decodeSwaps(world.swapLogs);

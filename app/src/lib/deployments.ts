@@ -16,7 +16,6 @@ export type PairDeployment = {
   S: PoolInfo;
 };
 export type Deployments = {
-  fixture: boolean;
   chainId: number;
   uniswap: { poolManager: Address; stateView: Address; poolSwapTest: Address; poolModifyLiquidityTest?: Address };
   chainlink: { mockKeystoneForwarder?: Address; keystoneForwarder?: Address };
@@ -24,7 +23,7 @@ export type Deployments = {
   routers: { arb?: Address };
   pairs: Partial<Record<Pair, PairDeployment>>;
 };
-export type Params = FeeParams & { pStar: number; decidedBy: string; fixture: boolean };
+export type Params = FeeParams & { pStar: number; decidedBy: string };
 
 type Obj = Record<string, unknown>;
 const isObj = (x: unknown): x is Obj => typeof x === "object" && x !== null;
@@ -61,7 +60,7 @@ function parsePool(x: unknown, where: string): PoolInfo & { token0IsEth: boolean
   return { poolId, key, token0IsEth: x.token0IsEth === true };
 }
 
-/** A pair is used once its desk, hook and both pools are recorded; until then the app runs on mock data. */
+/** A pair is used once its desk, hook and both pools are recorded; until then it is undefined. */
 function parsePair(raw: Obj, name: Pair): PairDeployment | undefined {
   const desk = isObj(raw.riskDesks) ? optAddr(raw.riskDesks[name]) : undefined;
   const hook = isObj(raw.hooks) ? optAddr(raw.hooks[name]) : undefined;
@@ -95,7 +94,6 @@ export function parseDeployments(raw: unknown): Deployments {
     if (parsed) pairs[name] = parsed;
   }
   return {
-    fixture: raw.fixture === true,
     chainId: SEPOLIA_CHAIN_ID,
     uniswap: {
       poolManager: addr(u.poolManager, "uniswap.poolManager"),
@@ -126,6 +124,5 @@ export function parseParams(raw: unknown): Params {
     feeSafePips: raw.feeSafePips as number,
     tauKillSec: raw.tauKillSec as number,
     decidedBy: String(raw.decidedBy ?? ""),
-    fixture: raw.fixture === true,
   };
 }

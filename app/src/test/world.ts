@@ -1,11 +1,11 @@
-// Deterministic mock chain (RiskReported + Swap logs) so the dashboard runs before the contracts
-// are deployed. The logs are ABI-encoded exactly like the real ones and go through the same decoders.
+// Test only: a deterministic chain (RiskReported + Swap logs) for the unit tests; the app never imports it.
+// The logs are ABI-encoded exactly like the real ones and go through the same decoders.
 import { type Address, type Hex, numberToHex } from "viem";
-import { computePoolId, type PairDeployment } from "./deployments";
-import { encodeReportProcessedLog, encodeRiskReportedLog, encodeSwapLog, type RawLog } from "./encode";
-import { type DeskState, type FeeParams, FLAG_DEGRADED, type Quote, quoteFee } from "./feeMath";
-import { DISP_MAX_BP } from "./series";
-import { annualPctToSigmaE9, ethUsdToTick, SQRT_SECONDS_PER_YEAR } from "./units";
+import { computePoolId, type PairDeployment } from "@/lib/deployments";
+import { encodeReportProcessedLog, encodeRiskReportedLog, encodeSwapLog, type RawLog } from "@/lib/encode";
+import { type DeskState, type FeeParams, FLAG_DEGRADED, type Quote, quoteFee } from "@/lib/feeMath";
+import { DISP_MAX_BP } from "@/lib/series";
+import { annualPctToSigmaE9, ethUsdToTick, SQRT_SECONDS_PER_YEAR } from "@/lib/units";
 
 export const MOCK_STATIC_FEE_PIPS = 1_050;
 export const MOCK_ADDR = {

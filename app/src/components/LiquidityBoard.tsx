@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { useAccount } from "wagmi";
 import { useChainSteps } from "@/hooks/useChainSteps";
 import { useClimData } from "@/hooks/useClimData";
@@ -10,12 +10,12 @@ import { deployments } from "@/lib/config";
 import { amountsForLiquidity, approvalWithMargin, fullRangeParams, fullRangeTicks, liquidityForEth, type PositionView, positionView } from "@/lib/liquidity";
 import { pnlExplain } from "@/lib/pnl";
 import type { PoolName } from "@/lib/swap";
-import { type FlowStep, mockStep, writeReadiness } from "@/lib/tx";
+import { type FlowStep, writeReadiness } from "@/lib/tx";
 import { formatBp, pipsToBp } from "@/lib/units";
 import { FaucetCard } from "./FaucetCard";
 import { type AddQuote, LiquidityForm } from "./LiquidityForm";
 import { PositionPanel } from "./PositionPanel";
-import { type TxMode, TxModeSwitch } from "./TxModeSwitch";
+import { ChainNote } from "./ChainNote";
 import { TxSteps } from "./TxSteps";
 import type { PoolOption } from "./dex";
 import { ModeBadge } from "./ui";
@@ -26,12 +26,10 @@ const twin = (pool: PoolName): PoolName => (pool === "V" ? "S" : "V");
 export function LiquidityBoard() {
   const data = useClimData("live");
   const ready = useMemo(() => writeReadiness(deployments, "lp"), []);
-  const [mode, setMode] = useState<TxMode>(ready.ok ? "chain" : "mock");
-  const lp = useLpState(mode, data);
+  const lp = useLpState();
   const flow = useTxFlow();
   const chain = useChainSteps();
   const { address } = useAccount();
-  const runs = useRef(0);
 
   const pair = lp.pair;
   const token0IsEth = pair?.token0IsEth ?? true;
@@ -55,8 +53,6 @@ export function LiquidityBoard() {
   }
 
   function faucet() {
-    const n = ++runs.current;
-    if (mode === "mock") return run([mockStep("Faucet tETH", n), mockStep("Faucet tUSD", n)], lp.mock.faucet);
     if (!tETH || !tUSD) return;
     return run([chain.faucet(tETH, "tETH"), chain.faucet(tUSD, "tUSD")], lp.refresh);
   }
@@ -72,11 +68,7 @@ export function LiquidityBoard() {
   function add(pool: PoolName, eth: number) {
     const q = quoteAdd(pool, eth);
     if (!q || !pair) return;
-    const n = ++runs.current;
     const label = `Add liquidity to pool ${pool}`;
-    if (mode === "mock") {
-      return run([mockStep("Approve tETH", n), mockStep("Approve tUSD", n), mockStep(label, n)], () => lp.mock.add(pool, q.liquidity, q.eth, q.usd));
-    }
     if (!router || !tETH || !tUSD || !address) return;
     const params = fullRangeParams(pair[pool].key.tickSpacing, BigInt(Math.floor(q.liquidity)), address);
     return run(
@@ -95,12 +87,7 @@ export function LiquidityBoard() {
   function remove(pool: PoolName) {
     const pos = lp.positions[pool];
     if (!pos || !pair) return;
-    const n = ++runs.current;
     const label = `Remove liquidity from pool ${pool}`;
-    if (mode === "mock") {
-      const s = sides(pool, pos.liquidity);
-      return run([mockStep(label, n)], () => lp.mock.remove(pool, s?.eth ?? 0, s?.usd ?? 0));
-    }
     if (!router || !address || pos.liquidityRaw === undefined) return;
     const params = fullRangeParams(pair[pool].key.tickSpacing, -pos.liquidityRaw, address);
     return run([chain.modifyLiquidity(router, pair[pool].key, params, label)], lp.refresh);
@@ -174,13 +161,13 @@ export function LiquidityBoard() {
 
   return (
     <div className="space-y-6">
-      <FaucetCard mode={mode} balances={lp.balances} busy={flow.running} onFaucet={faucet} />
+      <FaucetCard off={!ready.ok} balances={lp.balances} busy={flow.running} onFaucet={faucet} />
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[440px_minmax(0,1fr)]">
-        <LiquidityForm mode={mode} busy={flow.running} balances={lp.balances} quote={quoteAdd} onAdd={add} pools={poolOptions} ethUsd={ethUsd}>
-          <TxModeSwitch mode={mode} onChange={setMode} ready={ready} />
-          <TxSteps steps={flow.steps} live={mode === "chain"} />
+        <LiquidityForm off={!ready.ok} busy={flow.running} balances={lp.balances} quote={quoteAdd} onAdd={add} pools={poolOptions} ethUsd={ethUsd}>
+          <ChainNote ready={ready} />
+          <TxSteps steps={flow.steps} />
         </LiquidityForm>
-        <PositionPanel mode={mode} views={views} busy={flow.running} onRemove={remove} />
+        <PositionPanel off={!ready.ok} views={views} busy={flow.running} onRemove={remove} />
       </div>
     </div>
   );

@@ -1,14 +1,14 @@
 "use client";
 
-import { MOCK_FAUCET } from "@/hooks/useLpState";
 import { FAUCET } from "@/lib/guide";
 import { formatAmount } from "@/lib/units";
 import { TokenIcon } from "./dex";
-import { ActionButton, type TxMode } from "./TxModeSwitch";
+import { ActionButton } from "./ChainNote";
 
 /** TestToken.faucet() on tETH and tUSD, and the wallet's balances, as one strip above the pools. */
-export function FaucetCard({ mode, balances, busy, onFaucet }: {
-  mode: TxMode;
+export function FaucetCard({ off, balances, busy, onFaucet }: {
+  /** On-chain writes are off in this build (no live pair or tokens): ChainNote says why. */
+  off?: boolean;
   balances?: { tETH: number; tUSD: number };
   busy: boolean;
   onFaucet: () => void;
@@ -18,9 +18,7 @@ export function FaucetCard({ mode, balances, busy, onFaucet }: {
       <div className="min-w-0 flex-1">
         <p className="font-display text-lg tracking-[-0.02em]">Test tokens</p>
         <p className="text-xs text-fg-subtle">
-          {mode === "mock"
-            ? `Simulated faucet: +${MOCK_FAUCET.tETH} tETH and +${formatAmount(MOCK_FAUCET.tUSD, 0)} tUSD per call.`
-            : `Two transactions: ${FAUCET.tETH} tETH, then ${formatAmount(FAUCET.tUSD, 0)} tUSD, once an hour per address. Gas is paid in Sepolia ETH.`}
+          {`Two transactions: ${FAUCET.tETH} tETH, then ${formatAmount(FAUCET.tUSD, 0)} tUSD, once an hour per address. Gas is paid in Sepolia ETH.`}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-5">
@@ -34,10 +32,10 @@ export function FaucetCard({ mode, balances, busy, onFaucet }: {
           </span>
         ))}
       </div>
-      <ActionButton mode={mode} disabled={busy} onClick={onFaucet}>
+      <ActionButton disabled={off || busy} onClick={onFaucet}>
         Get tETH and tUSD
       </ActionButton>
-      {mode === "chain" && !balances ? <p className="basis-full text-xs text-fg-subtle">Connect a wallet on Sepolia to read your balances.</p> : null}
+      {!balances ? <p className="basis-full text-xs text-fg-subtle">Connect a wallet on Sepolia to read your balances.</p> : null}
     </section>
   );
 }

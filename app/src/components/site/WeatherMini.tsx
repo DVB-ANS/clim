@@ -38,7 +38,6 @@ export function WeatherMini({ points, staticFeeBp, className = "", labels = true
         <path d={fee} stroke={COLORS.V} strokeWidth={1.8} fill="none" vectorEffect="non-scaling-stroke" />
         <path d={sigma} stroke={COLORS.sigma} strokeWidth={1.8} fill="none" vectorEffect="non-scaling-stroke" />
         {peak ? <circle cx={X(peak.t)} cy={Ys(peak.sigmaPct)} r={7} fill="none" stroke={COLORS.pink} strokeWidth={2} vectorEffect="non-scaling-stroke" /> : null}
-        <circle cx={W - 2} cy={Yf(last.feeVBp)} r={6} fill={COLORS.V} fillOpacity={0.18} />
         <circle cx={W - 2} cy={Yf(last.feeVBp)} r={3} fill={COLORS.V} />
       </svg>
       {labels ? (

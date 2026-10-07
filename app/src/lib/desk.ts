@@ -77,31 +77,3 @@ export function contourSegments(field: ArrayLike<number>, cols: number, rows: nu
   }
   return out;
 }
-
-export type StormParticle = { r: number; arm: number; jitter: number };
-
-/** Deterministic dots of a four-armed storm (mulberry32), denser towards the eye. */
-export function stormParticles(n: number, seed: number): StormParticle[] {
-  let s = seed | 0;
-  const rnd = () => {
-    s = (s + 0x6d2b79f5) | 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-  return Array.from({ length: n }, () => ({ r: Math.pow(rnd(), 1.3), arm: Math.floor(rnd() * 4), jitter: rnd() - 0.5 }));
-}
-
-const EYE = 0.06;
-
-/**
- * Positions [x, y, radius] in the unit disc (y squashed to 0.9): log-spiral arms turned by `rotation`,
- * spread wider by `spread` (1 calm, 2 a storm). The inner bands turn faster, like a real vortex.
- */
-export function stormPositions(particles: StormParticle[], rotation: number, spread: number): [number, number, number][] {
-  return particles.map((p) => {
-    const r = EYE + (1 - EYE) * p.r;
-    const th = 2.3 * Math.log(r / EYE) + (p.arm * Math.PI) / 2 + p.jitter * (0.3 + 1.2 * r) * spread - rotation * (1.3 - r);
-    return [r * Math.cos(th), r * Math.sin(th) * 0.9, r];
-  });
-}

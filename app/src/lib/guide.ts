@@ -29,7 +29,6 @@ export const CRE_RUNS_TODAY =
   "It runs in CRE's simulator on one node: our operator key sends each report through MockKeystoneForwarder, which checks no signature.";
 
 export type GuideInput = {
-  source: "mock" | "sepolia";
   pair?: PairDeployment;
   reports: DeskReport[];
   swaps: SwapRow[];
@@ -113,10 +112,10 @@ const sigmaText = (r: DeskReport) => `${sigmaE9ToAnnualPct(r.sigmaApplied).toFix
 /** A pool id as Etherscan's log view starts it: "0x49cad216…". */
 const idStart = (id: Hex) => `${id.slice(0, 10)}…`;
 
-/** The Verify card's rows, in display order. [] for mock data or without a pair. */
+/** The Verify card's rows, in display order. [] without a pair. */
 export function verifyRows(d: GuideInput, params: FeeParams, proof?: StormProof): VerifyRow[] {
   const pair = d.pair;
-  if (d.source === "mock" || !pair) return [];
+  if (!pair) return [];
   const rows: VerifyRow[] = [];
   const ago = (t: number) => formatAge(d.nowSec - t);
 
@@ -224,10 +223,11 @@ export function verifyRows(d: GuideInput, params: FeeParams, proof?: StormProof)
     {
       id: "workflow",
       title: "The CRE workflow's code is on GitHub",
-      detail: "It reads the four venues, computes ETH's 15-minute volatility and builds each report. The evidence page lists simulator runs with their transactions.",
+      detail:
+        "It reads the four venues, computes ETH's 15-minute volatility and builds each report (workflow.ts, with venues.ts and estimator.ts). The evidence folder lists every report the workflow wrote on Sepolia until it was collected on 7 October, each with its transaction.",
       links: [
-        { label: "cre/risk-desk/main.ts", href: CRE_WORKFLOW_URL },
-        { label: "CRE simulator evidence (6 Oct)", href: CRE_EVIDENCE_URL },
+        { label: "cre/risk-desk/workflow.ts", href: CRE_WORKFLOW_URL },
+        { label: "CRE evidence: the reports and their transactions", href: CRE_EVIDENCE_URL },
       ],
     },
   );

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { decodeDeliveries, decodeReports, decodeSwaps } from "./decode";
-import { computePoolId } from "./deployments";
-import { FeeMode, type FeeParams } from "./feeMath";
-import { makeMockWorld, MOCK_STATIC_FEE_PIPS } from "./mock";
-import { pnlExplain } from "./pnl";
-import { arbBlocksOf } from "./ptrade";
-import { weatherSeries } from "./series";
+import { decodeDeliveries, decodeReports, decodeSwaps } from "@/lib/decode";
+import { computePoolId } from "@/lib/deployments";
+import { FeeMode, type FeeParams } from "@/lib/feeMath";
+import { makeMockWorld, MOCK_STATIC_FEE_PIPS } from "./world";
+import { pnlExplain } from "@/lib/pnl";
+import { arbBlocksOf } from "@/lib/ptrade";
+import { weatherSeries } from "@/lib/series";
 
 const params: FeeParams = { etaE4: 41_760, sqrtHalfDtE6: 2_449_490, feeMinPips: 500, feeMaxPips: 15_000, feeSafePips: 3_000, tauKillSec: 180 };
 const NOW = 1_791_300_000;

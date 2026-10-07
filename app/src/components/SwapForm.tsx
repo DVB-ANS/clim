@@ -1,21 +1,19 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import type { Address } from "viem";
+import { useMemo, useState } from "react";
 import { useChainSteps } from "@/hooks/useChainSteps";
 import { useClimData } from "@/hooks/useClimData";
 import { useTxFlow } from "@/hooks/useTxFlow";
 import { deployments, params } from "@/lib/config";
 import type { SwapRow } from "@/lib/decode";
-import { MOCK_ADDR } from "@/lib/mock";
 import { postSwapEthUsd } from "@/lib/pnl";
 import { estimateOut, feeReason, planSwap, type PoolName, type SwapPlan, swapResult, type SwapSide } from "@/lib/swap";
-import { mockStep, mockSwapLogs, mockTxHash, writeReadiness } from "@/lib/tx";
+import { writeReadiness } from "@/lib/tx";
 import { etherscanTxLogs } from "@/lib/contracts";
 import { formatAge, formatAmount, formatBp, pipsToBp, sigmaE9ToAnnualPct, tickToEthUsd } from "@/lib/units";
 import { AmountBox, DetailRow, FlipButton, PoolCards, TokenIcon } from "./dex";
 import { FeeCurveChart } from "./FeeCurveChart";
-import { ActionButton, type TxMode, TxModeSwitch } from "./TxModeSwitch";
+import { ActionButton, ChainNote } from "./ChainNote";
 import { TxSteps } from "./TxSteps";
 import { ExtLink, ModeBadge, Panel, Stat, TxLink } from "./ui";
 
@@ -23,20 +21,17 @@ import { ExtLink, ModeBadge, Panel, Stat, TxLink } from "./ui";
 export function SwapForm() {
   const data = useClimData("live");
   const ready = useMemo(() => writeReadiness(deployments, "swap"), []);
-  const [mode, setMode] = useState<TxMode>(ready.ok ? "chain" : "mock");
   const [pool, setPool] = useState<PoolName>("V");
   const [side, setSide] = useState<SwapSide>("sell ETH");
   const [amount, setAmount] = useState("0.5");
-  const [result, setResult] = useState<{ swap: SwapRow; live: boolean } | null>(null);
+  const [result, setResult] = useState<{ swap: SwapRow } | null>(null);
   const flow = useTxFlow();
   const chain = useChainSteps();
-  const runs = useRef(0);
 
   // Writes go to the deployed pair; the weather, the quote and the price come from the data hook.
-  const pair = mode === "chain" ? deployments.pairs.live : data.pair;
-  const tETH = mode === "chain" ? deployments.tokens.tETH : MOCK_ADDR.tETH;
-  const tUSD = mode === "chain" ? deployments.tokens.tUSD : MOCK_ADDR.tUSD;
-  const router: Address = mode === "chain" ? deployments.uniswap.poolSwapTest : MOCK_ADDR.retailRouter;
+  const pair = deployments.pairs.live;
+  const { tETH, tUSD } = deployments.tokens;
+  const router = deployments.uniswap.poolSwapTest;
   const token0IsEth = pair?.token0IsEth ?? true;
   const desk = data.state?.desk;
   const quote = data.state?.quote;
@@ -67,33 +62,9 @@ export function SwapForm() {
   async function submit() {
     if (!plan || feePips === undefined || ethUsd === undefined) return;
     setResult(null);
-    const n = ++runs.current;
-    const live = mode === "chain";
-    const swapLabel = `Swap on pool ${pool}`;
-    const steps = live
-      ? [chain.approve(plan.tokenIn, inSymbol, router, plan.amountIn), chain.swap(router, plan)]
-      : [
-          mockStep(`Approve ${inSymbol}`, n),
-          mockStep(
-            swapLabel,
-            n,
-            mockSwapLogs({
-              plan,
-              sender: router,
-              feePips,
-              ethUsd,
-              token0IsEth,
-              liquidity: lastSwap?.liquidity ?? 0n,
-              poolManager: deployments.uniswap.poolManager,
-              blockNumber: (data.state?.latestBlock.number ?? 0) + 1,
-              t: data.nowSec,
-              txHash: mockTxHash(swapLabel, n),
-            }),
-          ),
-        ];
-    const { ok, logs } = await flow.start(steps);
+    const { ok, logs } = await flow.start([chain.approve(plan.tokenIn, inSymbol, router, plan.amountIn), chain.swap(router, plan)]);
     const swap = ok ? swapResult(logs, plan.poolId) : undefined;
-    if (swap) setResult({ swap, live });
+    if (swap) setResult({ swap });
   }
 
   const paid = result
@@ -184,24 +155,24 @@ export function SwapForm() {
         </div>
         {/* flex gap, not space-y: TxSteps' always-mounted status line (absolute, sr-only) adds no gap before the first swap */}
         <div className="mt-3 flex flex-col gap-3 px-1">
-          <ActionButton mode={mode} block disabled={!plan || flow.running || estimate === undefined} onClick={submit}>
+          <ActionButton block disabled={!ready.ok || !plan || flow.running || estimate === undefined} onClick={submit}>
             {flow.running ? "Swapping…" : `Swap on pool ${pool}`}
           </ActionButton>
-          <TxModeSwitch mode={mode} onChange={setMode} ready={ready} />
-          {lastSwap && mode === "chain" ? (
+          <ChainNote ready={ready} />
+          {lastSwap ? (
             <p className="text-xs text-fg-subtle">
               Last swap on pool {pool}: paid {formatBp(pipsToBp(lastSwap.fee), 2)}, {formatAge(data.nowSec - lastSwap.blockTimestamp)} ago.{" "}
               <ExtLink href={etherscanTxLogs(lastSwap.txHash)}>Swap event on Etherscan</ExtLink>
             </p>
           ) : null}
-          <TxSteps steps={flow.steps} live={mode === "chain"} />
+          <TxSteps steps={flow.steps} />
           {result && paid ? (
             <div className="rounded-md bg-surface-2 px-4 py-3 text-sm">
               <p className="font-medium">
-                Fee paid: {formatBp(pipsToBp(result.swap.fee), 2)}, read from the Swap event{result.live ? "" : " (simulated)"}.
+                Fee paid: {formatBp(pipsToBp(result.swap.fee), 2)}, read from the Swap event.
               </p>
               <p className="mt-0.5 text-fg-muted">
-                You paid {paid.paid} and received {paid.got}. <TxLink hash={result.swap.txHash} live={result.live} />
+                You paid {paid.paid} and received {paid.got}. <TxLink hash={result.swap.txHash} />
               </p>
             </div>
           ) : null}

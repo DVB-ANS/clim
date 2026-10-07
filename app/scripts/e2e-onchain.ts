@@ -56,7 +56,7 @@ async function main() {
   const { tETH, tUSD } = deployments.tokens;
   const swapRouter = deployments.uniswap.poolSwapTest;
   const lpRouter = deployments.uniswap.poolModifyLiquidityTest;
-  if (deployments.fixture || !pair || !tETH || !tUSD || !lpRouter) throw new Error("src/generated/sepolia.json has no live pair: run npm run sync");
+  if (!pair || !tETH || !tUSD || !lpRouter) throw new Error("src/generated/sepolia.json has no live pair: run npm run sync");
 
   const account = privateKeyToAccount(readKey(keyFile));
   const me = account.address;

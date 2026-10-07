@@ -3,6 +3,7 @@ import { params } from "@/lib/config";
 import { DISP_MAX_BP } from "@/lib/series";
 import { pipsToBp } from "@/lib/units";
 import { LaunchButton } from "./LaunchButton";
+import { Magnet } from "./Magnet";
 
 const CHECKS = [
   `${pipsToBp(params.feeMinPips)} bp floor in calm markets`,
@@ -12,7 +13,7 @@ const CHECKS = [
 
 /**
  * The closing band, after chain.link's blue band and Ventriloc's checklist: the promise once more,
- * Launch app as a white pill, and a dithered storm front (blue, white, then pink dots; never mixed)
+ * Launch app as a white pill with a blue disc (pulled toward the cursor, like the hero's), and a dithered storm front (blue, white, then pink dots; never mixed)
  * where the band dissolves. It grows to full width as it scrolls in.
  */
 export function ClosingBand() {
@@ -34,9 +35,11 @@ export function ClosingBand() {
           ))}
         </ul>
         <div className="mt-10 flex flex-col gap-3 min-[480px]:flex-row min-[480px]:items-center">
-          <LaunchButton size="lg" tone="onBlue">
-            Launch app
-          </LaunchButton>
+          <Magnet className="w-full min-[480px]:w-auto">
+            <LaunchButton size="lg" tone="onBlue" className="w-full min-[480px]:w-auto">
+              Launch app
+            </LaunchButton>
+          </Magnet>
           <Link
             href="/how"
             className="inline-flex min-h-[52px] items-center justify-center rounded-full border border-accent-fg/70 px-6 text-[16px] text-accent-fg hover:bg-accent-fg/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-fg"

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { LiquidityBoard } from "@/components/LiquidityBoard";
 import { PoolsKey } from "@/components/PoolsKey";
-import { dataSource, deployments } from "@/lib/config";
-import { MOCK_STATIC_FEE_PIPS } from "@/lib/mock";
+import { livePair } from "@/lib/config";
 
 export const metadata: Metadata = { title: "Liquidity" };
 
@@ -16,10 +15,7 @@ export default function LpPage() {
           the same liquidity would have made in the other pool.
         </p>
       </div>
-      <PoolsKey
-        variant={dataSource("live") === "mock" ? "mock" : "live"}
-        staticFeePips={deployments.pairs.live?.S.key.fee ?? MOCK_STATIC_FEE_PIPS}
-      />
+      <PoolsKey variant="live" staticFeePips={livePair.S.key.fee} />
       <LiquidityBoard />
     </div>
   );

@@ -1,17 +1,13 @@
 import rawParams from "@/generated/params.json";
 import rawDeployments from "@/generated/sepolia.json";
-import { type Pair, parseDeployments, parseParams } from "./deployments";
+import { parseDeployments, parseParams } from "./deployments";
 
-// src/generated/* is written by `npm run sync` from shared/ (or from src/fixtures/ until shared/ exists).
+// src/generated/* is written by `npm run sync` from shared/ only: the app reads Ethereum Sepolia, never mock data.
 export const deployments = parseDeployments(rawDeployments);
 export const params = parseParams(rawParams);
 
+if (!deployments.pairs.live) throw new Error("src/generated/sepolia.json has no live pair: run npm run sync");
+/** The live pair (pool V and its static twin S), guaranteed by the check above. */
+export const livePair = deployments.pairs.live;
+
 export const EXPLORER = "https://sepolia.etherscan.io";
-
-export type DataSource = "mock" | "sepolia";
-
-/** Mock until the pair is deployed; NEXT_PUBLIC_CLIM_SOURCE=mock forces mock data. */
-export function dataSource(pair: Pair, forced: string | undefined = process.env.NEXT_PUBLIC_CLIM_SOURCE): DataSource {
-  if (forced === "mock") return "mock";
-  return deployments.pairs[pair] ? "sepolia" : "mock";
-}

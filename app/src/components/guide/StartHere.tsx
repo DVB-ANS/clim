@@ -19,7 +19,7 @@ export function StartHere({ data, pair }: { data: ClimData; pair: Pair }) {
     [data.reports, data.swaps, data.pair],
   );
   const rows = verifyRows(data, params, proof);
-  const silent = pair === "live" && data.source === "sepolia" ? silentNote(data.reports, data.nowSec, params) : undefined;
+  const silent = pair === "live" ? silentNote(data.reports, data.nowSec, params) : undefined;
 
   return (
     <section id="start" aria-labelledby="start-title" className="rounded-lg bg-wash p-4 sm:p-5 lg:p-6">
@@ -75,9 +75,7 @@ export function StartHere({ data, pair }: { data: ClimData; pair: Pair }) {
         </Path>
         <Path id="verify" n={2} title="Verify it on chain" tag="No wallet">
           <p className="mt-3 text-sm text-fg-muted">{`Each line comes from Sepolia's logs or a contract read, with a link to check it on Etherscan. The last two link the code itself.`}</p>
-          {data.source === "mock" ? (
-            <Note>This build reads simulated data, so there is nothing to check on chain.</Note>
-          ) : pair !== "live" ? (
+          {pair !== "live" ? (
             <Note>These checks read the live pair. Select Live pair below to see them.</Note>
           ) : data.status === "loading" ? (
             <Note>Reading the desk and the pools on Sepolia. The first load takes a few seconds.</Note>
@@ -92,9 +90,18 @@ export function StartHere({ data, pair }: { data: ClimData; pair: Pair }) {
                   </p>
                   {/* the explanation folds away below lg, so the live panels are not four phone screens down */}
                   <p className="mt-0.5 hidden text-[13px] leading-relaxed text-fg-muted lg:block">{r.detail}</p>
-                  <details className="mt-0.5 lg:hidden">
-                    <summary className="inline-flex min-h-6 cursor-pointer items-center rounded-sm text-[13px] text-fg-subtle focus-visible:outline-2 focus-visible:outline-accent">
-                      What Etherscan shows
+                  {/* a plus that turns to a minus marks it as a control (inline-flex drops the native triangle); the
+                      label adds the row's title, so each of the seven has a distinct name. "How to check it": the workflow row is GitHub, not Etherscan */}
+                  <details className="group mt-0.5 lg:hidden">
+                    <summary
+                      aria-label={`How to check it: ${r.title}`}
+                      className="inline-flex min-h-6 cursor-pointer list-none items-center gap-1.5 rounded-sm text-[13px] text-fg-muted underline decoration-dotted underline-offset-2 focus-visible:outline-2 focus-visible:outline-accent [&::-webkit-details-marker]:hidden"
+                    >
+                      <span aria-hidden className="relative size-3 shrink-0">
+                        <span className="absolute left-1/2 top-1/2 h-[1.5px] w-3 -translate-x-1/2 -translate-y-1/2 rounded-[1px] bg-current" />
+                        <span className="absolute left-1/2 top-1/2 h-[1.5px] w-3 -translate-x-1/2 -translate-y-1/2 rotate-90 rounded-[1px] bg-current transition-[rotate] duration-200 group-open:rotate-180 motion-reduce:transition-none" />
+                      </span>
+                      How to check it
                     </summary>
                     <p className="text-[13px] leading-relaxed text-fg-muted">{r.detail}</p>
                   </details>

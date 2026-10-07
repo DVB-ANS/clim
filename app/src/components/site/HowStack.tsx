@@ -21,13 +21,12 @@ const FEE_MIN = pipsToBp(params.feeMinPips), FEE_MAX = pipsToBp(params.feeMaxPip
  * 03 the hook charges (an interactive dial on its real formula), 04 the safe modes, with what the desk
  * did over the window.
  */
-export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated, silent = false }: {
+export function HowStack({ live, sigmaPeak, checks, statuses, safety, silent = false }: {
   live: HowLive;
   sigmaPeak?: number;
   checks: DeskCheck[];
   statuses: DeskStatus[];
   safety?: SafetyCounts;
-  simulated: boolean;
   silent?: boolean;
 }) {
   return (
@@ -45,10 +44,10 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated,
             title="Four venues, one forecast"
             subtitle="Coinbase · Kraken · Binance · Hyperliquid · Deribit DVOL"
             link={{ href: "/how", label: "How the desk works" }}
-            mock={
+            visual={
               <div className="grid gap-4">
                 <div className="relative overflow-hidden rounded-md bg-surface shadow-[0_0_0_1px_var(--clim-line)]">
-                  <IsobarCanvas sigmaPct={live.sigmaPct ?? 40} className="block h-40 w-full" />
+                  <IsobarCanvas sigmaPct={live.sigmaPct} className="block h-40 w-full" />
                   <span className="absolute left-3 top-3 rounded-full bg-surface/90 px-2.5 py-0.5 text-xs text-fg-muted">Isobars of σ · the low deepens with it</span>
                 </div>
                 <div className="rounded-md bg-surface px-3 py-2 shadow-[0_0_0_1px_var(--clim-line)]">
@@ -71,9 +70,8 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated,
             title="One median every 30 s"
             subtitle="Chainlink CRE workflow → RiskDesk on Ethereum Sepolia"
             link={{ href: "/how#faq", label: "Who can change what" }}
-            mock={
+            visual={
               <PipelineDiagram
-                simulated={simulated}
                 live={{ seq: live.seq, sigmaPct: live.sigmaPct, dispBp: live.dispBp, sources: live.sources, feeVBp: live.feeVBp, feeSBp: live.feeSBp }}
               />
             }
@@ -98,7 +96,7 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated,
             title="The fee reads the weather"
             subtitle="ClimHook.quoteFee() inside every swap"
             link={{ href: "/app", label: "See it live in the app" }}
-            mock={<FeeDial sigmaNow={live.sigmaPct} sigmaPeak={sigmaPeak} feeSBp={live.feeSBp} kE4={live.kE4} simulated={simulated} />}
+            visual={<FeeDial sigmaNow={live.sigmaPct} sigmaPeak={sigmaPeak} feeSBp={live.feeSBp} kE4={live.kE4} />}
           >
             <p>
               When prices move, the fastest traders, arbitrageurs racing to the pool&apos;s stale price, profit at the LPs&apos; expense. clim
@@ -118,7 +116,7 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated,
             title="Safe modes, by design"
             subtitle="When the desk cannot be trusted, the fee does not guess"
             link={{ href: "/how", label: "Read the safety rules" }}
-            mock={<DeskChecks checks={checks} statuses={statuses} simulated={simulated} silent={silent} />}
+            visual={<DeskChecks checks={checks} statuses={statuses} silent={silent} />}
           >
             <p>
               <span aria-hidden className="text-degraded">▲</span> <span className="text-fg">Degraded:</span> the venues disagree by more than {DISP_MAX_BP} bp,
@@ -130,7 +128,7 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated,
             </p>
             {safety ? (
               <p className="text-[14px]">
-                Over the last {windowLabel(safety.hours)}{simulated ? " (simulated)" : ""}: {safety.degraded} degraded report{safety.degraded === 1 ? "" : "s"},{" "}
+                Over the last {windowLabel(safety.hours)}: {safety.degraded} degraded report{safety.degraded === 1 ? "" : "s"},{" "}
                 {safety.blindGaps} blind gap{safety.blindGaps === 1 ? "" : "s"}
                 {safety.blindGaps ? `, the longest ${formatAge(safety.longestBlindSec)}` : ""}.
               </p>

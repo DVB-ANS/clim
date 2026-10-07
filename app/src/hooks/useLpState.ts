@@ -2,23 +2,17 @@
 
 import { useCallback, useMemo } from "react";
 import { useAccount, useReadContracts } from "wagmi";
-import type { TxMode } from "@/components/TxModeSwitch";
-import type { ClimData } from "@/hooks/useClimData";
 import { useStored } from "@/hooks/useStored";
 import { stateViewAbi, testTokenAbi } from "@/lib/abis";
 import { deployments } from "@/lib/config";
 import type { PairDeployment } from "@/lib/deployments";
-import { FAUCET } from "@/lib/guide";
 import { feesOwed, fullRangeTicks, saltFor } from "@/lib/liquidity";
 import type { PoolName } from "@/lib/swap";
 
 export const POOLS: PoolName[] = ["V", "S"];
-/** Simulated faucet amounts: the real TestToken.faucet() amounts (lib/guide.ts FAUCET). */
-export const MOCK_FAUCET = { tETH: FAUCET.tETH, tUSD: FAUCET.tUSD };
-const MOCK_KEY = "clim-mock-lp-v1";
 const SINCE_KEY = "clim-lp-since-v1";
 
-/** A pool's active liquidity (the user's position included, simulated or not) and its sqrt price. */
+/** A pool's active liquidity (the user's position included) and its sqrt price. */
 export type PoolLevel = { liquidity: number; sqrtP: number };
 export type UserPosition = {
   liquidity: number;
@@ -33,36 +27,25 @@ export type LpState = {
   pools: Partial<Record<PoolName, PoolLevel>>;
   positions: Partial<Record<PoolName, UserPosition>>;
   refresh: () => void;
-  /** Simulated wallet, mock mode only. */
-  mock: {
-    faucet: () => void;
-    add: (pool: PoolName, liquidity: number, eth: number, usd: number) => void;
-    remove: (pool: PoolName, eth: number, usd: number) => void;
-  };
   /** Remembers when this browser added liquidity on-chain, for "P&L since you joined". */
   rememberSince: (pool: PoolName, t: number) => void;
 };
 
-type MockWallet = { tETH: number; tUSD: number; positions: Partial<Record<PoolName, { liquidity: number }>> };
-const EMPTY_MOCK: MockWallet = { tETH: 0, tUSD: 0, positions: {} };
 const NO_SINCE: Record<string, number> = {};
 
-/** Balances, pool levels and the user's positions on V and S, read on-chain or simulated. */
-export function useLpState(mode: TxMode, data: ClimData): LpState {
+/** Balances, pool levels and the user's positions on V and S, read on Sepolia. */
+export function useLpState(): LpState {
   const { address } = useAccount();
   const chainPair = deployments.pairs.live;
-  const pair = mode === "chain" ? chainPair : data.pair;
+  const pair = chainPair;
   const router = deployments.uniswap.poolModifyLiquidityTest;
   const tETH = deployments.tokens.tETH;
   const tUSD = deployments.tokens.tUSD;
 
-  // Simulated wallet (localStorage, mock mode).
-  const [mockWallet, updateMock] = useStored(MOCK_KEY, EMPTY_MOCK);
-
-  // On-chain reads (chain mode): both pools' depth and price from StateView, with or without a wallet,
+  // On-chain reads: both pools' depth and price from StateView, with or without a wallet,
   // so the pool cards and the add quote show live numbers before connecting; then, with a wallet, its
   // positions and token balances.
-  const chainPools = mode === "chain" && !!chainPair;
+  const chainPools = !!chainPair;
   const live = chainPools && !!router && !!address;
   const ticks = chainPair ? fullRangeTicks(chainPair.V.key.tickSpacing) : { tickLower: 0, tickUpper: 0 };
   const sv = { address: deployments.uniswap.stateView, abi: stateViewAbi } as const;
@@ -97,7 +80,9 @@ export function useLpState(mode: TxMode, data: ClimData): LpState {
 
   const [since, updateSince] = useStored(SINCE_KEY, NO_SINCE);
   const rememberSince = useCallback(
-    (pool: PoolName, t: number) => updateSince((s) => ({ ...s, [`${address ?? "mock"}:${pool}`]: t })),
+    (pool: PoolName, t: number) => {
+      if (address) updateSince((s) => ({ ...s, [`${address}:${pool}`]: t }));
+    },
     [address, updateSince],
   );
 
@@ -105,18 +90,7 @@ export function useLpState(mode: TxMode, data: ClimData): LpState {
     const pools: Partial<Record<PoolName, PoolLevel>> = {};
     const positions: Partial<Record<PoolName, UserPosition>> = {};
     let balances: LpState["balances"];
-    if (mode === "mock") {
-      for (const name of POOLS) {
-        const poolId = data.pair?.[name].poolId;
-        const last = poolId ? data.swaps.filter((s) => s.poolId === poolId).at(-1) : undefined;
-        const p = mockWallet.positions[name];
-        const mine = p && p.liquidity > 0 ? p.liquidity : 0;
-        if (mine > 0) positions[name] = { liquidity: mine };
-        // the simulated position joins the simulated pool, like a real one would
-        if (last) pools[name] = { liquidity: Number(last.liquidity) + mine, sqrtP: Number(last.sqrtPriceX96) / 2 ** 96 };
-      }
-      balances = { tETH: mockWallet.tETH, tUSD: mockWallet.tUSD };
-    } else if (chainPools && chainPair) {
+    if (chainPools && chainPair) {
       const pr = poolReads.data ?? [];
       POOLS.forEach((name, i) => {
         const [liq, slot0] = [pr[2 * i], pr[2 * i + 1]];
@@ -126,7 +100,7 @@ export function useLpState(mode: TxMode, data: ClimData): LpState {
         }
       });
     }
-    if (mode === "chain" && live && reads.data && chainPair) {
+    if (live && reads.data && chainPair) {
       const r = reads.data;
       POOLS.forEach((name, i) => {
         const [pos, inside] = [r[2 * i], r[2 * i + 1]];
@@ -150,22 +124,7 @@ export function useLpState(mode: TxMode, data: ClimData): LpState {
       }
     }
     return { pools, positions, balances };
-  }, [mode, data.pair, data.swaps, mockWallet, chainPools, poolReads.data, live, reads.data, chainPair, since, address]);
-
-  const mock = useMemo(
-    () => ({
-      faucet: () => updateMock((w) => ({ ...w, tETH: w.tETH + MOCK_FAUCET.tETH, tUSD: w.tUSD + MOCK_FAUCET.tUSD })),
-      add: (pool: PoolName, liquidity: number, eth: number, usd: number) =>
-        updateMock((w) => ({
-          tETH: w.tETH - eth,
-          tUSD: w.tUSD - usd,
-          positions: { ...w.positions, [pool]: { liquidity: (w.positions[pool]?.liquidity ?? 0) + liquidity } },
-        })),
-      remove: (pool: PoolName, eth: number, usd: number) =>
-        updateMock((w) => ({ tETH: w.tETH + eth, tUSD: w.tUSD + usd, positions: { ...w.positions, [pool]: { liquidity: 0 } } })),
-    }),
-    [updateMock],
-  );
+  }, [chainPools, poolReads.data, live, reads.data, chainPair, since, address]);
 
   const { refetch } = reads;
   const { refetch: refetchPools } = poolReads;
@@ -174,6 +133,6 @@ export function useLpState(mode: TxMode, data: ClimData): LpState {
     void refetchPools();
   }, [refetch, refetchPools]);
 
-  return { pair, ...state, refresh, mock, rememberSince };
+  return { pair, ...state, refresh, rememberSince };
 }
 

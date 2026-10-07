@@ -31,7 +31,7 @@ function FootLink({ href, children, className = "" }: { href: string; children: 
 }
 
 /** The landing's footer, light like the rest: links, one discreet "Licenses" link to /credits, and the wordmark's giant degree sign in pink. */
-export function SiteFooter({ simulated }: { simulated: boolean }) {
+export function SiteFooter() {
   return (
     <footer className="relative mx-2 mb-2 overflow-hidden rounded-lg bg-surface-2 px-6 pb-8 pt-12 text-fg md:px-14">
       <span aria-hidden className="degree-in pointer-events-none absolute -bottom-24 -right-6 hidden select-none sm:block font-display text-[360px] leading-none text-pink-soft md:-bottom-40 md:text-[560px]">
@@ -62,7 +62,6 @@ export function SiteFooter({ simulated }: { simulated: boolean }) {
         <FootLink href="/credits" className="underline decoration-line underline-offset-2 hover:text-fg">
           Licenses
         </FootLink>
-        {simulated ? <span>Simulated data</span> : null}
       </div>
     </footer>
   );

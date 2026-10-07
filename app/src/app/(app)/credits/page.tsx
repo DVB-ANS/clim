@@ -7,7 +7,7 @@ import { Panel } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Licenses" };
 
-// THIRD_PARTY_NOTICES.md at the repo root, read at build time: one source for the repo and the site.
+// app/THIRD_PARTY_NOTICES.md (process.cwd() is app/ at build), read at build time: one file for the repo and the site.
 const NOTICES = readFileSync(join(process.cwd(), "THIRD_PARTY_NOTICES.md"), "utf8");
 
 export default function CreditsPage() {

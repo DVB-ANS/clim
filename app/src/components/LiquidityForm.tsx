@@ -4,7 +4,7 @@ import { type ReactNode, useState } from "react";
 import { parseAmount, type PoolName } from "@/lib/swap";
 import { formatAmount } from "@/lib/units";
 import { AmountBox, DetailRow, PoolCards, type PoolOption } from "./dex";
-import { ActionButton, type TxMode } from "./TxModeSwitch";
+import { ActionButton } from "./ChainNote";
 
 export type AddQuote = { liquidity: number; eth: number; usd: number };
 
@@ -30,8 +30,9 @@ function FullRange() {
 }
 
 /** Full-range deposit on V or S: the tETH amount sets the liquidity, the tUSD side follows from the pool price. */
-export function LiquidityForm({ mode, busy, balances, quote, onAdd, pools, ethUsd, children }: {
-  mode: TxMode;
+export function LiquidityForm({ off, busy, balances, quote, onAdd, pools, ethUsd, children }: {
+  /** On-chain writes are off in this build (no live pair or tokens): ChainNote says why. */
+  off?: boolean;
   busy: boolean;
   balances?: { tETH: number; tUSD: number };
   quote: (pool: PoolName, eth: number) => AddQuote | null;
@@ -88,7 +89,7 @@ export function LiquidityForm({ mode, busy, balances, quote, onAdd, pools, ethUs
       </div>
       {short ? <p className="mt-1 px-2 text-sm text-danger">Not enough test tokens for this deposit: use the faucet above.</p> : null}
       <div className="mt-3 space-y-3 px-1">
-        <ActionButton mode={mode} block disabled={!q || short || busy} onClick={() => onAdd(pool, eth)}>
+        <ActionButton block disabled={off || !q || short || busy} onClick={() => onAdd(pool, eth)}>
           {busy ? "Working…" : `Approve and add to pool ${pool}`}
         </ActionButton>
         {children}

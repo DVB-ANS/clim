@@ -28,6 +28,12 @@ describe("splitFaq", () => {
     ]);
   });
 
+  it("credits the Chainlink judge with the last question, as /how's own intro says", () => {
+    // 7 October, at the booth: "Why not set the fee from volume too?" (the last row)
+    expect(faq.intro).toContain("A Chainlink judge suggested the last one at the booth on 7 October 2026.");
+    expect(faq.items.at(-1)?.question).toBe("Why not set the fee from volume too?");
+  });
+
   it("keeps the intro, drops the page title, and leaves no heading in the answers", () => {
     expect(faq.intro).toMatch(/^A Chainlink mentor asked two of these questions/);
     expect(faq.intro).not.toContain("# clim FAQ");

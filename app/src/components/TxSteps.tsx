@@ -13,12 +13,11 @@ const TEXT: Record<StepStatus, string> = {
 };
 
 /**
- * The steps of a transaction flow, each with its status and hash (Etherscan link when live). A status line,
+ * The steps of a transaction flow, each with its status and hash (an Etherscan link). A status line,
  * mounted before the first step so screen readers announce its changes, says the latest step's state.
  */
-export function TxSteps({ steps, live }: { steps: StepState[]; live: boolean }) {
-  const say = (s: StepState) =>
-    s.note ?? (!live && s.status === "signing" ? "simulated signature" : !live && s.status === "pending" ? "simulated block" : TEXT[s.status]);
+export function TxSteps({ steps }: { steps: StepState[] }) {
+  const say = (s: StepState) => s.note ?? TEXT[s.status];
   const now = [...steps].reverse().find((s) => s.status !== "waiting");
   return (
     <>
@@ -35,7 +34,7 @@ export function TxSteps({ steps, live }: { steps: StepState[]; live: boolean }) 
               </span>
               <span className="font-medium">{s.label}</span>
               <span className="text-xs text-fg-subtle">{say(s)}</span>
-              {s.hash ? <TxLink hash={s.hash} live={live} /> : null}
+              {s.hash ? <TxLink hash={s.hash} /> : null}
               {s.error ? <span className="text-xs text-danger">{s.error}</span> : null}
             </li>
           ))}

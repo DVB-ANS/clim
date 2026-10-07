@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import type { RawLog } from "@/lib/encode";
 import { errorText, type FlowStep, type StepState } from "@/lib/tx";
 
-/** Runs transaction steps in order (real or simulated) and exposes their states for <TxSteps>. */
+/** Runs transaction steps in order on Sepolia and exposes their states for <TxSteps>. */
 export function useTxFlow() {
   const [steps, setSteps] = useState<StepState[]>([]);
   const [running, setRunning] = useState(false);

@@ -27,7 +27,7 @@ function rejections(n: number): Delivery[] {
 
 function render(reports: DeskReport[], deliveries: Delivery[]): string {
   const data: ClimData = {
-    source: "mock", status: "ready", reports, swaps: [], deliveries, usedSnapshot: false,
+    status: "ready", reports, swaps: [], deliveries, usedSnapshot: false,
     nowSec: reports.length ? reports[reports.length - 1].blockTimestamp + 10 : 0,
   };
   // the markup, without React's separators between adjacent text nodes

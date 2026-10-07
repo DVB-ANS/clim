@@ -5,9 +5,6 @@ export type CanvasTokens = {
   deep: string;
   wash: string;
   sigma: string;
-  lcdBg: string;
-  lcdLit: string;
-  lcdHot: string;
   display: string;
   ui: string;
 };
@@ -21,9 +18,6 @@ export function canvasTokens(el: Element): CanvasTokens {
     deep: v("--clim-deep", "#4e5560"),
     wash: v("--clim-wash", "#eff6ff"),
     sigma: v("--clim-sigma", "#f50db4"),
-    lcdBg: v("--clim-lcd-bg", "#0e1119"),
-    lcdLit: v("--clim-lcd-lit", "#cadcf6"),
-    lcdHot: v("--clim-lcd-hot", "#ff37c7"),
     display: v("--font-inter-tight", "system-ui"),
     ui: v("--font-inter", "system-ui"),
   };

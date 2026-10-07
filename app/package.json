@@ -11,7 +11,6 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "sync": "node scripts/sync-data.mjs",
-    "fixtures": "tsx scripts/make-fixtures.ts",
     "snapshot": "tsx scripts/snapshot.ts",
     "e2e:onchain": "tsx scripts/e2e-onchain.ts",
     "dither": "node scripts/make-dither.mjs",

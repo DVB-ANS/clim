@@ -14,7 +14,6 @@ const band = {
 describe("parsePTradeBand / bandAt", () => {
   it("interpolates linearly between grid points and clamps outside", () => {
     const b = parsePTradeBand(band);
-    expect(b.fixture).toBe(false);
     expect(bandAt(b, 0.15).lo95).toBeCloseTo(0.1, 10);
     expect(bandAt(b, 0.15).hi99).toBeCloseTo(0.235, 10);
     expect(bandAt(b, 0.01)).toEqual({ lo95: 0.06, hi95: 0.15, lo99: 0.05, hi99: 0.17 });
@@ -75,7 +74,6 @@ describe("parseSummary", () => {
   it("accepts plan 03's summary shape", () => {
     const s = parseSummary(summary);
     expect(s.comparisons.equalTraderCost[1].arbChangePct).toBe(7);
-    expect(s.fixture).toBe(false);
   });
   it("names the first missing field", () => {
     expect(() => parseSummary({ ...summary, comparisons: undefined })).toThrow(/missing comparisons.equalAvgFee/);

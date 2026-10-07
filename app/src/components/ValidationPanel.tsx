@@ -10,7 +10,7 @@ import type { LabPTradeBand } from "@/lib/lab";
 import { arbBlocksOf, makeBlockClock, makePredictor, pTradeTotals, rollingPTrade } from "@/lib/ptrade";
 import { downsample } from "@/lib/series";
 import { COLORS, utcTime } from "@/lib/theme";
-import { dataTable, FixtureNote, type HeadingLevel, Panel } from "./ui";
+import { dataTable, type HeadingLevel, Panel } from "./ui";
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
@@ -53,7 +53,6 @@ export function ValidationPanel({ data, band, level }: { data: ClimData; band: L
       }
       className="col-span-full"
     >
-      <FixtureNote show={band.fixture}>The band is a fixture until the lab writes lab/out/ptrade-band.json.</FixtureNote>
       {!result ? (
         <p className="text-sm text-fg-subtle">{data.arbRouter ? "Waiting for desk reports and swaps." : "Arbitrage router unknown: add routers.arb to shared/deployments/sepolia.json."}</p>
       ) : (

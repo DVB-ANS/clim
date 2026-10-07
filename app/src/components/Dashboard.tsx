@@ -7,7 +7,6 @@ import type { Pair } from "@/lib/deployments";
 import { finishedRun } from "@/lib/finished";
 import { silentNote } from "@/lib/guide";
 import type { LabPTradeBand } from "@/lib/lab";
-import { MOCK_STATIC_FEE_PIPS } from "@/lib/mock";
 import { utcTime } from "@/lib/theme";
 import { pipsToBp, shortHash } from "@/lib/units";
 import { DeskPanel } from "./DeskPanel";
@@ -49,14 +48,13 @@ export function Dashboard({
   const [pair, setPair] = useState<Pair>(initialPair);
   const data = useClimData(pair);
   // The replay pair ran once and stopped: its history ends with its last report and swaps, not "now".
-  const run = data.source === "sepolia" && data.pair === deployments.pairs.replay && pair === "replay" ? finishedRun(data.reports, data.swaps, data.nowSec) : undefined;
+  const run = data.pair === deployments.pairs.replay && pair === "replay" ? finishedRun(data.reports, data.swaps, data.nowSec) : undefined;
   const history: ClimData = run
     ? { ...data, nowSec: run.endSec, state: data.state ? { ...data.state, latestBlock: { number: run.endBlock, timestamp: run.endSec } } : undefined }
     : data;
-  const keyVariant = data.source === "mock" ? "mock" : pair;
-  const staticFeePips = data.pair?.S.key.fee ?? (data.source === "mock" ? MOCK_STATIC_FEE_PIPS : deployments.pairs[pair]?.S.key.fee ?? MOCK_STATIC_FEE_PIPS);
+  const staticFeePips = (data.pair ?? deployments.pairs[pair])?.S.key.fee;
   // on /app, StartHere shows the silent-desk note instead
-  const silent = !guide && !run && pair === "live" && data.source === "sepolia" ? silentNote(data.reports, data.nowSec, params) : undefined;
+  const silent = !guide && !run && pair === "live" ? silentNote(data.reports, data.nowSec, params) : undefined;
 
   return (
     <div className="space-y-4">
@@ -65,11 +63,7 @@ export function Dashboard({
         {pairs.length > 1 ? (
           <Toggle<Pair> value={pair} options={pairs.map((p) => ({ value: p, label: p === "live" ? "Live pair" : "Replay pair (4 Feb 2026, finished)" }))} onChange={setPair} />
         ) : null}
-        {data.source === "mock" ? (
-          <span className="rounded-sm bg-notice-bg px-2 py-1 text-xs text-notice-fg">
-            Mock data: this build is not reading the Sepolia deployment (not synced yet, or NEXT_PUBLIC_CLIM_SOURCE=mock). Same decoders and formulas as live.
-          </span>
-        ) : data.pair ? (
+        {data.pair ? (
           <span className="text-xs text-fg-muted">
             {run ? "Finished replay on Sepolia" : "Live from Sepolia"}: RiskDesk{" "}
             <a className="text-link underline" href={`${EXPLORER}/address/${data.pair.riskDesk}`} target="_blank" rel="noreferrer">{shortHash(data.pair.riskDesk)}</a>
@@ -84,7 +78,7 @@ export function Dashboard({
           </span>
         ) : null}
       </div>
-      {pair === keyShownAbove && keyVariant !== "mock" ? null : <PoolsKey variant={keyVariant} staticFeePips={staticFeePips} />}
+      {pair === keyShownAbove || staticFeePips === undefined ? null : <PoolsKey variant={pair} staticFeePips={staticFeePips} />}
       {silent ? (
         <p role="note" className="max-w-4xl rounded-md bg-notice-bg px-4 py-3 text-sm leading-relaxed text-notice-fg">
           {silent}

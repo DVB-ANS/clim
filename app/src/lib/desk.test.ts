@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contourSegments, deskChecks, reportStatuses, stormParticles, stormPositions } from "./desk";
+import { contourSegments, deskChecks, reportStatuses } from "./desk";
 
 describe("reportStatuses (one status per report, for the desk's status bars)", () => {
   it("marks a report degraded when the venues disagree by more than 25 bp", () => {
@@ -44,19 +44,5 @@ describe("contourSegments (marching squares, for the isobar map)", () => {
 
   it("draws nothing where the whole cell is on one side", () => {
     expect(contourSegments(new Float32Array([1, 1, 1, 1]), 1, 1, 0.5, 10, 10)).toEqual([]);
-  });
-});
-
-describe("stormParticles / stormPositions (the stippled storm of the CL-1 screen)", () => {
-  it("is deterministic for a seed", () => {
-    expect(stormParticles(50, 7)).toEqual(stormParticles(50, 7));
-    expect(stormParticles(50, 7)).not.toEqual(stormParticles(50, 8));
-  });
-
-  it("keeps every dot inside the unit disc, with an empty eye", () => {
-    const pts = stormPositions(stormParticles(400, 1), 0.7, 1.5);
-    const r = pts.map(([x, y]) => Math.hypot(x, y / 0.9));
-    expect(Math.max(...r)).toBeLessThanOrEqual(1 + 1e-9);
-    expect(Math.min(...r)).toBeGreaterThanOrEqual(0.06 - 1e-9);
   });
 });

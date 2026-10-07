@@ -56,7 +56,7 @@ export function DeskPanel({ data, level }: { data: ClimData; level?: HeadingLeve
         <ul className="mt-1 space-y-0.5">
           {data.reports.slice(-5).reverse().map((r) => (
             <li key={`${r.txHash}:${r.logIndex}`} className="font-mono text-xs">
-              #{r.seq} <TxLink hash={r.txHash} live={data.source === "sepolia"} />
+              #{r.seq} <TxLink hash={r.txHash} />
             </li>
           ))}
         </ul>

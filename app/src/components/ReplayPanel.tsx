@@ -1,7 +1,7 @@
 import type { LabReplay, LabSummary } from "@/lib/lab";
 import { lessMore, replayWindowNote } from "@/lib/labText";
 import { ReplayCharts } from "./ReplayCharts";
-import { FixtureNote, type HeadingLevel, Panel, Stat } from "./ui";
+import { type HeadingLevel, Panel, Stat } from "./ui";
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
@@ -21,7 +21,6 @@ export function ReplayPanel({ replay, summary, level }: { replay: LabReplay; sum
   const r = summary.replay;
   return (
     <Panel level={level} title={`Replay: ${r.window}`} subtitle={`${windowText(replay.window.startUtc, replay.window.endUtc)}, P* = ${(summary.setting.pStar * 100).toFixed(0)}%, pool S fixed at ${r.feeSBp.toFixed(2)} bp, V's average over the window.`}>
-      <FixtureNote show={replay.fixture || summary.fixture}>Synthetic fixture: the lab has not written lab/out/replay-2026-02-04.json and lab/out/summary.json yet.</FixtureNote>
       <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat
           label="Pool V's loss to arbitrage, against pool S"

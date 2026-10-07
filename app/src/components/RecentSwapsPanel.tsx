@@ -29,7 +29,7 @@ export function RecentSwapsPanel({ data, level }: { data: ClimData; level?: Head
                 <td className="num pr-6">{r.ethAmount.toFixed(4)} tETH</td>
                 <td className="num pr-6">{r.feeBp.toFixed(2)} bp</td>
                 <td className="pr-6">{r.kind}</td>
-                <td className="py-1!"><TxLink hash={r.txHash} live={data.source === "sepolia"} /></td>
+                <td className="py-1!"><TxLink hash={r.txHash} /></td>
               </tr>
             ))}
           </tbody>

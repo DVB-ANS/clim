@@ -1,4 +1,5 @@
 import { LOGOS } from "./logos";
+import { MotionToggle } from "./MotionToggle";
 
 // What clim runs on, in the order a report travels: the venues, the oracle, the chain, the DEX.
 // Hyperliquid and Deribit have no open mark in @web3icons, so they stay wordmarks.
@@ -16,14 +17,20 @@ function Mark({ name }: { name: string }) {
   );
 }
 
-/** Ventriloc's partner strip, with the stack's own marks: who measures, who takes the median, where it is charged. */
+/**
+ * Ventriloc's partner strip, with the stack's own marks: who measures, who takes the median, where it is
+ * charged. Its caption row carries the page's "Pause motion" switch, right under the hero.
+ */
 export function LogoStrip() {
   return (
     <section aria-label="Built on" className="rise-in mx-auto max-w-[1200px] px-4 py-12">
-      <p className="text-[13px] text-deep">
-        Measured on four venues (Deribit DVOL logged alongside) · their median taken by a <span className="font-medium">Chainlink CRE</span> workflow · charged in a{" "}
-        <span className="font-medium">Uniswap v4</span> hook on <span className="font-medium">Ethereum</span>
-      </p>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+        <p className="text-[13px] text-deep">
+          Measured on four venues (Deribit DVOL logged alongside) · their median taken by a <span className="font-medium">Chainlink CRE</span> workflow · charged in a{" "}
+          <span className="font-medium">Uniswap v4</span> hook on <span className="font-medium">Ethereum</span>
+        </p>
+        <MotionToggle />
+      </div>
       <ul className="mt-6 flex flex-wrap items-center justify-between gap-x-10 gap-y-5">
         {STACK.map((n) => (
           <Mark key={n} name={n} />

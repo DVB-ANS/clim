@@ -4,8 +4,7 @@ import { TrySteps } from "@/components/guide/TrySteps";
 import { PoolsKey } from "@/components/PoolsKey";
 import { SwapForm } from "@/components/SwapForm";
 import { linkCls } from "@/components/ui";
-import { dataSource, deployments } from "@/lib/config";
-import { MOCK_STATIC_FEE_PIPS } from "@/lib/mock";
+import { livePair } from "@/lib/config";
 
 export const metadata: Metadata = { title: "Swap" };
 
@@ -19,10 +18,7 @@ export default function SwapPage() {
           event.
         </p>
       </div>
-      <PoolsKey
-        variant={dataSource("live") === "mock" ? "mock" : "live"}
-        staticFeePips={deployments.pairs.live?.S.key.fee ?? MOCK_STATIC_FEE_PIPS}
-      />
+      <PoolsKey variant="live" staticFeePips={livePair.S.key.fee} />
       <SwapForm />
       <section id="try" aria-labelledby="try-title" className="rounded-lg bg-wash p-4 sm:p-5">
         <h2 id="try-title" className="font-display text-lg">

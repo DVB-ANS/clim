@@ -21,17 +21,20 @@ const SIZE = {
   },
 } as const;
 
-/* Blue first, never a pink hover: the pink stays the disc's, where the app opens from (globals.css,
-   "Launch transition"). The outline contrasts with the ground the tone is made for. */
+/* Blue first, never a pink hover: on white grounds the pink stays the disc's, where the app opens from
+   (globals.css, "Launch transition"). On blue grounds the disc turns blue too, so the band keeps two flat
+   colours. The outline contrasts with the ground the tone is made for. */
 const TONE = {
   onWhite: {
     root: "bg-accent text-accent-fg focus-visible:outline-accent",
     fill: "bg-accent-strong",
+    disc: "bg-pink",
     label: "",
   },
   onBlue: {
     root: "bg-surface text-accent focus-visible:outline-accent-fg",
-    fill: "bg-accent",
+    fill: "bg-accent-strong",
+    disc: "bg-accent",
     label: "group-hover/launch:text-accent-fg group-focus-visible/launch:text-accent-fg",
   },
 } as const;
@@ -42,7 +45,8 @@ const SWEEP = "duration-480 ease-[cubic-bezier(0.65,0,0.076,1)] motion-reduce:tr
  * "Launch app": a pill with Uniswap's pink disc and a white arrow; on hover or keyboard focus a darker
  * blue sweeps across it from the disc. It is a LaunchLink, so the click opens /app from the disc
  * ([data-launch-dot]), and the arrow turns into a spinner while /app loads.
- * `tone="onBlue"` is the white pill for blue grounds (the closing band).
+ * `tone="onBlue"` is the white pill with a blue disc for blue grounds (the closing band). Wrap it in
+ * Magnet, as the hero does, for the pull toward the cursor.
  */
 export function LaunchButton({
   size = "lg",
@@ -72,7 +76,7 @@ export function LaunchButton({
       )}
     >
       <span aria-hidden className={cn("absolute inset-y-[3px] left-[3px] rounded-full transition-[width] group-hover/launch:w-[calc(100%-6px)] group-focus-visible/launch:w-[calc(100%-6px)]", SWEEP, s.fill, t.fill)} />
-      <span aria-hidden data-launch-dot className={cn("relative grid flex-none place-items-center rounded-full bg-pink text-accent-fg transition-transform", SWEEP, s.disc)}>
+      <span aria-hidden data-launch-dot className={cn("relative grid flex-none place-items-center rounded-full text-accent-fg transition-transform", SWEEP, t.disc, s.disc)}>
         <LaunchPending>
           <svg viewBox="0 0 24 24" className="size-[1em]" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4.5 12h14.5M13 6.5 18.5 12 13 17.5" />

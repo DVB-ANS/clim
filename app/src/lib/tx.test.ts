@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { Address } from "viem";
 import { computePoolId, type PairDeployment } from "./deployments";
 import { encodeSwapLog } from "./encode";
-import { planSwap, swapResult } from "./swap";
-import { mockSwapLogs, mockTxHash, receiptLogs, withGasMargin } from "./tx";
+import { swapResult } from "./swap";
+import { receiptLogs, withGasMargin } from "./tx";
 
 const tETH: Address = "0x1000000000000000000000000000000000000001";
 const tUSD: Address = "0x2000000000000000000000000000000000000002";
@@ -40,66 +40,29 @@ describe("receiptLogs", () => {
   });
 });
 
-describe("mockTxHash", () => {
-  it("is a deterministic 32-byte hash per step", () => {
-    expect(mockTxHash("swap", 1)).toMatch(/^0x[0-9a-f]{64}$/);
-    expect(mockTxHash("swap", 1)).toBe(mockTxHash("swap", 1));
-    expect(mockTxHash("swap", 2)).not.toBe(mockTxHash("swap", 1));
-  });
-
-  it("changes with the page load, so a reload never shows the same simulated hash again", async () => {
-    const at = async (t: number) => {
-      vi.resetModules();
-      vi.spyOn(Date, "now").mockReturnValue(t);
-      const { mockTxHash: hash } = await import("./tx");
-      vi.restoreAllMocks();
-      return hash("swap", 1);
-    };
-    expect(await at(1)).not.toBe(await at(2));
-  });
-});
-
-describe("mockSwapLogs (simulated swap)", () => {
-  const common = { sender: ROUTER, feePips: 1_822, ethUsd: 2_500, liquidity: 2n * 10n ** 23n, poolManager: PM, blockNumber: 9, t: 99, txHash: mockTxHash("Swap on pool V", 1) };
-
-  it("emits the Swap log a real swap would: quoted fee, swapper deltas, router as sender", () => {
-    const pair = pairOf(tETH, tUSD);
-    const plan = planSwap({ pair, tETH, tUSD, pool: "V", side: "sell ETH", amount: "1" });
-    const s = swapResult(mockSwapLogs({ ...common, plan, token0IsEth: true }), pair.V.poolId)!;
-    expect(s.fee).toBe(1_822);
-    expect(s.sender).toBe(ROUTER);
-    expect(s.txHash).toBe(mockTxHash("Swap on pool V", 1)); // the hash shown on the swap step
-    expect(s.amount0).toBe(-(10n ** 18n));
-    expect(Number(s.amount1) / 1e18).toBeCloseTo(2_500 * (1 - 0.001822), 6);
-  });
-
-  it("follows the pool orientation when buying ETH with tUSD as token0", () => {
-    const pair = pairOf(tUSD, tETH);
-    const plan = planSwap({ pair, tETH, tUSD, pool: "S", side: "buy ETH", amount: "2500" });
-    const s = swapResult(mockSwapLogs({ ...common, plan, token0IsEth: false, feePips: 1_050 }), pair.S.poolId)!;
-    expect(s.amount0).toBe(-2_500n * 10n ** 18n);
-    expect(Number(s.amount1) / 1e18).toBeCloseTo(1 - 0.00105, 9);
-  });
-});
-
 describe("writeReadiness", () => {
-  it("disables on-chain writes with a clear reason while the contracts are not deployed (the fixture)", async () => {
+  it("disables on-chain writes with a clear reason while the live pair is not deployed", async () => {
     const { writeReadiness } = await import("./tx");
     const { parseDeployments } = await import("./deployments");
-    const fixture = (await import("../fixtures/deployments.sepolia.json")).default;
-    const r = writeReadiness(parseDeployments(fixture), "swap");
+    // a deployments file before the pair: infrastructure only
+    const bootstrap = {
+      chainId: 11155111,
+      deployBlock: null,
+      uniswap: {
+        poolManager: "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543",
+        stateView: "0xE1Dd9c3fA50EDB962E442f60DfBc432e24537E4C",
+        poolSwapTest: "0x9B6b46e2c869aa39918Db7f52f5557FE577B6eEe",
+        poolModifyLiquidityTest: "0x0C478023803a644c94c4CE1C1e7b9A087e411B0A",
+      },
+      cre: { mockForwarder: "0x15fC6ae953E024d975e77382eEeC56A9101f9F88", keystoneForwarder: "0xF8344CFd5c43616a4366C34E3EEE75af79a74482" },
+      tokens: { tETH: null, tUSD: null },
+      riskDesks: { live: null, replay: null },
+      hooks: { live: null, replay: null },
+      pools: { liveV: null, liveS: null, replayV: null, replayS: null },
+    };
+    const r = writeReadiness(parseDeployments(bootstrap), "swap");
     expect(r.ok).toBe(false);
     expect(r.reason).toMatch(/not deployed/);
-  });
-});
-
-describe("mockStep", () => {
-  it("signs, reports a deterministic hash, then returns the simulated logs", async () => {
-    const { mockStep, mockTxHash } = await import("./tx");
-    const seen: string[] = [];
-    const out = await mockStep("Swap on pool V", 3, [], { signMs: 0, mineMs: 0 }).run((h) => seen.push(h), () => {});
-    expect(seen).toEqual([mockTxHash("Swap on pool V", 3)]);
-    expect(out).toEqual([]);
   });
 });
 

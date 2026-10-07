@@ -2,9 +2,8 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 
-// JSON values kept in localStorage (the simulated wallet, when the user joined a pool). The server
-// render and hydration see the fallback, then the stored value; a memory copy keeps the simulation
-// working for the visit when storage is blocked.
+// JSON values kept in localStorage (when this browser joined a pool). The server render and hydration
+// see the fallback, then the stored value; a memory copy keeps them for the visit when storage is blocked.
 const memory = new Map<string, string>();
 const listeners = new Set<() => void>();
 

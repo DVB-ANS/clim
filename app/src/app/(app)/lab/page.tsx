@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { BacktestTable } from "@/components/BacktestTable";
 import { ReplayPanel } from "@/components/ReplayPanel";
-import { FixtureNote, Panel } from "@/components/ui";
+import { Panel } from "@/components/ui";
 import { labReplay, labSummary } from "@/lib/labData";
 import { roundPct, signedPct, usdPerMillion } from "@/lib/labText";
 
@@ -19,7 +19,6 @@ export default function LabPage() {
         title="Backtest summary"
         subtitle={`P* = ${(s.setting.pStar * 100).toFixed(0)}%, floor ${(s.setting.feeMinPips / 100).toFixed(0)} bp. Two fair comparisons against a static fee: at equal time-average fee, and at equal cost to traders (volume rises with volatility).`}
       >
-        <FixtureNote show={s.fixture}>Synthetic fixture: the lab has not written lab/out/summary.json yet.</FixtureNote>
         <BacktestTable summary={s} />
         <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
           <li>

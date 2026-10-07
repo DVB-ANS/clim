@@ -285,6 +285,19 @@ export function GooeyNav({
       {/* the padding keeps the focus ring inside the scroll box; the negative margin gives it back */}
       <div
         ref={scroller}
+        onFocus={(e) => {
+          // Tab onto a tile the strip has scrolled away (a phone): the browser leaves it clipped at the
+          // edge, so bring it in with span of slack for the ring. Keyboard focus only: a click moves the
+          // active tile, which the effect above already scrolls to.
+          const box = scroller.current;
+          const tile = (e.target as HTMLElement).closest<HTMLElement>('[data-slot="gooey-nav-item"]');
+          if (!box || !tile || !tile.matches(":focus-visible")) return;
+          const b = box.getBoundingClientRect();
+          const t = tile.getBoundingClientRect();
+          const behavior = reduced ? "auto" : "smooth";
+          if (t.left < b.left + span) box.scrollBy({ left: t.left - b.left - span, behavior });
+          else if (t.right > b.right - span) box.scrollBy({ left: t.right - b.right + span, behavior });
+        }}
         className="-m-1 overflow-x-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <ul className="flex w-max items-center">

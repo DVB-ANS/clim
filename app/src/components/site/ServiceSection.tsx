@@ -6,14 +6,14 @@ import { LaunchLink } from "./LaunchLink";
 
 /**
  * Ventriloc's stacked service panel: a gray card with the signature asymmetric corner, the step
- * number and the title behind a blue square, a navy subtitle, the text and a link; the live mock on
+ * number and the title behind a blue square, a navy subtitle, the text and a link; the live visual on
  * the right. Each panel sticks a little lower than the previous one, so they pile up as the page
  * scrolls (globals.css, .stack-panel, from 1280 x 820 where a panel fits the window). A panel the next
  * one covers cannot be scrolled into view by the browser, so keyboard focus landing in it (tested a
  * frame after the browser's smooth scroll starts, and only while the panels stick) brings its sentinel
  * (an unstuck marker just above it) back to the top.
  */
-export function ServiceSection({ id, index, step, title, subtitle, link, children, mock }: {
+export function ServiceSection({ id, index, step, title, subtitle, link, children, visual }: {
   id: string;
   index: number;
   step?: string;
@@ -21,7 +21,7 @@ export function ServiceSection({ id, index, step, title, subtitle, link, childre
   subtitle: string;
   link: { href: string; label: string };
   children: ReactNode;
-  mock: ReactNode;
+  visual: ReactNode;
 }) {
   const top = 84 + index * 14;
   const sentinel = useRef<HTMLDivElement>(null);
@@ -75,7 +75,7 @@ export function ServiceSection({ id, index, step, title, subtitle, link, childre
             </Link>
           )}
         </div>
-        <div className="min-w-0 rounded-md bg-wash p-4 md:p-8">{mock}</div>
+        <div className="min-w-0 rounded-md bg-wash p-4 md:p-8">{visual}</div>
       </section>
     </>
   );

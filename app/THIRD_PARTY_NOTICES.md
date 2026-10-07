@@ -10,7 +10,7 @@ The license text of every npm package in the site's dependencies, permissive one
 whose licenses require a notice, and the npm packages with non-permissive terms.
 
 Patterns re-implemented with no code copied, so with no notice below (their files' headers still name them):
-Dither it! (`src/components/site/LcdStorm.tsx`, `scripts/make-dither.mjs`) and Aceternity UI
+Dither it! (`scripts/make-dither.mjs`) and Aceternity UI
 (`src/components/site/PointerHighlight.tsx`, `src/components/site/FloatingNav.tsx`).
 
 ## ua-parser-js
@@ -274,13 +274,12 @@ SOFTWARE.
 
 ## Fonts
 
-- **Families:** Inter, Inter Tight and Doto (`src/app/layout.tsx`), and Noto Sans Math (`src/components/how/FeeFormula.tsx`: the last fallback of the formulas on /how, downloaded only by browsers that have no math font).
+- **Families:** Inter and Inter Tight (`src/app/layout.tsx`), and Noto Sans Math (`src/components/how/FeeFormula.tsx`: the last fallback of the formulas on /how, downloaded only by browsers that have no math font).
 - **Source:** Google Fonts, self-hosted by `next/font/google`: the files are fetched at build time and served from this site, unmodified apart from Google Fonts' own subsetting.
 - **License:** SIL Open Font License, Version 1.1 (https://openfontlicense.org). The copyright lines below are copied from each family's `ofl/<family>/OFL.txt` in https://github.com/google/fonts (main at `7085eb89`, 2026-10-05):
 
 ```
 Inter:          Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)
 Inter Tight:    Copyright 2022 The Inter Project Authors (https://github.com/rsms/inter-tight)
-Doto:           Copyright 2024 The Doto Project Authors (https://github.com/oliverlalan/Doto)
 Noto Sans Math: Copyright 2022 The Noto Project Authors (https://github.com/notofonts/math)
 ```

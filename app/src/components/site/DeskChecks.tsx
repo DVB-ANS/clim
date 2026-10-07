@@ -30,13 +30,13 @@ export function StatusBars({ statuses, className = "" }: { statuses: DeskStatus[
 }
 
 /** Ventriloc's "priorities" card, for the desk: the hook's checks now, each with its state; its badge says "Silent" once the desk has stopped. */
-export function DeskChecks({ checks, statuses, simulated, silent = false }: { checks: DeskCheck[]; statuses: DeskStatus[]; simulated: boolean; silent?: boolean }) {
+export function DeskChecks({ checks, statuses, silent = false }: { checks: DeskCheck[]; statuses: DeskStatus[]; silent?: boolean }) {
   return (
     <div className="rounded-lg bg-surface p-5 shadow-[0_0_0_1px_var(--clim-line)]">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[15px] font-medium">Desk checks</p>
-          <p className="text-xs text-fg-subtle">As the hook sees the desk now{simulated ? " · simulated" : ""}</p>
+          <p className="text-xs text-fg-subtle">As the hook sees the desk now</p>
         </div>
         {silent ? (
           <span className="shrink-0 whitespace-nowrap rounded-full bg-surface-2 px-2 py-0.5 text-xs text-fg-muted">

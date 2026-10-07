@@ -2,12 +2,10 @@
 // backtest-summary.json, which plan 06 reads), the columnar part of replay-2026-02-04.json and ptrade-band.json,
 // so the README, the deck and the dashboard show the same numbers.
 // Units: fractions for P_trade and pStar (0.097), percent for every *Pct field (-24.5), bp for fees.
-// app/src/fixtures/lab/*.json are synthetic, shape-identical files carrying `fixture: true`.
 
 export type PeriodChange = { period: string; arbChangePct: number };
 
 export type LabSummary = {
-  fixture: boolean;
   generatedAt: string;
   setting: { pStar: number; feeMinPips: number };
   comparisons: { equalAvgFee: PeriodChange[]; equalTraderCost: PeriodChange[] };
@@ -21,7 +19,7 @@ export type LabSummary = {
     feeSBp: number;
     arbChangePct: number;
     arbChangeRangePct: [number, number];
-    // Added by plan 03 Task 17 in the fixer pass; absent from older outputs and from the fixtures.
+    // Added by plan 03 Task 17 in the fixer pass; absent from older outputs.
     windowsMedianPct?: number;
     windowsBetterCount?: number;
     windowsCount?: number;
@@ -41,7 +39,6 @@ export type LabSummary = {
 };
 
 export type LabReplay = {
-  fixture: boolean;
   window: { startUtc: string; endUtc: string };
   t: number[]; // unix seconds
   sigmaAnnualPct: number[];
@@ -56,7 +53,6 @@ export type ReplayRow = { t: number; sigmaAnnualPct: number; feeVBp: number; fee
 
 export type BandRow = { p: number; lo95: number; hi95: number; lo99: number; hi99: number };
 export type LabPTradeBand = {
-  fixture: boolean;
   generatedAt: string;
   windowBlocks: number;
   method: string;
@@ -81,7 +77,7 @@ export function parseSummary(raw: unknown): LabSummary {
     "generatedAt", "setting.pStar", "comparisons.equalAvgFee", "comparisons.equalTraderCost", "pTrade",
     "replay.arbChangeRangePct", "replay.feeSBp", "lpGain.fullRangeEthPctPerYear", "modelSeverityRatio", "inPoolVolGainSharePct",
   ]) need(raw, p);
-  return { ...(raw as unknown as LabSummary), fixture: raw.fixture === true };
+  return raw as unknown as LabSummary;
 }
 
 const SERIES = ["t", "sigmaAnnualPct", "feeVBp", "arbCumVUsd", "arbCumSUsd"] as const;
@@ -94,7 +90,7 @@ export function parseReplay(raw: unknown): LabReplay {
   if (lengths[0] < 2) throw new Error("replay: need at least 2 points");
   if (lengths.some((n) => n !== lengths[0])) throw new Error(`replay: arrays differ in length (${SERIES.map((k, i) => `${k}=${lengths[i]}`).join(", ")})`);
   if (raw.price !== undefined && (!Array.isArray(raw.price) || raw.price.length !== lengths[0])) throw new Error("replay: price must match t");
-  return { ...(raw as unknown as LabReplay), fixture: raw.fixture === true };
+  return raw as unknown as LabReplay;
 }
 
 /** Columnar replay -> one row per point, for the charts. */
@@ -118,7 +114,7 @@ export function parsePTradeBand(raw: unknown): LabPTradeBand {
   for (let i = 1; i < grid.length; i++) {
     if (grid[i].p <= grid[i - 1].p) throw new Error("ptrade-band.json: grid must be ascending in p");
   }
-  return { ...(raw as unknown as LabPTradeBand), fixture: raw.fixture === true };
+  return raw as unknown as LabPTradeBand;
 }
 
 /** Band quantiles at predicted frequency p (linear interpolation on the lab grid, clamped at the ends). */

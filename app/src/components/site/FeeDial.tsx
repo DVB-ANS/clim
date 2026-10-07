@@ -29,12 +29,11 @@ const y = (bp: number) => H - PAD - (bp / FEE_MAX) * (H - 2 * PAD);
  * the safe-mode floor are drawn for scale, labelled in HTML so the text keeps its size on any screen.
  * A native range input, so it works with keys and screen readers.
  */
-export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000, simulated = false }: {
+export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000 }: {
   sigmaNow?: number;
   sigmaPeak?: number;
   feeSBp?: number;
   kE4?: number;
-  simulated?: boolean;
 }) {
   const [picked, setPicked] = useState<number | null>(null);
   const sigma = picked ?? sigmaNow ?? 40;
@@ -120,13 +119,13 @@ export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000, simulated =
         <span className="absolute right-0">{SIGMA_MAX} %/yr</span>
       </div>
       <p className="mt-3 text-xs text-fg-muted">
-        The hook&apos;s formula with {params.fixture ? "fixture" : "the lab's"} parameters
+        The hook&apos;s formula with the lab&apos;s parameters
         {reachable < FEE_MAX
           ? `: at the desk's ${SIGMA_MAX} %/yr ceiling and k = ${k(kE4)} it charges ${reachable.toFixed(2)} bp, so the ${FEE_MAX} bp cap binds only when a report raises k${
               capAtKMax <= SIGMA_MAX ? ` (up to ${k(K_DESK_MAX_E4)}: from about ${Math.round(capAtKMax)} %/yr at k = ${k(K_DESK_MAX_E4)})` : ""
             }`
           : `; with k = ${k(kE4)}, the ${FEE_MAX} bp cap needs σ ≈ ${Math.round(sigmaAtFee(FEE_MAX, params, kE4))} %/yr`}
-        . The pink dot is the desk&apos;s σ now{simulated ? " (simulated)" : ""}.
+        . The pink dot is the desk&apos;s σ now.
       </p>
     </div>
   );

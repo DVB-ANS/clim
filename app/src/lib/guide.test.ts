@@ -1,6 +1,5 @@
 import { type Hex, numberToHex } from "viem";
 import { describe, expect, it } from "vitest";
-import { MOCK_FAUCET } from "@/hooks/useLpState";
 import { etherscanRead, etherscanTxLogs } from "./contracts";
 import { decodeDeliveries, decodeReports, decodeSwaps, type DeskReport, type SwapRow } from "./decode";
 import { FeeMode, type FeeParams } from "./feeMath";
@@ -8,7 +7,6 @@ import {
   after,
   calmNow,
   deskSilentSince,
-  FAUCET,
   type GuideInput,
   lastSwapOn,
   silentLabel,
@@ -20,8 +18,8 @@ import {
 } from "./guide";
 import { utcStamp } from "./ledger";
 import { CRE_EVIDENCE_URL, CRE_WORKFLOW_URL } from "./links";
-import { makeMockWorld } from "./mock";
 import { annualPctToSigmaE9, formatBp, pipsToBp, sigmaE9ToAnnualPct } from "./units";
+import { makeMockWorld } from "@/test/world";
 
 const params: FeeParams = { etaE4: 25_093, sqrtHalfDtE6: 2_449_490, feeMinPips: 500, feeMaxPips: 15_000, feeSafePips: 3_000, tauKillSec: 180 };
 const NOW = 1_791_300_000;
@@ -139,10 +137,9 @@ describe("calmNow", () => {
   });
 });
 
-describe("verifyRows (the mock world, read as if from Sepolia)", () => {
+describe("verifyRows (a deterministic test chain, read as if from Sepolia)", () => {
   const w = makeMockWorld({ nowSec: NOW, params });
   const input: GuideInput = {
-    source: "sepolia",
     pair: w.pair,
     reports: decodeReports(w.deskLogs),
     swaps: decodeSwaps(w.swapLogs),
@@ -200,9 +197,12 @@ describe("verifyRows (the mock world, read as if from Sepolia)", () => {
     expect(byId("storm")!.links.map((l) => l.href)).toContain(etherscanTxLogs(proof!.swap!.txHash));
   });
 
-  it("links the workflow's code and the simulator evidence, not a run log", () => {
+  it("links the workflow's code and the evidence folder, not a run log", () => {
     const wf = byId("workflow")!;
     expect(wf.links.map((l) => l.href)).toEqual([CRE_WORKFLOW_URL, CRE_EVIDENCE_URL]);
+    // the workflow itself (main.ts only starts the runner) and docs/evidence, both on main
+    expect(CRE_WORKFLOW_URL).toMatch(/\/blob\/main\/cre\/risk-desk\/workflow\.ts$/);
+    expect(CRE_EVIDENCE_URL).toMatch(/\/tree\/main\/docs\/evidence$/);
     expect(wf.links.map((l) => l.label).join(" ")).not.toMatch(/run log/i);
   });
 
@@ -220,8 +220,7 @@ describe("verifyRows (the mock world, read as if from Sepolia)", () => {
     expect(verifyRows({ ...input, reports: calm }, params, calmProof).map((r) => r.id)).not.toContain("storm");
   });
 
-  it("shows nothing to check on mock data or without a pair", () => {
-    expect(verifyRows({ ...input, source: "mock" }, params, proof)).toEqual([]);
+  it("shows nothing to check without a pair", () => {
     expect(verifyRows({ ...input, pair: undefined }, params, proof)).toEqual([]);
   });
 
@@ -237,10 +236,6 @@ describe("verifyRows (the mock world, read as if from Sepolia)", () => {
 });
 
 describe("the guide's constants", () => {
-  it("simulates the faucet with the real faucet amounts", () => {
-    expect(MOCK_FAUCET).toEqual({ tETH: FAUCET.tETH, tUSD: FAUCET.tUSD });
-  });
-
   it("puts a full try at under a thousandth of a Sepolia ETH", () => {
     expect(((TEST_RUN_GAS * TEST_RUN_MAX_GWEI) / 1e9).toFixed(4)).toBe("0.0008");
   });

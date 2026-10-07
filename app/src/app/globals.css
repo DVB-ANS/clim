@@ -30,7 +30,7 @@
   --clim-fg-subtle: #646d7c; /* gray 500, a step darker: captions, 5.2:1 on white, 4.8:1 on surface-2 and wash */
   --clim-link: #0e1119; /* links keep the text colour, with a blue underline */
   --clim-danger: #b3241b; /* a true red for errors and failed steps only, kept apart from the pinks; 5:1 on its own tint */
-  --clim-notice-bg: var(--clim-wash); /* fixture, mock and silent-desk notices */
+  --clim-notice-bg: var(--clim-wash); /* silent-desk and other notices */
   --clim-notice-fg: var(--clim-accent-strong); /* 8.1:1 on the wash */
   --clim-accent: #0847f7; /* Chainlink Blue: primary actions, wallet modal */
   --clim-accent-fg: #ffffff;
@@ -68,11 +68,6 @@
   --clim-degraded: var(--clim-pink-700);
   --clim-blind: var(--clim-pink-700);
 
-  /* The CL-1's screen: a dark instrument on the white page */
-  --clim-lcd-bg: #0e1119;
-  --clim-lcd-lit: #cadcf6; /* Chainlink light blue */
-  --clim-lcd-hot: var(--clim-pink-400); /* the storm's eye wall: 6:1 on the screen */
-
   /* Shape and type */
   --clim-radius-sm: 8px; /* inputs, small chips */
   --clim-radius-md: 12px; /* nested surfaces */
@@ -82,7 +77,6 @@
   --clim-shadow-lift: 0 0 0 1px var(--clim-line), 0 24px 60px rgba(14, 17, 25, 0.08); /* the swap and liquidity cards */
   --clim-font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
   --clim-font-display: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif; /* PolySans substitute */
-  --clim-font-lcd: var(--font-doto), ui-monospace, monospace; /* the CL-1's dot-matrix screen */
   --clim-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -117,9 +111,6 @@
   --color-normal: var(--clim-normal);
   --color-degraded: var(--clim-degraded);
   --color-blind: var(--clim-blind);
-  --color-lcd-bg: var(--clim-lcd-bg);
-  --color-lcd-lit: var(--clim-lcd-lit);
-  --color-lcd-hot: var(--clim-lcd-hot);
 
   --radius-sm: var(--clim-radius-sm);
   --radius-md: var(--clim-radius-md);
@@ -127,7 +118,6 @@
 
   --font-sans: var(--clim-font-sans);
   --font-display: var(--clim-font-display);
-  --font-lcd: var(--clim-font-lcd);
   --font-mono: var(--clim-font-mono);
 }
 
@@ -181,17 +171,7 @@ h3 {
   }
 }
 
-/* Motion of the landing page: the report ticker, data flowing on the map arcs, the hero rising in on
-   load */
-@keyframes clim-marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
+/* Motion of the landing page: data flowing on the map arcs, the hero rising in on load */
 @keyframes clim-dash {
   to {
     stroke-dashoffset: -12;
@@ -306,7 +286,7 @@ html:not(:has([data-app-header])) :is(a[href], button, input, [tabindex]:not([ta
   animation: clim-bob 2s ease-in-out infinite;
 }
 
-/* The ticker's pause button stops every loop on the page (motionPause.ts); never a * selector, which
+/* The "Pause motion" button (MotionToggle) stops every loop on the page (motionPause.ts); never a * selector, which
    would freeze the scroll-driven entrances at opacity 0 */
 html[data-motion="paused"] .motion-loop {
   animation-play-state: paused;

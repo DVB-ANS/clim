@@ -71,9 +71,6 @@ export function LatestStorm() {
     [reports, swaps, pair],
   );
 
-  if (data.source === "mock") {
-    return <Note>This build reads simulated data (NEXT_PUBLIC_CLIM_SOURCE=mock), so it cannot show the 7 October storm, which is on Sepolia.</Note>;
-  }
   if (data.status === "loading") return <Loading />;
   if (data.status === "error") return <p className="text-sm text-danger">{`Could not reach Sepolia through the public RPCs. Retrying every ${POLL_MS / 1000} s.`}</p>;
   if (!stats || !pair) return <Note>The live desk&apos;s logs read so far do not cover this storm.</Note>;

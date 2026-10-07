@@ -62,11 +62,6 @@ export function ModeBadge({ mode }: { mode: FeeMode }) {
   );
 }
 
-export function FixtureNote({ show, children }: { show: boolean; children: ReactNode }) {
-  if (!show) return null;
-  return <p className="mb-3 rounded-md bg-notice-bg px-3 py-1.5 text-xs text-notice-fg">{children}</p>;
-}
-
 /** A text link: the text colour with a blue underline, at least 24 px tall, with a visible focus ring. */
 export const linkCls =
   "inline-flex min-h-6 items-center rounded-sm text-link underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
@@ -83,9 +78,8 @@ export function ExtLink({ href, children, className = "" }: { href: string; chil
 }
 
 /** An Etherscan link to a transaction; at least 24 px tall, so stacked links stay apart as touch targets. */
-export function TxLink({ hash, live, explorer = "https://sepolia.etherscan.io" }: { hash: string; live: boolean; explorer?: string }) {
+export function TxLink({ hash, explorer = "https://sepolia.etherscan.io" }: { hash: string; explorer?: string }) {
   const short = `${hash.slice(0, 6)}…${hash.slice(-4)}`;
-  if (!live) return <span className="font-mono text-xs">{short} (mock)</span>;
   return (
     <a className="inline-flex min-h-6 items-center font-mono text-xs text-link underline" href={`${explorer}/tx/${hash}`} target="_blank" rel="noreferrer">
       {short}

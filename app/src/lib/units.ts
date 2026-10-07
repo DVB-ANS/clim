@@ -27,6 +27,7 @@ export function tickToEthUsd(tick: number, token0IsEth: boolean): number {
   return Math.exp((token0IsEth ? tick : -tick) * LN_TICK_BASE);
 }
 
+/** The inverse of tickToEthUsd. Test-only: the synthetic world (src/test/world.ts) and the unit tests build ticks with it. */
 export function ethUsdToTick(price: number, token0IsEth: boolean): number {
   const t = Math.round(Math.log(price) / LN_TICK_BASE);
   return token0IsEth ? t : -t;

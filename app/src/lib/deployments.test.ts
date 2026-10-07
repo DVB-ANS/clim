@@ -60,7 +60,7 @@ describe("computePoolId", () => {
 });
 
 describe("parseDeployments (plan 04 schema)", () => {
-  it("parses the bootstrap file: infrastructure only, no pair, so the app uses mock data", () => {
+  it("parses the bootstrap file: infrastructure only, no pair, so pairs.live is undefined", () => {
     const d = parseDeployments(bootstrap);
     expect(d.pairs.live).toBeUndefined();
     expect(d.uniswap.poolManager).toBe("0xE03A1074c86CFeDd5C142C4F04F1a1536e203543");
@@ -69,7 +69,6 @@ describe("parseDeployments (plan 04 schema)", () => {
   });
   it("parses a deployed live pair", () => {
     const d = parseDeployments(deployedLive());
-    expect(d.fixture).toBe(false);
     expect(d.pairs.live).toMatchObject({ riskDesk: DESK, hook: HOOK, startBlock: 9_000_000, token0IsEth: true });
     expect(d.pairs.live?.V.key.fee).toBe(8_388_608);
     expect(d.pairs.live?.S.key.hooks).toBe(ZERO);
@@ -97,7 +96,6 @@ describe("parseParams", () => {
       feeSafePips: 3_000, tauKillSec: 180, decidedBy: "lab/out/pstar-decision.json",
     });
     expect(p.etaE4).toBe(41_760);
-    expect(p.fixture).toBe(false);
   });
   it("throws on a missing field", () => {
     expect(() => parseParams({ pStar: 0.2 })).toThrow(/params.json: etaE4/);

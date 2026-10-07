@@ -8,19 +8,16 @@ describe("the contracts list (synced Sepolia deployment)", () => {
 
   it("links the seven contracts clim deployed and verified to Sourcify, and only those", () => {
     const verified = rows.filter((r) => r.verified).map((r) => r.name);
-    if (deployments.fixture) return;
     expect(verified).toEqual(["RiskDesk (live)", "ClimHook (live)", "RiskDesk (replay)", "ClimHook (replay)", "tETH", "tUSD", "PoolSwapTest (arbitrage)"]);
     expect(sourcifyAddress(deployments.pairs.live!.riskDesk)).toBe("https://repo.sourcify.dev/11155111/0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F");
   });
 
   it("lists the Uniswap routers, StateView, the PoolManager and the mock forwarder", () => {
-    if (deployments.fixture) return;
     const names = rows.map((r) => r.name);
     for (const n of ["PoolManager", "StateView", "PoolSwapTest", "PoolModifyLiquidityTest", "MockKeystoneForwarder", "PoolSwapTest (arbitrage)"]) expect(names).toContain(n);
   });
 
   it("gives every pool its id, its fee and the transaction that initialized it", () => {
-    if (deployments.fixture) return;
     const pools = poolRows(deployments, (p) => `${(p / 100).toFixed(2)} bp`);
     expect(pools.map((p) => p.name)).toEqual(["Pool V · clim (live)", "Pool S · static twin (live)", "Pool V · clim (replay)", "Pool S · static twin (replay)"]);
     expect(pools.map((p) => p.fee)).toEqual([

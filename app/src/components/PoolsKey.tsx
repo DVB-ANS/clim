@@ -3,7 +3,7 @@ import { params } from "@/lib/config";
 import { cn } from "@/lib/cn";
 import { formatBp, pipsToBp } from "@/lib/units";
 
-export type PoolsKeyVariant = "live" | "replay" | "mock";
+export type PoolsKeyVariant = "live" | "replay";
 
 /**
  * The key to pools V and S, under each app page's intro: what sets each pool's fee, and why comparing
@@ -15,9 +15,7 @@ export function PoolsKey({ variant, staticFeePips, className }: { variant: Pools
   const sText =
     variant === "replay"
       ? `Same pair and same depth as V, with a fixed fee of ${fee}: V's average fee over the same window in the lab's replay. On chain, V's own average came out a little higher (the P&L card gives it).`
-      : variant === "mock"
-        ? `Same pair and same depth as V, with a fixed fee of ${fee} (simulated data).`
-        : `Same pair and same depth as V, with a fixed fee of ${fee}: the lab's forecast of V's average fee.`;
+      : `Same pair and same depth as V, with a fixed fee of ${fee}: the lab's forecast of V's average fee.`;
   return (
     <section aria-label="Pools V and S" className={cn("border-y border-line py-4", className)}>
       <div className="grid grid-cols-1 gap-y-3 sm:grid-cols-[1fr_1px_1fr] sm:gap-x-6 sm:gap-y-0">

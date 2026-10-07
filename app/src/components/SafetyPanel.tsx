@@ -13,7 +13,6 @@ const LISTED = 5;
 const cut = (n: number) => (n > LISTED ? ` (latest ${LISTED} listed)` : "");
 
 export function SafetyPanel({ data, level }: { data: ClimData; level?: HeadingLevel }) {
-  const live = data.source === "sepolia";
   const episodes = useMemo(() => blindEpisodes(data.reports, params.tauKillSec, data.nowSec), [data.reports, data.nowSec]);
   const rejected = data.deliveries.filter((d) => !d.accepted);
   const accepted = data.deliveries.length - rejected.length;
@@ -26,7 +25,7 @@ export function SafetyPanel({ data, level }: { data: ClimData; level?: HeadingLe
           <span className="text-fg-subtle"> (accepted deliveries: {accepted}). A rejected report emits ReportProcessed(…, false) and no RiskReported.</span>
           <ul className="mt-1 space-y-0.5">
             {rejected.slice(-LISTED).map((d) => (
-              <li key={`${d.txHash}:${d.logIndex}`} className="text-xs">{utcDay(d.blockTimestamp)}, {utcClock(d.blockTimestamp)} UTC <TxLink hash={d.txHash} live={live} /></li>
+              <li key={`${d.txHash}:${d.logIndex}`} className="text-xs">{utcDay(d.blockTimestamp)}, {utcClock(d.blockTimestamp)} UTC <TxLink hash={d.txHash} /></li>
             ))}
           </ul>
         </li>
@@ -35,8 +34,8 @@ export function SafetyPanel({ data, level }: { data: ClimData; level?: HeadingLe
           <ul className="mt-1 space-y-0.5">
             {episodes.slice(-LISTED).map((e) => (
               <li key={e.from} className="text-xs">
-                {utcSpan(e.from, e.to, e.ongoing)} ({formatAge(e.to - e.from)}): last report <TxLink hash={e.lastTx} live={live} />
-                {e.resumeTx ? <> , resumed <TxLink hash={e.resumeTx} live={live} /></> : null}
+                {utcSpan(e.from, e.to, e.ongoing)} ({formatAge(e.to - e.from)}): last report <TxLink hash={e.lastTx} />
+                {e.resumeTx ? <> , resumed <TxLink hash={e.resumeTx} /></> : null}
               </li>
             ))}
           </ul>
