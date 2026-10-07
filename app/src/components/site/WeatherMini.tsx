@@ -43,10 +43,11 @@ export function WeatherMini({ points, staticFeeBp, className = "", labels = true
       </svg>
       {labels ? (
         <>
-          <span aria-hidden className="absolute left-1 top-0 text-[10px] text-fg-subtle">
+          {/* on an opaque backing above the lines, so a fee spike never runs through its axis label */}
+          <span aria-hidden className="absolute left-1 top-0 z-10 rounded-sm bg-surface px-0.5 text-xs text-fg-subtle">
             σ %/yr
           </span>
-          <span aria-hidden className="absolute left-1 text-[10px] text-fg-subtle" style={{ top: `${((MID + GAP / 2) / H) * 100}%` }}>
+          <span aria-hidden className="absolute left-1 z-10 rounded-sm bg-surface px-0.5 text-xs text-fg-subtle" style={{ top: `${((MID + GAP / 2) / H) * 100}%` }}>
             fee bp
           </span>
         </>

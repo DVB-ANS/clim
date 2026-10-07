@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { DeskReport, SwapRow } from "./decode";
 import { FeeMode, type FeeParams } from "./feeMath";
-import { blindEpisodes, downsample, swapFeeDots, timeAverageFeeBp, weatherSeries } from "./series";
+import { blindEpisodes, downsample, extent, swapFeeDots, timeAverageFeeBp, weatherSeries } from "./series";
 
 const p: FeeParams = { etaE4: 41_760, sqrtHalfDtE6: 2_449_490, feeMinPips: 500, feeMaxPips: 15_000, feeSafePips: 3_000, tauKillSec: 180 };
 
@@ -94,5 +94,16 @@ describe("timeAverageFeeBp", () => {
     ];
     expect(timeAverageFeeBp(pts, 40)).toBeCloseTo((5 * 30 + 20 * 10) / 40, 10);
     expect(timeAverageFeeBp([], 40)).toBe(0);
+  });
+});
+
+describe("extent", () => {
+  it("gives the smallest and largest finite value, skipping gaps", () => {
+    expect(extent([3, null, -1, undefined, 7, Number.NaN])).toEqual([-1, 7]);
+    expect(extent([5])).toEqual([5, 5]);
+  });
+  it("is undefined without a finite value", () => {
+    expect(extent([])).toBeUndefined();
+    expect(extent([null, undefined, Number.POSITIVE_INFINITY])).toBeUndefined();
   });
 });

@@ -13,7 +13,7 @@ export function RecentSwapsPanel({ data }: { data: ClimData }) {
   );
   return (
     <Panel title="Recent swaps" subtitle="Fee read from each Swap event: on V it is whatever the hook returned at that moment." className="col-span-full">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-accent" role="region" aria-label="Recent swaps" tabIndex={0}>
         <table className="text-sm tabular-nums">
           <thead>
             <tr className="text-left text-xs text-fg-subtle">
@@ -26,7 +26,7 @@ export function RecentSwapsPanel({ data }: { data: ClimData }) {
                 <td className="pr-6">{utcTime(r.t)}</td>
                 <td className="pr-6 font-medium" style={{ color: r.pool === "V" ? COLORS.V : COLORS.S }}>{r.pool}</td>
                 <td className="pr-6">{r.side}</td>
-                <td className="pr-6">{r.ethAmount.toFixed(4)} ETH</td>
+                <td className="pr-6">{r.ethAmount.toFixed(4)} tETH</td>
                 <td className="pr-6">{r.feeBp.toFixed(2)} bp</td>
                 <td className="pr-6">{r.kind}</td>
                 <td><TxLink hash={r.txHash} live={data.source === "sepolia"} /></td>

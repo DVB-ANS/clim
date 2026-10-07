@@ -19,7 +19,7 @@ const NAV: GooeyNavItem[] = [
  */
 export function AppHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-surface">
+    <header data-app-header className="sticky top-0 z-40 border-b border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3 lg:flex-nowrap">
         <Link
           href="/"

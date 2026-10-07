@@ -3,16 +3,18 @@
 import type { ReactElement } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { type LabReplay, replayRows } from "@/lib/lab";
+import { extent } from "@/lib/series";
 import { COLORS, utcTime } from "@/lib/theme";
 import { ChartTooltip, TOOLTIP } from "./ChartTooltip";
 
 const tick = { fontSize: 11, fill: COLORS.muted };
 
-function Row({ title, children }: { title: string; children: ReactElement }) {
+/** One chart of the replay, a picture to assistive tech (no keyboard layer) whose text is `text`. */
+function Row({ title, text, children }: { title: string; text: string; children: ReactElement }) {
   return (
     <div>
       <div className="text-xs font-medium text-fg-muted">{title}</div>
-      <div className="h-40 w-full">
+      <div className="h-40 w-full" role="img" aria-label={text}>
         <ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer>
       </div>
     </div>
@@ -21,6 +23,12 @@ function Row({ title, children }: { title: string; children: ReactElement }) {
 
 export function ReplayCharts({ replay }: { replay: LabReplay }) {
   const data = replayRows(replay);
+  const usd = (v: number) => `$${v.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  const span = (xs: Array<number | undefined>, f: (v: number) => string) => {
+    const e = extent(xs);
+    return e ? `${f(e[0])} to ${f(e[1])}` : "no data";
+  };
+  const last = data.at(-1);
   const x = <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} tickFormatter={utcTime} tick={tick} />;
   const tip = (
     <Tooltip
@@ -29,7 +37,7 @@ export function ReplayCharts({ replay }: { replay: LabReplay }) {
         <ChartTooltip
           only={["price", "sigmaAnnualPct", "feeVBp", "feeSBp", "arbCumVUsd", "arbCumSUsd"]}
           labelFormat={(t) => `${utcTime(Number(t))} UTC`}
-          valueFormat={(v, key) => (key === "sigmaAnnualPct" ? `${v.toFixed(1)}%` : key.startsWith("fee") ? `${v.toFixed(2)} bp` : `$${v.toLocaleString("en-US", { maximumFractionDigits: 0 })}`)}
+          valueFormat={(v, key) => (key === "sigmaAnnualPct" ? `${v.toFixed(1)}%` : key.startsWith("fee") ? `${v.toFixed(2)} bp` : usd(v))}
         />
       }
     />
@@ -37,28 +45,34 @@ export function ReplayCharts({ replay }: { replay: LabReplay }) {
   return (
     <div className="space-y-2">
       {replay.price ? (
-        <Row title="ETH/USD">
-          <LineChart data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
+        <Row title="ETH/USD" text={`ETH/USD over the replay window: ${span(data.map((r) => r.price), (v) => usd(v))}.`}>
+          <LineChart accessibilityLayer={false} data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis domain={["auto", "auto"]} tick={tick} width={56} />{tip}
             <Line dataKey="price" name="ETH/USD" stroke={COLORS.ink} dot={false} strokeWidth={1.5} isAnimationActive={false} />
           </LineChart>
         </Row>
       ) : null}
-      <Row title="σ from the desk (annualised %)">
-        <LineChart data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
+      <Row title="σ from the desk (annualised %)" text={`σ from the desk over the replay: ${span(data.map((r) => r.sigmaAnnualPct), (v) => `${v.toFixed(0)}%`)} a year.`}>
+        <LineChart accessibilityLayer={false} data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
           <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis unit="%" tick={tick} width={56} />{tip}
           <Line type="stepAfter" dataKey="sigmaAnnualPct" name="σ" stroke={COLORS.sigma} dot={false} strokeWidth={2} isAnimationActive={false} />
         </LineChart>
       </Row>
-      <Row title="Fee (bp): V follows the storm, S is static at the same time-average">
-        <LineChart data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
+      <Row
+        title="Fee (bp): V follows the storm, S is static at the same time-average"
+        text={`Fee over the replay: pool V ${span(data.map((r) => r.feeVBp), (v) => `${v.toFixed(1)} bp`)}, pool S static at ${replay.feeSBp.toFixed(1)} bp.`}
+      >
+        <LineChart accessibilityLayer={false} data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
           <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis unit=" bp" tick={tick} width={56} />{tip}<Legend wrapperStyle={{ fontSize: 11 }} />
           <Line type="stepAfter" dataKey="feeVBp" name="V (clim)" stroke={COLORS.V} dot={false} strokeWidth={2} isAnimationActive={false} />
           <Line type="stepAfter" dataKey="feeSBp" name="S (static)" stroke={COLORS.S} strokeDasharray="6 3" dot={false} strokeWidth={2} isAnimationActive={false} />
         </LineChart>
       </Row>
-      <Row title="Cumulative ARB: LP losses to arbitrage net of fees (USD)">
-        <LineChart data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
+      <Row
+        title="Cumulative ARB: LP losses to arbitrage net of fees (USD)"
+        text={last ? `Cumulative LP losses to arbitrage net of fees at the end of the replay: pool V ${usd(last.arbCumVUsd)}, pool S ${usd(last.arbCumSUsd)}.` : "No data."}
+      >
+        <LineChart accessibilityLayer={false} data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
           <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis tick={tick} width={56} />{tip}<Legend wrapperStyle={{ fontSize: 11 }} />
           <Line dataKey="arbCumVUsd" name="V (clim)" stroke={COLORS.V} dot={false} strokeWidth={2} isAnimationActive={false} />
           <Line dataKey="arbCumSUsd" name="S (static)" stroke={COLORS.S} dot={false} strokeWidth={2} isAnimationActive={false} />

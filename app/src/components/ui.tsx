@@ -5,7 +5,7 @@ import { MODE_STYLE } from "@/lib/theme";
 /** A data card: white, 20 px corners, hairline border, the title in the display face at weight 400. */
 export function Panel({ title, subtitle, children, className = "", id }: { title: string; subtitle?: ReactNode; children: ReactNode; className?: string; id?: string }) {
   return (
-    <section id={id} className={`rounded-lg border border-line bg-surface p-6 ${id ? "scroll-mt-24" : ""} ${className}`}>
+    <section id={id} className={`rounded-lg border border-line bg-surface p-6 ${className}`}>
       <h2 className="font-display text-lg font-normal tracking-tight text-fg">{title}</h2>
       {subtitle ? <p className="mt-1 text-sm text-fg-subtle">{subtitle}</p> : null}
       <div className="mt-4">{children}</div>
@@ -42,27 +42,33 @@ export function FixtureNote({ show, children }: { show: boolean; children: React
   return <p className="mb-3 rounded-md bg-notice-bg px-3 py-1.5 text-xs text-notice-fg">{children}</p>;
 }
 
+/** An Etherscan link to a transaction; at least 24 px tall, so stacked links stay apart as touch targets. */
 export function TxLink({ hash, live, explorer = "https://sepolia.etherscan.io" }: { hash: string; live: boolean; explorer?: string }) {
   const short = `${hash.slice(0, 6)}…${hash.slice(-4)}`;
   if (!live) return <span className="font-mono text-xs">{short} (mock)</span>;
   return (
-    <a className="font-mono text-xs text-link underline" href={`${explorer}/tx/${hash}`} target="_blank" rel="noreferrer">
+    <a className="inline-flex min-h-6 items-center font-mono text-xs text-link underline" href={`${explorer}/tx/${hash}`} target="_blank" rel="noreferrer">
       {short}
     </a>
   );
 }
 
-/** A segmented choice (pool, direction): white pill on an Ash capsule. */
-export function Toggle<T extends string>({ value, options, onChange }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void }) {
+export type ToggleOption<T extends string> = { value: T; label: ReactNode; ariaLabel?: string; title?: string; disabled?: boolean };
+
+/** A segmented choice (pool, direction, time window): white pill on an Ash capsule. `value` may match no option. */
+export function Toggle<T extends string>({ value, options, onChange, label }: { value: T | undefined; options: ToggleOption<T>[]; onChange: (v: T) => void; label?: string }) {
   return (
-    <div className="inline-flex gap-1 rounded-full bg-surface-2 p-1 text-sm">
+    <div className="inline-flex gap-1 rounded-full bg-surface-2 p-1 text-sm" role={label ? "group" : undefined} aria-label={label}>
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           aria-pressed={o.value === value}
+          aria-label={o.ariaLabel}
+          title={o.title}
+          disabled={o.disabled}
           onClick={() => onChange(o.value)}
-          className={`rounded-full px-3.5 py-1.5 ${o.value === value ? "bg-surface text-fg shadow-[0_0_0_1px_var(--clim-line)]" : "text-fg-muted hover:text-fg"}`}
+          className={`rounded-full px-3.5 py-1.5 focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:text-fg-subtle disabled:opacity-60 ${o.value === value ? "bg-surface text-fg shadow-[0_0_0_1px_var(--clim-line)]" : "text-fg-muted enabled:hover:text-fg"}`}
         >
           {o.label}
         </button>

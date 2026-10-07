@@ -50,6 +50,18 @@ export function swapFeeDots(swaps: SwapRow[], poolId: Hex): FeeDot[] {
   return swaps.filter((s) => s.poolId === poolId).map((s) => ({ t: s.blockTimestamp, feeBp: pipsToBp(s.fee) }));
 }
 
+/** Smallest and largest finite value, or undefined when there is none (the charts' text alternatives). */
+export function extent(xs: Array<number | null | undefined>): [number, number] | undefined {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const x of xs) {
+    if (typeof x !== "number" || !Number.isFinite(x)) continue;
+    if (x < lo) lo = x;
+    if (x > hi) hi = x;
+  }
+  return lo <= hi ? [lo, hi] : undefined;
+}
+
 /** Keeps every k-th point (k = ceil(n / max)) and always the last one. */
 export function downsample<T>(xs: T[], maxPoints: number): T[] {
   if (xs.length <= maxPoints) return xs;

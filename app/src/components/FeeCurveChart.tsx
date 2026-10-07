@@ -4,6 +4,7 @@ import { CartesianGrid, Line, LineChart, ReferenceDot, ReferenceLine, Responsive
 import { ChartTooltip, TOOLTIP } from "./ChartTooltip";
 import { params } from "@/lib/config";
 import { feePips } from "@/lib/feeMath";
+import { sigmaAtFee } from "@/lib/story";
 import { COLORS } from "@/lib/theme";
 import { annualPctToSigmaE9, pipsToBp } from "@/lib/units";
 
@@ -17,10 +18,19 @@ export function feeCurve() {
 }
 
 export function FeeCurveChart({ sigmaNowPct, feeNowBp, staticFeeBp }: { sigmaNowPct?: number; feeNowBp?: number; staticFeeBp: number }) {
+  const curve = feeCurve();
+  const floor = pipsToBp(params.feeMinPips);
+  const leaves = Math.round(sigmaAtFee(floor + 0.01, params)); // σ (%/yr) where the fee leaves its floor
+  const end = curve[curve.length - 1];
+  // the chart is a picture to assistive tech (no keyboard layer): this sentence is its text
+  const text =
+    `The hook's fee against σ: ${floor} bp up to about ${leaves}% a year, then rising with σ to ${end.feeBp.toFixed(2)} bp at ${end.sigmaPct}%; ` +
+    `pool S fixed at ${staticFeeBp.toFixed(2)} bp` +
+    (sigmaNowPct !== undefined && feeNowBp !== undefined ? `; now σ ${sigmaNowPct.toFixed(1)}%, fee ${feeNowBp.toFixed(2)} bp.` : ".");
   return (
-    <div className="h-56 w-full">
+    <div className="h-56 w-full" role="img" aria-label={text}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={feeCurve()} margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
+        <LineChart accessibilityLayer={false} data={curve} margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
           <CartesianGrid stroke={COLORS.grid} vertical={false} />
           <XAxis dataKey="sigmaPct" type="number" domain={[0, 250]} ticks={[0, 50, 100, 150, 200, 250]} unit="%" tick={{ fontSize: 11, fill: COLORS.muted }} label={{ value: "σ (annualised)", position: "insideBottom", offset: -8, fontSize: 11 }} />
           <YAxis unit=" bp" tick={{ fontSize: 11, fill: COLORS.muted }} width={56} />

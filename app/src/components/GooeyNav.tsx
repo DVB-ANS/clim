@@ -248,7 +248,8 @@ export function GooeyNav({
     if (routeIndex !== -1 && value === undefined) setUncontrolled(routeIndex);
   }
 
-  const active = value ?? uncontrolled;
+  // a page outside the nav (/credits) lights no tile, even after a client-side visit to one that is
+  const active = value ?? (routeIndex === -1 ? -1 : uncontrolled);
   const span = separation ?? SIZES[size].separation;
   const corner = radius ?? SIZES[size].radius;
 
