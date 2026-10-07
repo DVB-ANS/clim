@@ -40,16 +40,20 @@ export function stormSummary(reports: DeskReport[], params: FeeParams, o: { stat
   const hours = windowHours(reports, o.nowSec);
   if (hours === undefined) return undefined;
   const peak = reports.reduce((a, r) => (r.sigmaApplied > a.sigmaApplied ? r : a));
-  const normalFee = (r: DeskReport) => feePips(r.sigmaApplied, params.etaE4, params.sqrtHalfDtE6, r.kE4, params.feeMinPips, params.feeMaxPips);
   return {
     peakSigma: sigmaE9ToAnnualPct(peak.sigmaApplied),
     peakAt: peak.blockTimestamp,
     feeVAtPeak: pipsToBp(quoteFee(deskStateOf(peak), peak.blockTimestamp, params).feePips),
     feeS: pipsToBp(o.staticFeePips),
     hours,
-    stormy: reports.some((r) => normalFee(r) > params.feeMinPips),
+    stormy: reports.some((r) => weatherFeePips(r, params) > params.feeMinPips),
     floorSigma: sigmaAtFee(pipsToBp(params.feeMinPips + 1), params),
   };
+}
+
+/** The fee a report's σ and k set in normal mode, in pips: the weather's fee, before any safe-mode floor. */
+function weatherFeePips(r: DeskReport, params: FeeParams): number {
+  return feePips(r.sigmaApplied, params.etaE4, params.sqrtHalfDtE6, r.kE4, params.feeMinPips, params.feeMaxPips);
 }
 
 /** A window's length for display: hours from one hour, minutes below (Sepolia's first minutes). */
@@ -79,6 +83,7 @@ export type PoolsVerdict = {
   arbKnown: boolean; // the arbitrage router is known and S has seen arbitrage: only then may the copy compare it
   pnlChangePct: number; // V's hedged LP P&L against S's, in % of |S's| (positive: V's LPs made more)
   regimes: FeeRegimes; // how long V's fee sat above its floor because of σ, and how long in a safe mode
+  feeMaxWeather: number; // bp: the highest fee σ alone set V to (each report's normal-mode fee); below V.feeMax, a safe mode set V's top fee
   hours: number; // window length
 };
 
@@ -118,6 +123,7 @@ export function poolsVerdict(
     arbKnown: !!o.arbRouter && S.arbSwaps > 0 && S.arbUsd !== 0,
     pnlChangePct: S.netUsd !== 0 ? ((V.netUsd - S.netUsd) / Math.abs(S.netUsd)) * 100 : 0,
     regimes: feeRegimes(points, o.nowSec, pipsToBp(params.feeMinPips)),
+    feeMaxWeather: pipsToBp(reports.reduce((a, r) => Math.max(a, weatherFeePips(r, params)), 0)),
     hours,
   };
 }

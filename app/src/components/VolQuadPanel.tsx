@@ -23,8 +23,9 @@ type Reading = { label: string; sub: string; value: number; mark: string };
 /**
  * Three readings of ETH volatility on one 0-to-max scale, as a dot plot against pool V's break-even
  * volatility: right of the dashed line (the pink zone), V's fee income no longer covers its LVR.
+ * `finished`: the data is a run that has ended (the replay pair), so the verdict is in the past tense.
  */
-export function VolQuadPanel({ data, band }: { data: ClimData; band: LabPTradeBand }) {
+export function VolQuadPanel({ data, band, finished = false }: { data: ClimData; band: LabPTradeBand; finished?: boolean }) {
   const q = useMemo(() => {
     const last = data.reports.at(-1);
     if (!last || !data.pair || !data.state) return null;
@@ -52,11 +53,11 @@ export function VolQuadPanel({ data, band }: { data: ClimData; band: LabPTradeBa
   }, [data.reports, data.swaps, data.pair, data.state, data.arbRouter, data.nowSec, band.windowBlocks]);
 
   const rows: Reading[] = [
-    { label: "Realized", sub: "last 15 min, the desk's RV15", value: q?.rv ?? Number.NaN, mark: "bg-sigma" },
+    { label: "Realized", sub: `${finished ? "the replay's " : ""}last 15 min, the desk's RV15`, value: q?.rv ?? Number.NaN, mark: "bg-sigma" },
     {
       label: "Read from arbitrage on V",
       sub: data.arbRouter
-        ? `the σ that matches how often V was arbitraged, last ${band.windowBlocks} blocks (${blocksSpan(band.windowBlocks)})`
+        ? `the σ that matches how often V was arbitraged, ${finished ? "the replay's " : ""}last ${band.windowBlocks} blocks (${blocksSpan(band.windowBlocks)})`
         : "needs the arbitrage router address",
       value: q?.arb ?? Number.NaN,
       mark: "bg-v",
@@ -141,7 +142,19 @@ export function VolQuadPanel({ data, band }: { data: ClimData; band: LabPTradeBa
           <span className="text-fg-subtle">Break-even needs swaps on pool V.</span>
         ) : (
           <>
-            {q.rv < be ? (
+            {finished ? (
+              q.rv < be ? (
+                <span className="text-fg">
+                  At the replay&apos;s last report, realized σ ({formatPct(q.rv)}) was below V&apos;s break-even ({formatPct(be)}): at that weather,
+                  V&apos;s fees covered its LVR.
+                </span>
+              ) : (
+                <span className="text-sigma-ink">
+                  At the replay&apos;s last report, realized σ ({formatPct(q.rv)}) was above V&apos;s break-even ({formatPct(be)}): at that weather,
+                  V&apos;s fees did not cover its LVR.
+                </span>
+              )
+            ) : q.rv < be ? (
               <span className="text-fg">
                 Realized σ ({formatPct(q.rv)}) is below V&apos;s break-even ({formatPct(be)}): at this weather, V&apos;s fees cover its LVR.
               </span>
@@ -150,7 +163,9 @@ export function VolQuadPanel({ data, band }: { data: ClimData; band: LabPTradeBa
                 Realized σ ({formatPct(q.rv)}) is above V&apos;s break-even ({formatPct(be)}): if it stays there, V&apos;s fees will not cover its LVR.
               </span>
             )}{" "}
-            <span className="text-fg-subtle">Break-even uses V&apos;s fee income since its first swap.</span>
+            <span className="text-fg-subtle">
+              {finished ? "Break-even uses V's fee income over the whole replay." : "Break-even uses V's fee income since its first swap."}
+            </span>
           </>
         )}
       </p>

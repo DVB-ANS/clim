@@ -97,6 +97,17 @@ describe("poolsVerdict", () => {
     expect(V.feeMin).toBe(5);
     expect(V.feeMax).toBe(stormSummary(reports, params, { staticFeePips, nowSec: NOW })!.feeVAtPeak);
     expect(V.feeNow).toBe(series.at(-1)!.feeVBp);
+    expect(verdict.feeMaxWeather).toBe(V.feeMax); // the mock's top fee comes from its storm, not a safe mode
+  });
+
+  it("tells V's top fee set by σ from one set by a safe mode (synthetic: calm σ, a degraded report, then a blind gap)", () => {
+    const calm = (pct: number) => annualPctToSigmaE9(pct);
+    const rs = [report(1, 1_000, { sigmaApplied: calm(20) }), report(2, 1_030, { sigmaApplied: calm(20), dispBp: 40 }), report(3, 1_060)];
+    const twoSwaps = [swap(world.pair.V.poolId, 2, 3_000), swap(world.pair.S.poolId, 2, MOCK_STATIC_FEE_PIPS)];
+    const v = poolsVerdict(rs, params, { ...pools, swaps: twoSwaps, nowSec: 1_400 })!;
+    expect(v.V.feeMax).toBe(30); // the 30 bp safe fee: the degraded report, then blind from 1,211 s
+    expect(v.feeMaxWeather).toBeCloseTo(18.22, 10); // report 3's 100 %/yr
+    expect(v.regimes).toEqual({ stormSec: 151, blindSec: 189, degradedSec: 30 });
   });
 
   it("follows PnlPanel's 10 % rule; seed 7 lands on the same average fee, V losing less and earning more", () => {

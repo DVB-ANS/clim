@@ -77,7 +77,7 @@ export function Dashboard({ band, initialPair = "live", keyShownAbove }: { band:
           <WeatherChart key={run ? "run" : pair} data={history} initialWindow={run ? "All" : "1 h"} />
           <ValidationPanel data={history} band={band} />
           <PnlPanel data={history} />
-          <VolQuadPanel data={history} band={band} />
+          <VolQuadPanel data={history} band={band} finished={run !== undefined} />
           <SafetyPanel data={data} />
           <RecentSwapsPanel data={history} />
         </div>

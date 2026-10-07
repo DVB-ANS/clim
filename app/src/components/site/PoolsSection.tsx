@@ -21,7 +21,9 @@ const pill = "inline-flex min-h-10 items-center rounded-full px-4 text-[14px] fo
  * then pool V against pool S, its static twin, on the app's own P&L maths. The verdict only says "same
  * average fee" when PnlPanel's 10 % rule holds, only credits a storm when σ took V's fee off its
  * floor, and names the time V spent in its safe modes (desk outages, not the weather) whenever there
- * was any. Amounts are in tUSD (test tokens); every figure is labelled simulated in mock mode.
+ * was any. When a safe mode, not σ, set V's top fee in the window, V's card says so: its subtitle adds
+ * the safe fee and a note gives the top fee σ alone reached. Amounts are in tUSD (test tokens); every
+ * figure is labelled simulated in mock mode.
  */
 export function PoolsSection({ d }: { d: LandingData }) {
   const { storm, verdict: v, simulated } = d;
@@ -29,6 +31,12 @@ export function PoolsSection({ d }: { d: LandingData }) {
   const result = v ? verdictResult(v) : "";
   // time in a safe mode (desk silent or venues apart): the hook charged its safe fee, whatever the weather
   const safeSec = v ? v.regimes.blindSec + v.regimes.degradedSec : 0;
+  // a safe mode, not σ, set V's top fee over the window (the 30 bp of a desk outage, say)
+  const safeTop = v !== undefined && safeSec > 0 && v.V.feeMax > v.feeMaxWeather + 1e-9;
+  const blind = (v?.regimes.blindSec ?? 0) > 0;
+  const degraded = (v?.regimes.degradedSec ?? 0) > 0;
+  const safeWhen = blind && degraded ? "the desk is silent or the venues disagree" : blind ? "the desk is silent" : "the venues disagree";
+  const safeWhile = blind && degraded ? "the desk was silent or the venues disagreed" : blind ? "the desk was silent" : "the venues disagreed";
   const rolling = (x: number): ReactNode => (
     <>
       <AnimatedCounter value={x} decimals={2} className="-my-[0.25em]" /> bp
@@ -92,7 +100,7 @@ export function PoolsSection({ d }: { d: LandingData }) {
               className="mt-6"
               v={{
                 title: "Pool V · clim",
-                subtitle: "The fee reads the weather",
+                subtitle: safeTop ? `The fee reads the weather, with a safe fee when ${safeWhen}` : "The fee reads the weather",
                 rows: [
                   { label: "Fee now", value: rolling(v.V.feeNow) },
                   { label: "Over the window", value: `${v.V.feeMin.toFixed(2)} → ${bp(v.V.feeMax)}` },
@@ -100,6 +108,12 @@ export function PoolsSection({ d }: { d: LandingData }) {
                   { label: "Lost to arbitrage", value: formatTusd(v.V.arbUsd) },
                   { label: "Hedged LP P&L", value: formatTusd(v.V.netUsd) },
                 ],
+                note: safeTop ? (
+                  <>
+                    Its {bp(v.V.feeMax)} top is the safe fee, charged for {spanLabel(safeSec)} while {safeWhile}, not the weather: σ alone
+                    took the fee to {bp(v.feeMaxWeather)} at most.
+                  </>
+                ) : undefined,
                 actions: (
                   <>
                     <Link href="/swap" className={`${pill} bg-accent text-accent-fg hover:bg-accent-strong`}>
