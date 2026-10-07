@@ -3824,17 +3824,17 @@ cd /Users/fianso/Development/hackathons/clim && D=$(jq -r .riskDesks.live shared
 ```
 Expected: `{ "seq": <n>, "readUtc": "<d Mon HH:MM UTC>" }`, for example `"seq": 624` and `"readUtc": "6 Oct 22:00 UTC"`. The builder fills `{{LIVE_SEQ}}` (with a thousands comma, for example `1,234`) and `{{LIVE_SEQ_READ}}` in the slide text and notes of `slides.json` from this file.
 
-- [ ] **Step 3: Update slides 09 and 19 in Figma, then re-export slides 07, 09, 12 and 19** **End of session.**
+- [ ] **Step 3: Update slides 09 and 19 in Figma, then re-export slides 07, 09, 12, 18 and 19** **End of session.**
 
 In Figma file `LyeDZ1KdOYws6nTzD8dI76` (section `162:2`), put the same two values as `live.json` in these text nodes, keeping the rest of each text and the number format of Step 2:
 - slide 09 (frame `166:11`, "09 · What is live"): `172:10` "LIVE seq" (the count) and `172:11` "LIVE seq read" (the read time);
 - slide 19 (frame `168:34`, "A5 · CRE evidence"): `168:50` "LIVE seq big" (the count) and `168:52` "LIVE seq read" (the read time).
 
-Check that a longer number does not wrap or overlap. Then check that every text in frames `166:2` (slide 07), `166:11` (slide 09), `166:54` (slide 12) and `168:34` (slide 19) matches that slide's `text` in `slides.json` word for word, apart from the two live values: slide 07 says "bridged to 12 s blocks", slide 09 carries the 7 Oct storm line and "DON deploy access was not granted in time", slide 12 opens with "Chainlink CRE, our only partner track, by choice". Fix any difference in Figma first. Export the four frames as PNG at 2x over `docs/submission/deck/v2/png/07-results.png`, `09-live.png`, `12-why-chainlink.png` and `19-a5-cre-evidence.png` (in Figma: select the frame, Export, 2x, PNG). Then:
+Check that a longer number does not wrap or overlap. Then check that every text in frames `166:2` (slide 07), `166:11` (slide 09), `166:54` (slide 12), `168:20` (slide 18) and `168:34` (slide 19) matches that slide's `text` in `slides.json` word for word, apart from the two live values: slide 07 says "bridged to 12 s blocks", slide 09 carries the 7 Oct storm line and "DON deploy access was not granted in time", slide 12 opens with "Chainlink CRE, our only partner track, by choice", slide 18's last limit reads "about 184 ETH of gas a year per gwei". Fix any difference in Figma first. Export the five frames as PNG at 2x over `docs/submission/deck/v2/png/07-results.png`, `09-live.png`, `12-why-chainlink.png`, `18-a4-limits.png` and `19-a5-cre-evidence.png` (in Figma: select the frame, Export, 2x, PNG). Then:
 ```bash
-cd /Users/fianso/Development/hackathons/clim/docs/submission/deck/v2/png && sips -g pixelWidth -g pixelHeight 07-results.png 09-live.png 12-why-chainlink.png 19-a5-cre-evidence.png
+cd /Users/fianso/Development/hackathons/clim/docs/submission/deck/v2/png && sips -g pixelWidth -g pixelHeight 07-results.png 09-live.png 12-why-chainlink.png 18-a4-limits.png 19-a5-cre-evidence.png
 ```
-Expected: `pixelWidth: 3840` and `pixelHeight: 2160` for all four. Open the four with the Read tool: on 09 and 19 the count and the read time match `live.json`; on 07 and 12 the text matches `slides.json`.
+Expected: `pixelWidth: 3840` and `pixelHeight: 2160` for all five. Open the five with the Read tool: on 09 and 19 the count and the read time match `live.json`; on 07, 12 and 18 the text matches `slides.json`.
 
 - [ ] **Step 4: Build, check the size, render every slide, commit** **End of session.**
 
