@@ -4,7 +4,7 @@ import type { RawLog, RiskReportedArgs } from "./encode";
 
 type LogPosition = { blockNumber: number; blockTimestamp: number; txHash: Hex; logIndex: number };
 
-/** One RiskReported event. latencySec = block time of inclusion minus the DON observation time. */
+/** One RiskReported event. latencySec = block time of inclusion minus the workflow's observation time (tObs). */
 export type DeskReport = RiskReportedArgs & LogPosition & { latencySec: number };
 
 export type SwapRow = LogPosition & {

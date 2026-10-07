@@ -50,7 +50,7 @@ export function HeroCards({ live }: { live: HeroLive }) {
           </div>
         </div>
         <WeatherMini points={live.points} staticFeeBp={live.feeSBp ?? 0} className="mt-3 h-auto w-full" />
-        <Cursor label="Chainlink DON" className="left-[42%] top-[38%]" />
+        <Cursor label="Chainlink CRE" className="left-[42%] top-[38%]" />
       </article>
 
       <article className={`${card} rise relative p-4 lg:absolute lg:left-0 lg:top-[262px] lg:w-[50%]`} style={{ animationDelay: "240ms" }}>

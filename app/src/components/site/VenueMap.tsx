@@ -8,7 +8,7 @@ const LAND = (() => {
   return d;
 })();
 
-const DON: [number, number] = [62, 51];
+const CRE: [number, number] = [62, 51];
 // Binance and Hyperliquid share a region: spread them apart a little and put their labels on the left.
 const PLACE: Record<string, { dx: number; dy: number; lx: number; ly: number; anchor: "start" | "end" }> = {
   Coinbase: { dx: 0, dy: 0, lx: 1.8, ly: -1.4, anchor: "start" },
@@ -21,7 +21,7 @@ const PLACE: Record<string, { dx: number; dy: number; lx: number; ly: number; an
 /** Four stations and Deribit, at their approximate regions, feeding the Chainlink CRE median. */
 export function VenueMap({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox={`-2 -3 ${WORLD_W + 4} ${WORLD_H + 9}`} className={className} role="img" aria-label="World map with Coinbase, Kraken, Binance, Hyperliquid and Deribit linked to the Chainlink CRE median">
+    <svg viewBox={`-2 -3 ${WORLD_W + 4} ${WORLD_H + 9}`} className={className} role="img" aria-label="World map with Coinbase, Kraken, Binance, Hyperliquid and Deribit linked to the Chainlink CRE workflow's median">
       <path d={LAND} fill="none" stroke="var(--clim-muted)" strokeOpacity={0.55} strokeWidth={0.62} strokeLinecap="round" />
       {Object.entries(VENUE_PINS).map(([name, [x0, y0]]) => {
         const p = PLACE[name];
@@ -29,7 +29,7 @@ export function VenueMap({ className = "" }: { className?: string }) {
         return (
           <g key={name}>
             <path
-              d={`M${x} ${y} Q ${(x + DON[0]) / 2} ${Math.max(y, DON[1]) + 7} ${DON[0]} ${DON[1]}`}
+              d={`M${x} ${y} Q ${(x + CRE[0]) / 2} ${Math.max(y, CRE[1]) + 7} ${CRE[0]} ${CRE[1]}`}
               fill="none"
               stroke="var(--clim-deep)"
               strokeWidth={0.35}
@@ -43,9 +43,9 @@ export function VenueMap({ className = "" }: { className?: string }) {
           </g>
         );
       })}
-      <circle cx={DON[0]} cy={DON[1]} r={2.1} fill="var(--clim-fg)" />
-      <text x={DON[0] + 3.2} y={DON[1] + 0.9} fontSize={2.4} fill="var(--clim-fg)" fontFamily="var(--font-inter)" className="max-sm:hidden">
-        Chainlink CRE · signed median
+      <circle cx={CRE[0]} cy={CRE[1]} r={2.1} fill="var(--clim-fg)" />
+      <text x={CRE[0] + 3.2} y={CRE[1] + 0.9} fontSize={2.4} fill="var(--clim-fg)" fontFamily="var(--font-inter)" className="max-sm:hidden">
+        Chainlink CRE · median (simulator)
       </text>
     </svg>
   );

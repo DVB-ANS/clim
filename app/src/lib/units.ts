@@ -40,9 +40,13 @@ export function formatPct(pct: number, digits = 1): string {
   return `${pct.toFixed(digits)}%`;
 }
 
-export function formatUsd(x: number): string {
+/**
+ * An amount in tUSD, the pair's test dollar, to the unit: "1,234 tUSD", "-57 tUSD". The dashboard's
+ * pools hold faucet test tokens, so their values are never shown as US dollars.
+ */
+export function formatTusd(x: number): string {
   const s = Math.abs(x).toLocaleString("en-US", { maximumFractionDigits: 0 });
-  return `${x < 0 ? "-" : ""}$${s}`;
+  return `${x < 0 && s !== "0" ? "-" : ""}${s} tUSD`;
 }
 
 /** Token amount with grouping and at most `digits` decimals. */
@@ -50,10 +54,10 @@ export function formatAmount(x: number, digits: number): string {
   return x.toLocaleString("en-US", { maximumFractionDigits: digits });
 }
 
-/** USD with cents (fees and P&L of a small position); no "-$0.00". */
-export function formatUsdCents(x: number): string {
+/** tUSD with cents (fees and P&L of a small position); no "-0.00 tUSD". */
+export function formatTusdCents(x: number): string {
   const s = Math.abs(x).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return `${x < 0 && s !== "0.00" ? "-" : ""}$${s}`;
+  return `${x < 0 && s !== "0.00" ? "-" : ""}${s} tUSD`;
 }
 
 export function formatAge(seconds: number): string {

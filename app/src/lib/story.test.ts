@@ -56,6 +56,27 @@ describe("stormSummary", () => {
   it("spans the mock's 6 h", () => {
     expect(storm.hours).toBe(6);
   });
+
+  it("calls the mock's 180 %/yr peak a storm: σ took the fee off its floor", () => {
+    expect(storm.stormy).toBe(true);
+    expect(storm.floorSigma).toBe(sigmaAtFee(5.01, params)); // 27.5 %/yr with these params
+    expect(storm.floorSigma).toBeGreaterThan(20);
+    expect(storm.peakSigma).toBeGreaterThan(storm.floorSigma);
+  });
+
+  it("calls a calm window no storm, even when a safe mode lifted the fee", () => {
+    const calm = (pct: number) => annualPctToSigmaE9(pct);
+    const xs = [
+      report(1, NOW - 600, { sigmaApplied: calm(10) }),
+      report(2, NOW - 570, { sigmaApplied: calm(20), dispBp: 40 }), // degraded: 30 bp, but σ is calm
+      report(3, NOW - 540, { sigmaApplied: calm(15) }),
+    ];
+    const s = stormSummary(xs, params, { staticFeePips: 511, nowSec: NOW })!;
+    expect(s.peakSigma).toBeCloseTo(20, 1);
+    expect(s.peakSigma).toBeLessThan(s.floorSigma);
+    expect(s.feeVAtPeak).toBe(30);
+    expect(s.stormy).toBe(false);
+  });
 });
 
 describe("poolsVerdict", () => {

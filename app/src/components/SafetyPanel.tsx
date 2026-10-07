@@ -41,7 +41,12 @@ export function SafetyPanel({ data }: { data: ClimData }) {
           <span className="font-medium">Protocol fee: </span>
           {pf ? (pf.V === 0 && pf.S === 0 ? "0 on V and S, so Swap.fee is the LP fee alone." : `NOT ZERO (V ${pf.V}, S ${pf.S}): Swap.fee includes a protocol share.`) : "…"}
         </li>
-        <li className="text-fg-muted">The desk owner can rotate the forwarder; no function sets σ, the fee or the hook parameters.</li>
+        <li className="text-fg-muted">
+          No function sets σ, the fee or the hook parameters. In this build the owner key is also the live desk&apos;s simulation operator (the
+          replay desk has its own), so until disableSim() it can post reports itself, inside the same bounds as any report: σ ×2 up or ×0.8
+          down per report, 10% to 1000% a year, and a fee clamped to {pipsToBp(params.feeMinPips)} to {pipsToBp(params.feeMaxPips)} bp. On a
+          DON, only the nodes&apos; signed reports count.
+        </li>
       </ul>
     </Panel>
   );

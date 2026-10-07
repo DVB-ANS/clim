@@ -1,5 +1,6 @@
 // Every contract the demo uses on Sepolia, grouped as in the README's "Deployed addresses" table, with an
-// Etherscan link for each and a Sourcify link for clim's own six verified contracts.
+// Etherscan link for each and a Sourcify link for the seven clim deployed and verified: its six own contracts
+// and the arbitrage bot's router (Uniswap's unmodified PoolSwapTest, "match" on Sourcify since 2026-10-06).
 import type { Address, Hex } from "viem";
 import type { Deployments, Pair } from "./deployments";
 
@@ -71,7 +72,7 @@ export function contractGroups(d: Deployments): ContractGroup[] {
       rows: [
         ...row("tETH", d.tokens.tETH, "test ETH with a public faucet", true),
         ...row("tUSD", d.tokens.tUSD, "test USD with a public faucet", true),
-        ...row("PoolSwapTest (arbitrage)", d.routers.arb, "the arbitrage bot's own router, so its swaps can be told apart"),
+        ...row("PoolSwapTest (arbitrage)", d.routers.arb, "the arbitrage bot's own router, so its swaps can be told apart", true),
       ],
     },
   ];

@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { LOGOS } from "./site/logos";
 
-/** tETH wears Ethereum's mark, tUSD a dollar sign: the two test tokens of the pair. */
+/** tETH wears Ethereum's mark, tUSD a dollar sign: the two test tokens of the pair (a mark, next to the symbol). */
 export function TokenIcon({ symbol, className = "size-6" }: { symbol: string; className?: string }) {
   if (symbol === "tETH") {
     const eth = LOGOS.Ethereum;
@@ -13,7 +13,7 @@ export function TokenIcon({ symbol, className = "size-6" }: { symbol: string; cl
       </span>
     );
   }
-  return <span className={`grid shrink-0 place-items-center rounded-full bg-signal text-[13px] font-semibold text-accent-fg ${className}`}>$</span>;
+  return <span className={`grid shrink-0 place-items-center rounded-full bg-signal text-[13px] font-semibold text-accent-fg ${className}`} aria-hidden>$</span>;
 }
 
 export function TokenPill({ symbol }: { symbol: string }) {

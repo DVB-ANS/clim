@@ -17,8 +17,9 @@ const FEE_MIN = pipsToBp(params.feeMinPips), FEE_MAX = pipsToBp(params.feeMaxPip
 
 /**
  * "How it works": Ventriloc's stacked service panels, numbered as the report travels. 01 the venues
- * measure, 02 the workflow agrees on one median, 03 the hook charges (an interactive dial on its real
- * formula), 04 the safe modes, with what the simulated desk did over the window.
+ * measure, 02 the workflow takes one median (in CRE's one-node simulator today, a DON as the target),
+ * 03 the hook charges (an interactive dial on its real formula), 04 the safe modes, with what the desk
+ * did over the window.
  */
 export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated }: {
   live: HowLive;
@@ -78,8 +79,12 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated 
           >
             <p>The workflow takes the median of each field with CRE&apos;s consensus API and writes one report to RiskDesk, which keeps the latest one for the hook.</p>
             <p>
-              For the demo it runs in CRE&apos;s one-node simulator, and RiskDesk accepts simulated reports from our operator key only; on a DON the same
-              workflow runs unchanged and the nodes sign it. No function sets σ or the fee: the owner only chooses which forwarder to trust.
+              Today it runs in CRE&apos;s simulator, on one node: our operator key sends each report through MockKeystoneForwarder, which checks no
+              signature. The target is a DON, where the same workflow runs unchanged and the nodes sign the report.
+            </p>
+            <p>
+              No function sets σ or the fee. In this build the owner key is also the simulation operator, so until disableSim() it can post reports
+              itself, inside the same bounds as any report: σ ×2 up or ×0.8 down per report, 10% to 1000% a year, a fee of {FEE_MIN} to {FEE_MAX} bp.
             </p>
           </ServiceSection>
 

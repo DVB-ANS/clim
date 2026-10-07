@@ -83,7 +83,7 @@ export function LiquidityForm({ mode, busy, balances, quote, onAdd, pools, ethUs
         <FullRange />
       </div>
       <div className="mt-2 px-2">
-        <DetailRow label="Position value">{value === undefined ? "…" : `≈ $${formatAmount(value, 2)}`}</DetailRow>
+        <DetailRow label="Position value">{value === undefined ? "…" : `≈ ${formatAmount(value, 2)} tUSD`}</DetailRow>
         <DetailRow label="Held by">the test router, salt = your address</DetailRow>
       </div>
       {short ? <p className="mt-1 px-2 text-sm text-degraded">Not enough test tokens for this deposit: use the faucet above.</p> : null}

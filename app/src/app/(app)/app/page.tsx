@@ -13,7 +13,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="font-display text-[40px] font-normal leading-[1.1] tracking-[-0.02em]">The desk, live</h1>
         <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-fg-muted">
-          The LP fee follows the market&apos;s weather: {pipsToBp(params.feeMinPips)} bp when calm, a toll that rises with volatility in a storm.
+          The LP fee follows the market&apos;s weather: {pipsToBp(params.feeMinPips)} bp when calm, a premium that rises with volatility in a storm.
           Volatility comes from a Chainlink CRE risk desk; the fee is applied by a Uniswap v4 hook on every swap.
         </p>
       </div>

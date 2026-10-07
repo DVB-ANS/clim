@@ -7,8 +7,8 @@ import {
   formatAmount,
   formatBp,
   formatPct,
-  formatUsd,
-  formatUsdCents,
+  formatTusd,
+  formatTusdCents,
   pipsToBp,
   shortHash,
   sigmaE9ToAnnualPct,
@@ -47,10 +47,11 @@ describe("other units", () => {
     expect(ethUsdToTick(2_500, false)).toBe(-78_244);
     expect(tickToEthUsd(-78_244, false)).toBeCloseTo(2_500, -1);
   });
-  it("formats percent, usd, age and hashes", () => {
+  it("formats percent, test dollars, age and hashes", () => {
     expect(formatPct(48.04)).toBe("48.0%");
-    expect(formatUsd(1234.4)).toBe("$1,234");
-    expect(formatUsd(-56.7)).toBe("-$57");
+    expect(formatTusd(1234.4)).toBe("1,234 tUSD");
+    expect(formatTusd(-56.7)).toBe("-57 tUSD");
+    expect(formatTusd(-0.2)).toBe("0 tUSD");
     expect(formatAge(42)).toBe("42 s");
     expect(formatAge(185)).toBe("3 min 05 s");
     expect(formatAge(7_800)).toBe("2 h 10 min");
@@ -63,9 +64,9 @@ describe("amounts for /swap and /lp", () => {
     expect(formatAmount(25_000, 2)).toBe("25,000");
     expect(formatAmount(1.234567, 4)).toBe("1.2346");
   });
-  it("formats small USD amounts with cents, the sign before the dollar", () => {
-    expect(formatUsdCents(0.4249)).toBe("$0.42");
-    expect(formatUsdCents(-1_234.5)).toBe("-$1,234.50");
-    expect(formatUsdCents(-0.001)).toBe("$0.00");
+  it("formats small tUSD amounts with cents, never as US dollars", () => {
+    expect(formatTusdCents(0.4249)).toBe("0.42 tUSD");
+    expect(formatTusdCents(-1_234.5)).toBe("-1,234.50 tUSD");
+    expect(formatTusdCents(-0.001)).toBe("0.00 tUSD");
   });
 });

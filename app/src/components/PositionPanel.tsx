@@ -3,7 +3,7 @@
 import type { PositionView } from "@/lib/liquidity";
 import type { PoolName } from "@/lib/swap";
 import { utcTime } from "@/lib/theme";
-import { formatAmount, formatUsdCents } from "@/lib/units";
+import { formatAmount, formatTusdCents } from "@/lib/units";
 import { TokenIcon } from "./dex";
 import { ActionButton, type TxMode } from "./TxModeSwitch";
 
@@ -15,12 +15,12 @@ const BAR: Record<PoolName, string> = { V: "bg-v", S: "bg-s" };
 function Compare({ mine, other, pool, otherPool }: { mine: number; other: number; pool: PoolName; otherPool: PoolName }) {
   const max = Math.max(Math.abs(mine), Math.abs(other), 1e-9);
   const bar = (v: number, cls: string, label: string) => (
-    <div className="grid grid-cols-[7.5rem_minmax(0,1fr)_5.5rem] items-center gap-3 text-sm">
+    <div className="grid grid-cols-[7.5rem_minmax(0,1fr)_auto] items-center gap-3 text-sm">
       <span className="text-fg-subtle">{label}</span>
       <span className="h-2.5 rounded-full bg-surface-2">
         <span className={`block h-full rounded-full ${cls}`} style={{ width: `${Math.max(2, (Math.abs(v) / max) * 100)}%`, opacity: v < 0 ? 0.45 : 1 }} />
       </span>
-      <span className="text-right tabular-nums">{formatUsdCents(v)}</span>
+      <span className="whitespace-nowrap text-right tabular-nums">{formatTusdCents(v)}</span>
     </div>
   );
   return (
@@ -72,14 +72,14 @@ export function PositionPanel({ mode, views, busy, onRemove }: {
               <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
                 <div>
                   <p className="text-xs text-fg-subtle">Value</p>
-                  <p className="font-display text-[26px] leading-tight tracking-[-0.02em] tabular-nums">{formatUsdCents(v.valueUsd)}</p>
+                  <p className="font-display text-[26px] leading-tight tracking-[-0.02em] tabular-nums">{formatTusdCents(v.valueUsd)}</p>
                   <p className="text-xs text-fg-subtle">
                     {formatAmount(v.amountEth, 4)} tETH + {formatAmount(v.amountUsd, 2)} tUSD
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-fg-subtle">Fees earned</p>
-                  <p className="font-display text-[26px] leading-tight tracking-[-0.02em] tabular-nums">{formatUsdCents(v.feesUsd)}</p>
+                  <p className="font-display text-[26px] leading-tight tracking-[-0.02em] tabular-nums">{formatTusdCents(v.feesUsd)}</p>
                   <p className="text-xs text-fg-subtle">{v.feesSource === "on-chain" ? "uncollected, on-chain" : "your share of the pool's fees"}</p>
                 </div>
                 <div>
@@ -92,7 +92,7 @@ export function PositionPanel({ mode, views, busy, onRemove }: {
                 <p className="mt-3 text-sm text-fg-muted">
                   {Math.abs(diff) < 0.005
                     ? `Over this period, pool ${v.pool} and pool ${v.otherPool} paid this liquidity the same.`
-                    : `Over this period, pool ${v.pool} paid this liquidity ${formatUsdCents(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than pool ${v.otherPool} would have (retail fees − arbitrage, hedged).`}
+                    : `Over this period, pool ${v.pool} paid this liquidity ${formatTusdCents(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than pool ${v.otherPool} would have (retail fees − arbitrage, hedged).`}
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">

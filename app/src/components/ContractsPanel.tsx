@@ -6,7 +6,7 @@ import { Panel } from "./ui";
 const link = "text-link underline decoration-line underline-offset-2 hover:decoration-current";
 const short = (a: string) => `${a.slice(0, 10)}…${a.slice(-4)}`;
 
-/** Every contract of the demo on Sepolia, from the synced deployment: Etherscan for all, Sourcify for clim's own. */
+/** Every contract of the demo on Sepolia, from the synced deployment: Etherscan for all, Sourcify for those clim deployed. */
 export function ContractsPanel({ id = "contracts" }: { id?: string }) {
   const groups = contractGroups(deployments);
   const pools = poolRows(deployments, (pips) => formatBp(pipsToBp(pips), 2));
@@ -14,7 +14,7 @@ export function ContractsPanel({ id = "contracts" }: { id?: string }) {
     <Panel
       id={id}
       title="Contracts on Sepolia"
-      subtitle="Ethereum Sepolia (chain id 11155111). Every address links to Etherscan; the source of clim's own six contracts is verified on Sourcify."
+      subtitle="Ethereum Sepolia (chain id 11155111). Every address links to Etherscan; the source of every contract clim deployed (its six own contracts and the arbitrage bot's router) is verified on Sourcify."
     >
       <div className="overflow-x-auto" role="region" aria-label="Contract addresses" tabIndex={0}>
         <table className="w-full min-w-[640px] text-sm">

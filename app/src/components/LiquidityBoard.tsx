@@ -158,7 +158,8 @@ export function LiquidityBoard() {
   const depth = (p: PoolName) => {
     const level = lp.pools[p];
     const s2 = level ? sides(p, level.liquidity) : null;
-    return s2 && ethUsd !== undefined ? `≈ $${compact.format(s2.eth * ethUsd + s2.usd)} in the pool` : "pool depth …";
+    // test tokens: the depth is shown in tokens, never as dollars
+    return s2 ? `${compact.format(s2.eth)} tETH + ${compact.format(s2.usd)} tUSD in the pool` : "pool depth …";
   };
   const poolOptions: PoolOption<PoolName>[] = [
     {

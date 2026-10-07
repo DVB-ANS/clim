@@ -25,7 +25,7 @@ const y = (bp: number) => H - PAD - (bp / FEE_MAX) * (H - 2 * PAD);
 
 /**
  * σ in, fee out: drag the volatility and read the fee the hook would charge in normal mode, on its
- * own formula. Two chips jump to the live σ and to the window's storm peak; pool S's fixed fee and
+ * own formula. Two chips jump to the live σ and to the window's σ peak; pool S's fixed fee and
  * the safe-mode floor are drawn for scale, labelled in HTML so the text keeps its size on any screen.
  * A native range input, so it works with keys and screen readers.
  */
@@ -66,7 +66,7 @@ export function FeeDial({ sigmaNow, sigmaPeak, feeSBp, kE4 = 10_000, simulated =
           ) : null}
           {sigmaPeak !== undefined ? (
             <button type="button" className={chip} onClick={() => setPicked(sigmaPeak)}>
-              Storm peak · {sigmaPeak.toFixed(0)} %
+              Window peak · {sigmaPeak.toFixed(0)} %
             </button>
           ) : null}
         </div>

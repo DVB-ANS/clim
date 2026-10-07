@@ -6,10 +6,10 @@ describe("the contracts list (synced Sepolia deployment)", () => {
   const groups = contractGroups(deployments);
   const rows = groups.flatMap((g) => g.rows);
 
-  it("links clim's own six contracts to Sourcify, and only those", () => {
+  it("links the seven contracts clim deployed and verified to Sourcify, and only those", () => {
     const verified = rows.filter((r) => r.verified).map((r) => r.name);
     if (deployments.fixture) return;
-    expect(verified).toEqual(["RiskDesk (live)", "ClimHook (live)", "RiskDesk (replay)", "ClimHook (replay)", "tETH", "tUSD"]);
+    expect(verified).toEqual(["RiskDesk (live)", "ClimHook (live)", "RiskDesk (replay)", "ClimHook (replay)", "tETH", "tUSD", "PoolSwapTest (arbitrage)"]);
     expect(sourcifyAddress(deployments.pairs.live!.riskDesk)).toBe("https://repo.sourcify.dev/11155111/0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F");
   });
 

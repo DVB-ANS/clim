@@ -6,7 +6,7 @@ import { params } from "@/lib/config";
 import { pnlExplain } from "@/lib/pnl";
 import { timeAverageFeeBp, weatherSeries } from "@/lib/series";
 import { COLORS } from "@/lib/theme";
-import { formatBp, formatUsd, pipsToBp } from "@/lib/units";
+import { formatBp, formatTusd, pipsToBp } from "@/lib/units";
 import { Panel } from "./ui";
 
 export function PnlPanel({ data }: { data: ClimData }) {
@@ -39,10 +39,10 @@ export function PnlPanel({ data }: { data: ClimData }) {
   return (
     <Panel
       title="LP P&L explain (from logs only)"
-      subtitle="Milionis-Moallemi-Roughgarden: a delta-hedged LP earns FEE_retail − ARB, and LVR ≈ ARB + FEE_arb. Arbitrage valued at the bot's own price (recovered from the post-swap price); retail fees and LVR at the desk's refTick."
+      subtitle="Milionis-Moallemi-Roughgarden: a delta-hedged LP earns FEE_retail − ARB, and LVR ≈ ARB + FEE_arb. Arbitrage valued at the bot's own price (recovered from the post-swap price); retail fees and LVR at the desk's refTick. Amounts in tUSD, the pair's test token: no real money is at stake."
       className="col-span-full"
     >
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-accent" role="region" aria-label="LP P&L by pool, in tUSD" tabIndex={0}>
         <table className="text-sm tabular-nums">
           <thead>
             <tr className="text-left text-xs text-fg-subtle">
@@ -54,7 +54,7 @@ export function PnlPanel({ data }: { data: ClimData }) {
             {rows.map((r) => (
               <tr key={r.name}>
                 <td className="pr-6 font-medium" style={{ color: r.name === "V" ? COLORS.V : COLORS.S }}>{r.name}</td>
-                {cols.map((c) => <td key={c.key} className="pr-6">{c.usd ? formatUsd(r[c.key] as number) : String(r[c.key])}</td>)}
+                {cols.map((c) => <td key={c.key} className="pr-6">{c.usd ? formatTusd(r[c.key] as number) : String(r[c.key])}</td>)}
               </tr>
             ))}
           </tbody>

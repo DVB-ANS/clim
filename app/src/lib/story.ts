@@ -26,19 +26,28 @@ export type StormSummary = {
   feeVAtPeak: number; // bp: the hook's quote as that report landed, with its state (a degraded flag included)
   feeS: number; // bp: pool S's fixed fee
   hours: number; // window length
+  stormy: boolean; // some report's σ lifted the normal-mode fee above its floor (safe modes aside)
+  floorSigma: number; // %/yr: the σ above which the normal-mode fee leaves its floor (k = 1)
 };
 
-/** The storm of the window: its σ peak, the fee pool V charged then, and pool S's fee for scale. */
+/**
+ * The window's weather: its σ peak, the fee pool V charged then, and pool S's fee for scale. `stormy`
+ * says whether σ ever took the fee off its floor: below `floorSigma`, V charges the floor in normal mode,
+ * so any higher fee it charged in the window came from its safe modes (desk silent, venues apart).
+ */
 export function stormSummary(reports: DeskReport[], params: FeeParams, o: { staticFeePips: number; nowSec?: number }): StormSummary | undefined {
   const hours = windowHours(reports, o.nowSec);
   if (hours === undefined) return undefined;
   const peak = reports.reduce((a, r) => (r.sigmaApplied > a.sigmaApplied ? r : a));
+  const normalFee = (r: DeskReport) => feePips(r.sigmaApplied, params.etaE4, params.sqrtHalfDtE6, r.kE4, params.feeMinPips, params.feeMaxPips);
   return {
     peakSigma: sigmaE9ToAnnualPct(peak.sigmaApplied),
     peakAt: peak.blockTimestamp,
     feeVAtPeak: pipsToBp(quoteFee(deskStateOf(peak), peak.blockTimestamp, params).feePips),
     feeS: pipsToBp(o.staticFeePips),
     hours,
+    stormy: reports.some((r) => normalFee(r) > params.feeMinPips),
+    floorSigma: sigmaAtFee(pipsToBp(params.feeMinPips + 1), params),
   };
 }
 

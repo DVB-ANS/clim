@@ -106,6 +106,7 @@ export function SwapForm() {
     : null;
 
   const flip = () => setSide(side === "sell ETH" ? "buy ETH" : "sell ETH");
+  // a tETH amount's worth in tUSD at the pool price (the hint under a tETH field; test tokens, never dollars)
   const usdOf = (x: number, symbol: string) => (ethUsd === undefined ? undefined : symbol === "tETH" ? x * ethUsd : x);
   const inUsd = plan ? usdOf(amountIn, inSymbol) : undefined;
   const feeVBp = quote ? pipsToBp(quote.feePips) : undefined;
@@ -158,7 +159,7 @@ export function SwapForm() {
             onChange={setAmount}
             symbol={inSymbol}
             error={planError}
-            hint={inUsd === undefined ? " " : `≈ $${formatAmount(inUsd, 2)}`}
+            hint={inUsd === undefined || inSymbol !== "tETH" ? " " : `≈ ${formatAmount(inUsd, 2)} tUSD`}
           />
           <FlipButton onClick={flip} label={side === "sell ETH" ? "Buy tETH instead" : "Sell tETH instead"} />
           <AmountBox
@@ -166,7 +167,7 @@ export function SwapForm() {
             label="You receive, before price impact"
             value={estimate === undefined ? "" : formatAmount(estimate, side === "sell ETH" ? 2 : 6)}
             symbol={outSymbol}
-            hint={estimate === undefined ? " " : `≈ $${formatAmount(usdOf(estimate, outSymbol) ?? 0, 2)}`}
+            hint={estimate === undefined || outSymbol !== "tETH" ? " " : `≈ ${formatAmount(usdOf(estimate, outSymbol) ?? 0, 2)} tUSD`}
           />
         </div>
         <div className="mt-2 px-2">
