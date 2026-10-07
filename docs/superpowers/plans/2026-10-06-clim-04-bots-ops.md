@@ -3220,7 +3220,7 @@ Behaviour (`bun run cre-loop`): start plan 02's `bash scripts/sim-loop.sh <targe
 // CRE simulation loop with an on-chain record of every run.
 // Runs plan 02's loop (`cre/scripts/sim-loop.sh <target> --broadcast`: build the WASM once, then
 // `cre workflow simulate --wasm ... --non-interactive --trigger-index 0 --broadcast` every 30 s) and echoes its output.
-// For each run it writes the transcript to bots/out/cre-sim/<run start>.log (plan 06 evidence input) and appends one
+// For each run it writes the transcript to bots/out/cre-sim/<pair>-<run start>.log (plan 06 evidence input) and appends one
 // line to bots/out/cre-runs.jsonl: status, tx hash, receipt, the forwarder's ReportProcessed.result and the decoded
 // RiskReported event. The receipt decides `applied` (receiptStatus); statusFromReceipt says when it overrode the
 // workflow's final line, which stays in `detail`.

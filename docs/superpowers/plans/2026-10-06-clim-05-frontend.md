@@ -3186,7 +3186,7 @@ git commit -m "feat(app): sync shared/, lab/out and docs/faq.md into the app wit
 
 ### Task 14: Lab fixtures, first sync, config modules
 
-Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `f289f29`. Today every source reads `repo` (`npm run sync` at `d05ee94`, session log 2026-10-07) and the suite is 21 files, 170 tests.
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `f289f29`. Today every source reads `repo` (`npm run sync` at `d05ee94`, session log 2026-10-07) and the suite is 24 files, 204 tests (21 and 170 at the import; the timeWindow, faq and ledger tests were added on 2026-10-07 in `e9aab85`, `3d0ae57` and `4dedb1b`).
 
 **Delegable:** yes
 **Depends on:** Tasks 7, 12, 13

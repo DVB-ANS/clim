@@ -653,7 +653,7 @@ The live inputs do change continuously, through reports: σ every 30 s, k ∈ [1
 - `ConsensusAggregationByFields` with a median per field means a minority of faulty nodes cannot push a field outside the range of honest values.
 - The `KeystoneForwarder` verifies the DON's signatures before it calls `onReport`.
 - `RiskDesk` can also pin the workflow with `setExpectedWorkflowId`.
-- The hackathon build exercises none of this: it runs in the one-node simulator through `MockKeystoneForwarder` (§6.8, friction log row 6). The workflow already uses the consensus API, so it runs unchanged on a DON.
+- The hackathon build exercises none of this: it runs in the one-node simulator through `MockKeystoneForwarder` (§6.8). The workflow is written with the consensus API for a DON but has not run on one: DON deploy access was requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon (still "Not enabled" on 7 October), so the DON deployment was cut (master plan cut list item 1, friction log row 6).
 
 ### 6.3 Venue quorum, freshness and dispersion
 
@@ -704,7 +704,7 @@ The owner can, through `Ownable` and `ReceiverTemplate`, all `onlyOwner`:
 1. after `setForwarderAddress(KeystoneForwarder)`, `setExpectedWorkflowId(id)` and `disableSim()`, the owner calls `renounceOwnership()`;
 2. or the owner hands ownership to a multisig with a timelock.
 
-The hackathon deployment keeps an owner, because it must switch forwarders. On the live desk the owner key is also `simOperator`, so until `disableSim()` that key can post reports itself through `MockKeystoneForwarder`, still inside the envelope and the fee clamp. The README and FAQ say so.
+The hackathon deployment keeps an owner, because it must switch forwarders. On the live desk the owner key is also `simOperator`, so that key can post reports itself through `MockKeystoneForwarder` until `disableSim()`, and after it, as owner, through a forwarder it points the desk at: the owner key can post reports until ownership is renounced, always inside the envelope and the fee clamp. The README and FAQ say so.
 
 ### 6.8 Simulation caveats (the hackathon build)
 
@@ -715,8 +715,9 @@ The hackathon deployment keeps an owner, because it must switch forwarders. On t
 - **No workflow identity checks.** The CRE docs ("Building Consumer Contracts", §4) say not to set `setExpectedWorkflowId`, `setExpectedAuthor` or `setExpectedWorkflowName` during simulation, because the mock does not supply that metadata. In simulation the `tx.origin` guard is therefore the only authenticity check.
 - **Moving to production:**
   - point the desk at `KeystoneForwarder`;
-  - set the workflow ID;
-  - call `disableSim()`, because a DON transmitter, not `simOperator`, is then `tx.origin`.
+  - pin the workflow ID (`ReceiverTemplate`'s identity checks) before simulation is disabled;
+  - call `disableSim()`, because a DON transmitter, not `simOperator`, is then `tx.origin`;
+  - renounce ownership (§6.7).
 
 ### 6.9 Out of scope
 
@@ -759,7 +760,7 @@ Basel's traffic light (Basel Committee, January 1996, "Supervisory framework for
 
 That binomial assumes **independent** exceptions.
 
-Arbitrage is not independent. After an arbitraged block, the next one is arbitraged 42 to 53% of the time, against about 5% otherwise. The model itself predicts this: after an arbitrage, the price sits on the edge of the no-arbitrage band, so the next block's move crosses it about half the time. With textbook thresholds, a correct model lands in the red zone in about 6% of windows, which explains the excess red windows in October (15 of 71 non-green against about 4 expected).
+Arbitrage is not independent. At P\* = 0.3, after an arbitraged block the next one is arbitraged 50 to 60% of the time, against 8 to 20% otherwise (`lab/out/validation.json`: 0.497 and 0.195 in February, 0.597 and 0.083 in October). The model itself predicts this (about 0.50 after an arbitrage): after an arbitrage, the price sits on the edge of the no-arbitrage band, so the next block's move crosses it about half the time. With textbook binomial thresholds, October has 24 non-green windows of 71 (16 yellow, 8 red); with thresholds simulated from the model, 9 (7 yellow, 2 red). (At the old P\* = 10 % setting the figures were 42 to 53 % against about 5 %, a correct model landed in the red zone in about 6 % of windows with textbook thresholds, and October had 15 non-green windows of 71 against about 4 expected.)
 
 **Rule.** Keep the Basel definitions (cumulative probability 95% and 99.99%), but compute the distribution of the window's arbitrage count by **Monte Carlo simulation of the model**:
 - fixed 12 s blocks;
@@ -792,7 +793,7 @@ Clustering inflates the variance, so real requirements are larger. The simulatio
 ### 7.6 Model-risk multiplier k (P2)
 
 - k = 1 in the green and yellow zones.
-- In the red zone, k = clamp(σ_arb/σ̂, 1, 2), where σ_arb is the volatility implied by the observed arbitrage frequency (§3.10). In February σ_arb was 0.78 × σ̂; in October 1.03 ×.
+- In the red zone, k = clamp(σ_arb/σ̂, 1, 2), where σ_arb is the volatility implied by the observed arbitrage frequency (§3.10). At P\* = 0.3, σ_arb was 0.91 × σ̂ in February and 1.05 × in October (`lab/out/backtest-summary.json`; 0.78 × and 1.03 × at the old P\* = 10 % setting).
 - k is one-sided, as in Basel and SR 11-7: it penalizes underestimating risk and never rewards overestimating it.
 - **In the hackathon build** the workflow sends `kE4 = 10,000` and `zone = 0`, and the validation runs in the lab. `RiskDesk` already clamps k to [1, 2], so turning k on later is only a workflow change.
 
@@ -800,13 +801,15 @@ Clustering inflates the variance, so real requirements are larger. The simulatio
 
 ## 8. Demo
 
-On stage there is no live demo. The demo is a screen recording embedded in the deck (.ppt or .keynote, shared through a Google Drive link).
+On stage there is no live demo. The demo is a recording embedded in the deck (.ppt or .keynote, shared through a Google Drive link).
 
-**Principle.** Sepolia proves the plumbing, the lab proves the economics. October 2026 is calm, so the live run is visually flat and the highlight is the replay.
+**Since 2026-10-07** the demo is the maintainer's own video, embedded in deck v2 (plan 06 Tasks 15 to 17; session log 2026-10-07, Decisions "Demo video"): the maintainer on camera, in his own words, then a live demo of the app on Sepolia. Its script is in his private notes. It replaces the screen-only 3-act plan below, which is kept for the record: the recording does not stop the loop, and the blind mode was shown once, on 2026-10-06 (plan 04 Task 23 smoke test).
 
-The acts follow plan 06's demo script: live first (the plumbing and the safety demos), then the replay (the highlight), then the lab. The highlight is placed second so the stage cut ends on the economics.
+**Principle.** Sepolia proves the plumbing, the lab proves the economics. October 2026 is calm, so the live run is visually flat and the highlight is the replay. (A real storm did reach the live desk on 7 October 2026, from 01:58 to 02:51 UTC: σ peaked at 242 %/yr and the fee at 26.50 bp; README, "What's live vs. simulated".)
 
-**Act 1: live on Sepolia (P0)**
+In the original plan, the acts followed plan 06's first demo script: live first (the plumbing and the safety demos), then the replay (the highlight), then the lab. The highlight is placed second so the stage cut ends on the economics.
+
+**Act 1: live on Sepolia (P0; original plan, replaced 2026-10-07)**
 - **The loop:** `cre workflow simulate --broadcast` every 30 s.
 - **On screen:**
   - the CRE logs: 4 venues, the quorum, σ̂, DVOL, dispersion;
@@ -816,14 +819,14 @@ The acts follow plan 06's demo script: live first (the plumbing and the safety d
 - **Safety demo 1, forged report:** a third-party key pushes σ = 0 through `MockKeystoneForwarder.report`. The transaction succeeds, but `ReportProcessed(..., false)` shows the rejection, there is no `RiskReported`, and the state is unchanged.
 - **Safety demo 2, circuit breaker:** stop the loop. After 180 s `quoteFee()` returns mode 2 and the fee is at least 30 bp. Restart, and the hook returns to normal mode.
 
-**Act 2: Feb 4, 2026 replay (the highlight; P1, with the lab's curves as plan B)**
+**Act 2: Feb 4, 2026 replay (the highlight; P1, with the lab's curves as plan B; original plan, replaced 2026-10-07)**
 - **The window:** Binance ETHUSDT 1 s, 12:00 to 16:00 UTC. The lab's replay (CRE-faithful RV15) goes from about 60 %/yr at 12:00 to a peak near 296 %/yr, with a low near 34 % (`lab/out/summary.json`, `replay.sigmaMinPct` and `sigmaMaxPct`).
 - **On screen:** V's fee climbs out of the floor while S stays flat, and the two pools' arbitrage losses diverge.
 - **Old-setting figures** (P\* = 10%, recomputed at P\* = 0.3 in the next item): V's fee goes from 12 to 128 bp; V's ARB is 25% below S's at equal average fee (55.7 bp); P_trade is 0.069 observed against 0.092 predicted.
 - **At P\* = 0.3 (lab):** V's fee goes from 5.0 to 32.4 bp while S charges 15.03 bp; V's ARB is 18.6 % below S's; P_trade is 0.285 observed against 0.298 predicted; across the 92 rolling 4 h windows of the February storm the change ranges from −18.4 % to +3.1 % (median −2.1 %, 66 of 92 better than the static pool), and none does better than the replay window's −18.6 % (best −18.4 %; the replay window, 12:00 to 16:00, is not one of them, since they start at :16).
 - **Against cherry-picking:** the window was picked during design, at P\* = 10 %, around the sharpest rise in hourly volatility of the storm, after comparing three candidate windows (`lab/scratch/replay_pick*.py`). At P\* = 0.3 no rolling 4 h window of the storm sample does better (best −18.4 %, median −2.1 %), so every slide that shows it also shows the range over the 92 hourly windows, their median and how many beat the static pool (`lab/out/backtest-summary.json`).
 
-**Act 3: the lab on real data (P0)**
+**Act 3: the lab on real data (P0; original plan, replaced 2026-10-07)**
 - **Backtest:** f(RV15) against a fixed fee, at equal time-average fee and at equal cost to traders (§2.7).
 - **The model check:** P_trade observed against predicted, with the simulated band.
 - **Severity:** ARB/LVR against the model, the honesty slide on fat tails.
@@ -865,10 +868,10 @@ The acts follow plan 06's demo script: live first (the plumbing and the safety d
 
 ## 10. Limits (kept in the deck)
 
-1. **Latency.** The desk is at least 30 s behind, plus inclusion time: 40 to 90 s in the simulation loop. The first leg of a jump is arbitraged at the old fee.
+1. **Latency.** The desk uses closed one-minute candles, so a price move enters a report only once its candle has closed (up to 60 s), then waits for the next report (every 30 s); that report reaches a block a median 14 s (p90 25 s) after its observation time (211 live reports, `cre/README.md`). In all, the fee lags the market by about a minute, up to about two. The first leg of a jump is arbitraged at the old fee.
 2. **A modest average gain.** At P\* = 0.3, at equal time-average fee, ARB falls by 15.3 % in the February 2026 storm, 5.5 % in calm October 2026 and 26.9 % over the year; at equal cost to traders, by 2.9 %, 2.3 % and 12.7 % (`lab/out/summary.json`). Against a four times deeper static 5 bp pool with aggregator routing, the LP gains −0.10 to +0.70 %/yr of capital across five retail scenarios (base +0.39 %), +0.40 % on a path twice as volatile, and 53 % of the gain comes from the 5 most turbulent weeks. These are simulations on one price path with a frictionless arbitrageur. It is insurance, not income. The audit's earlier figures at P\* = 10 % (−20 % / −24.5 %, and −14 % to +7 % at equal trader cost) are superseded: the lab reproduces −22.3 % / −25.0 % at P\* = 10 % but not the trader-cost range.
 3. **The model is optimistic about severity.** At P\* = 0.3, observed ARB/LVR is 1.29 to 1.33 times the model (`lab/out/summary.json`); only the frequency is predicted well, within 10 % (the gap is still statistically significant, `lab/out/validation.json`). η\* is a calibrated policy, not an optimum: MMR ignore how retail volume responds to the fee.
-4. **CRE simulation.** One node and a permissionless mock forwarder; authenticity rests on the `tx.origin` guard (§6.8). Consensus is shown only by a real deployment, which needs deploy access (`cre account access`).
+4. **CRE simulation.** One node and a permissionless mock forwarder; authenticity rests on the `tx.origin` guard (§6.8). Consensus is shown only by a real deployment, which needs deploy access (`cre account access`): requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon, so the DON deployment was cut (§6.2).
 5. **The demo's economics.** Our own bots run the twin pools, there is no mainnet pool validation, volume leakage is measured only roughly (P1), and JIT liquidity is not handled.
 6. **DVOL.** It is a single source and carries little short-term information. No variance premium is visible at 1 minute (DVOL²/RV² ≈ 0.98).
 7. **Sources.** Binance returns HTTP 451 to US IPs, and where DON nodes run is unknown. USDT/USD basis and perp premiums are covered by the quorum, with no guarantee in a crisis.
