@@ -24,8 +24,9 @@
 (`lab/out/replay-2026-02-04.json`).*
 
 When ETH jumps on Binance, bots buy from a pool at the old price and the liquidity provider (LP)
-pays the gap. That loss is small when the market is calm and large in a storm, yet a pool charges
-the same fee in both. clim makes the fee follow the weather. Four exchanges act as four weather
+pays the gap. The fastest bot wins that race: when prices move, speed is what earns, and the LP
+pays for it. That loss is small when the market is calm and large in a storm, yet a pool charges
+the same fee in both. clim makes speed cost more when it matters: the fee follows the weather. Four exchanges act as four weather
 stations that must agree: a Chainlink CRE workflow reads them every 30 seconds and writes one
 volatility figure on-chain (from the CRE simulator for now: see
 [What's live vs. simulated](#whats-live-vs-simulated)). On every swap, a Uniswap v4 hook turns that
