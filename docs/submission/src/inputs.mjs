@@ -1,4 +1,4 @@
-// Loaders and structural checks for every input the README and the deck consume.
+// Loaders and structural checks for every input the README generator and the evidence tools consume.
 import { readFileSync } from "node:fs";
 
 export function readJson(file) {

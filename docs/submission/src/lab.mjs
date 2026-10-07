@@ -54,7 +54,7 @@ export function usdPerMillion(pctPerYear) {
   return `${pctPerYear < 0 ? "-" : ""}$${usd.toLocaleString("en-US")}`;
 }
 
-// The replay window against the rolling windows, said the same way in the README and the deck. The 4 February
+// The replay window against the rolling windows, said the same way in the README (deck v2's slides.json carries its text by hand). The 4 February
 // 12:00-16:00 window is not one of the rolling windows (those start at :16 past each hour): it is compared with
 // them, never ranked among them.
 export function replayChoiceNote(stats, pStar) {

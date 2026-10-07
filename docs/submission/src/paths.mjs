@@ -7,6 +7,7 @@ export const REPO_ROOT = path.resolve(SUBMISSION_DIR, "..", "..");
 
 export const P = {
   deployments: path.join(REPO_ROOT, "shared/deployments/sepolia.json"),
+  replayDesk: path.join(REPO_ROOT, "contracts/deployments/11155111/desk-replay.json"),
   params: path.join(REPO_ROOT, "shared/params.json"),
   backtest: path.join(REPO_ROOT, "lab/out/backtest-summary.json"),
   replay: path.join(REPO_ROOT, "lab/out/replay-2026-02-04.json"),

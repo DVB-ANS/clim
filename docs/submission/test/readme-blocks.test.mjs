@@ -8,7 +8,7 @@ const fx = (name) => readJson(new URL(`./fixtures/${name}`, import.meta.url));
 test("links: one bold row, empty URLs marked, the CRE documents linked", () => {
   const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example" }, { evidenceReady: true });
   assert.equal(out.split("\n").length, 1);
-  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* · /);
+  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\/app\)\*\* · /);
   assert.match(out, / · \*\*Video demo\*\* _\(added at submission\)_ · \*\*Deck\*\* _\(added at submission\)_ · /);
   assert.match(out, /\*\*\[CRE evidence\]\(docs\/evidence\/\)\*\*/);
   assert.match(out, /\*\*\[CRE DevEx report\]\(docs\/feedback\/cre-devex-report\.md\)\*\*/);
@@ -18,7 +18,7 @@ test("links: one bold row, empty URLs marked, the CRE documents linked", () => {
 
 test("links: CRE evidence falls back to cre/README.md until docs/evidence exists", () => {
   const out = renderLinks({ ...fx("links.json"), liveUrl: "https://clim.example" });
-  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\)\*\* · /);
+  assert.match(out, /^\*\*\[Open the dashboard\]\(https:\/\/clim\.example\/app\)\*\* · /);
   assert.match(out, /\*\*\[CRE evidence\]\(cre\/README\.md#evidence\)\*\*/);
   assert.doesNotMatch(out, /docs\/evidence/);
   assert.match(renderAll({ links: fx("links.json"), evidence: fx("evidence.json") }).links, /\[CRE evidence\]\(docs\/evidence\/\)/);
@@ -58,6 +58,11 @@ test("deployments: unknown keys still listed, fixed-fee twins show their fee", (
   assert.match(out, /\|  \| `PoolModifyLiquidityTest` \| \[`0x88888888…8888`\]\([^)]+\) \|  \| test liquidity router: .+ does not tie a position to its owner \(see \[Limits\]\(#limits\)\) \|/);
   assert.match(out, /`RiskDesk` \(replay\) \| \[`0x77777777…7777`\]\([^)]+\) \| \[Sourcify\]\([^)]+\) \| received the CRE reports of the 4 February 2026 storm, replayed/);
   assert.doesNotMatch(out, /0x0000000000/);
+  assert.doesNotMatch(out, /Operator \(replay\)/);
+  // The replay desk's own simOperator, from contracts/deployments, is listed right after the live Operator.
+  const withReplayOp = renderDeployments(d, { replayDesk: { simOperator: "0x9999999999999999999999999999999999999999" } });
+  assert.match(withReplayOp, /\| Operator \| \[`0x55555555…5555`\]\([^)]+\) \|  \| [^\n]+\n\|  \| Operator \(replay\) \| \[`0x99999999…9999`\]\(https:\/\/sepolia\.etherscan\.io\/address\/0x9999999999999999999999999999999999999999\) \|  \| the replay desk's `simOperator`: sent all 459 of its simulated reports/);
+  assert.doesNotMatch(renderDeployments(d, { replayDesk: { simOperator: d.deployer } }), /Operator \(replay\)/);
 });
 
 test("params and fee schedule at P* = 30%", () => {

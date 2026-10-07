@@ -13,7 +13,7 @@
 **TOKEN2049 Origins · Singapore, October 2026 · Main track and Chainlink "Best workflow with CRE"**
 
 <!-- clim:begin links -->
-**[Open the dashboard](https://clim-zeta.vercel.app)** · **Video demo** _(added at submission)_ · **Deck** _(added at submission)_ · **[CRE evidence](cre/README.md#evidence)** · **[CRE DevEx report](docs/feedback/cre-devex-report.md)** · **[CRE friction log](docs/feedback/cre-friction-log.md)**
+**[Open the dashboard](https://clim-zeta.vercel.app/app)** · **Video demo** _(added at submission)_ · **Deck** _(added at submission)_ · **[CRE evidence](cre/README.md#evidence)** · **[CRE DevEx report](docs/feedback/cre-devex-report.md)** · **[CRE friction log](docs/feedback/cre-friction-log.md)**
 <!-- clim:end links -->
 
 </div>
@@ -104,7 +104,7 @@ flowchart LR
    PoolManager calls `beforeSwap`; the hook reads `RiskDesk.state()` and returns the fee with
    `OVERRIDE_FEE_FLAG`. If the desk has been silent for longer than the kill delay (blind) or the
    venues disagree (degraded), the hook quotes at least the safe fee.
-4. **Dashboard** ([clim-zeta.vercel.app](https://clim-zeta.vercel.app), reading Sepolia). From
+4. **Dashboard** ([clim-zeta.vercel.app/app](https://clim-zeta.vercel.app/app), reading Sepolia). From
    `RiskReported` and `Swap` events it shows the desk, the clim pool's fee next to a fixed-fee twin
    pool and how often each one gets arbitraged (`/app`), plus the test-token faucet, the fee before
    a swap (`/swap`), liquidity for either pool (`/lp`) and every contract with its Etherscan and
@@ -135,8 +135,8 @@ On-chain it is integer arithmetic, without logarithms or square roots:
 
 ### Nobody "changes" the fee
 
-There is no keeper, no admin call and no fee-update transaction. The fee is recomputed inside every
-swap:
+No keeper sets the fee: there is no admin call and no fee-update transaction. The fee is
+recomputed inside every swap:
 
 ```mermaid
 sequenceDiagram
@@ -221,10 +221,12 @@ CRE is not what makes the number possible. It is what makes it **trustworthy**:
 
 - **Four exchanges must agree.** Nobody can push the fee around with fake trades on the pool, and a
   venue that freezes or diverges is dropped or flags the desk as degraded.
-- **On a DON: one signed report, no keeper key.** Reports come through Chainlink's
-  `KeystoneForwarder`, which checks the DON's signatures. Today, in simulation, the operator key
-  submits them through `MockKeystoneForwarder`, so that key plays the keeper, inside the envelope
-  (see [How it works](#how-it-works)).
+- **On a DON: one signed report, and no single key once the owner renounces.** Reports come
+  through Chainlink's `KeystoneForwarder`, which checks the DON's signatures: on a DON, once the
+  expected workflow ID is pinned, simulation disabled and ownership renounced, no single key can
+  write the desk (until then the owner key can re-point the forwarder). Today, in simulation, the
+  operator key submits the reports through `MockKeystoneForwarder`, so that one key is trusted to
+  post the volatility, inside the envelope (see [How it works](#how-it-works)).
 - **One figure for many pools and chains.** CRE can write the same report to other EVM chains and
   to Solana.
 - **Room for model control.** The desk could compare its own prediction with what happens on-chain
@@ -247,7 +249,7 @@ last updated on 2024-08-30): a storm that lasts an hour barely moves them ([FAQ]
 
 | File | What it does |
 |---|---|
-| [`cre/project.yaml`](cre/project.yaml) | The CRE project: targets `staging-settings` (live simulation), `replay-settings` and `production-settings` (DON deployment), Sepolia RPC |
+| [`cre/project.yaml`](cre/project.yaml) | The CRE project: targets `staging-settings` (live simulation) and `replay-settings`, Sepolia RPC. A third target, `production-settings`, is a DON target with a placeholder desk address, never used because DON deploy access was not granted |
 | [`cre/risk-desk/workflow.yaml`](cre/risk-desk/workflow.yaml) | Workflow name, entry point and config file per target |
 | [`cre/risk-desk/main.ts`](cre/risk-desk/main.ts) | The runner entry point |
 | [`cre/risk-desk/workflow.ts`](cre/risk-desk/workflow.ts) | Cron and HTTP triggers, node-mode observation, consensus by median, `runtime.report`, `EVMClient.writeReport` and the read-back of `RiskDesk.state()` |
@@ -353,6 +355,7 @@ Everything runs on Ethereum Sepolia (chain id 11155111). Each address links to E
 |  | `tUSD` | [`0xce3171cB…4C14`](https://sepolia.etherscan.io/address/0xce3171cB1ad23D9E5D3fD9839078b4624DC84C14) | [Sourcify](https://repo.sourcify.dev/11155111/0xce3171cB1ad23D9E5D3fD9839078b4624DC84C14) | test USD with a public faucet |
 |  | `PoolSwapTest` (arbitrage) | [`0x70856584…ce51`](https://sepolia.etherscan.io/address/0x70856584d9d8ADDB653aBb1786E37C505665ce51) | [Sourcify](https://repo.sourcify.dev/11155111/0x70856584d9d8ADDB653aBb1786E37C505665ce51) | the arbitrage bot's own router, so its swaps can be told apart |
 |  | Operator | [`0x53aB240f…5A82`](https://sepolia.etherscan.io/address/0x53aB240f6cffC204FC22ac6722D9632d753a5A82) |  | deployer, owner of both desks, the live desk's `simOperator` (the only accepted sender of its simulated reports), test-token owner |
+|  | Operator (replay) | [`0xbDE42818…B4c8`](https://sepolia.etherscan.io/address/0xbDE42818271EEe35C0bE8a3AB07d150B3797B4c8) |  | the replay desk's `simOperator`: sent all 459 of its simulated reports through `MockKeystoneForwarder` (simulation still on) |
 
 | Pool | LP fee | PoolId |
 |---|---|---|
@@ -385,8 +388,9 @@ and, for anything that writes on-chain, a Sepolia RPC URL and funded testnet key
 git clone --recurse-submodules https://github.com/DVB-ANS/clim && cd clim
 bun install                             # root workspace: shared and bots
 
-(cd contracts && forge test)            # contracts: unit and fuzz tests; the 3 Sepolia fork tests
-                                        # skip unless SEPOLIA_RPC_URL is set in contracts/.env (see .env.example)
+(cd contracts && forge test)            # contracts: unit and fuzz tests; without SEPOLIA_RPC_URL in contracts/.env
+                                        # (see .env.example) the 3 Sepolia fork tests skip: 73 passed, 2 skipped (75 total)
+                                        # (forge counts the 2-test fork suite, skipped in setUp, as one)
 (cd lab && uv sync && uv run pytest)    # lab: backtests and model checks; a fresh clone has no lab/data/
                                         # (gitignored), so 77 tests run and the 5 that read it skip
 
@@ -463,8 +467,10 @@ drives the fee.
 - **Sources.** Binance answers HTTP 451 to US IP addresses. A quorum of 3 out of 4 venues survives
   one missing venue, not two.
 - **Cost on mainnet.** Publishing every 30 s on Ethereum would cost an estimated $60k to $110k a
-  year in gas (design audit estimate); production would publish on deviation plus a heartbeat, or
-  on an L2.
+  year in gas at 0.12 to 0.22 gwei and $2,700 per ETH: 175,253 gas per report (the median of 1,359
+  live Sepolia reports through the mock forwarder, to 7 October) times about 1.05 million reports a
+  year is about 184 ETH a year per gwei of gas price (about $500k a year at 1 gwei), before the DON
+  forwarder's signature checks. Production would publish on deviation plus a heartbeat, or on an L2.
 - **Fast chains.** With sub-second blocks the formula sits at the floor until an effective Δt (the
   arbitrageurs' reaction time) is calibrated.
 - **Test liquidity router.** The pools' seed liquidity and the positions added at `/lp` go through

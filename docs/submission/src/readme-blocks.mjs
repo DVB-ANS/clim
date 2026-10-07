@@ -24,9 +24,10 @@ export function link(url, text) {
 }
 
 // Until docs/evidence/ exists (plan 06 Task 13), "CRE evidence" points to the evidence section of cre/README.md.
+// The live URL is the site root (the landing page); the dashboard itself is at /app.
 export function renderLinks(links, { evidenceReady = false } = {}) {
   return [
-    link(links.liveUrl, "Open the dashboard"),
+    link(links.liveUrl && `${links.liveUrl.replace(/\/+$/, "")}/app`, "Open the dashboard"),
     link(links.videoUrl, "Video demo"),
     link(links.deckUrl, "Deck"),
     link(evidenceReady ? "docs/evidence/" : "cre/README.md#evidence", "CRE evidence"),
@@ -77,7 +78,11 @@ const DYNAMIC_FEE_FLAG = 0x800000;
 // no Sourcify link here.
 const SOURCIFY_VERIFIED = new Set(["riskDesks.live", "hooks.live", "riskDesks.replay", "hooks.replay", "tokens.tETH.address", "tokens.tUSD.address", "routers.arb"]);
 
-export function renderDeployments(deployments) {
+// The replay desk's own simOperator (contracts/deployments/11155111/desk-replay.json): the key that sent every replay
+// report. It is not in shared/deployments, so it is passed in separately and listed right after the live Operator.
+const REPLAY_OPERATOR_ROLE = "the replay desk's `simOperator`: sent all 459 of its simulated reports through `MockKeystoneForwarder` (simulation still on)";
+
+export function renderDeployments(deployments, { replayDesk = null } = {}) {
   const { addresses, poolIds } = collectAddresses(deployments);
   const byKey = new Map(addresses.map((a) => [a.label, a.address]));
   const known = new Set();
@@ -85,7 +90,12 @@ export function renderDeployments(deployments) {
     group,
     entries.flatMap(([key, label, role]) => {
       known.add(key);
-      return byKey.has(key) ? [{ label, address: byKey.get(key), role, verified: SOURCIFY_VERIFIED.has(key) }] : [];
+      const row = byKey.has(key) ? [{ label, address: byKey.get(key), role, verified: SOURCIFY_VERIFIED.has(key) }] : [];
+      const replayOp = replayDesk?.simOperator;
+      if (key === "deployer" && /^0x[0-9a-fA-F]{40}$/.test(replayOp ?? "") && replayOp.toLowerCase() !== byKey.get(key)?.toLowerCase()) {
+        row.push({ label: "Operator (replay)", address: replayOp, role: REPLAY_OPERATOR_ROLE, verified: false });
+      }
+      return row;
     }),
   ]);
   groups.push(["Other", addresses.filter((a) => !known.has(a.label)).map((a) => ({ label: `\`${a.label}\``, address: a.address, role: "", verified: false }))]);
@@ -207,13 +217,13 @@ const SOURCES = {
   team: "docs/submission/team.json",
 };
 
-export function renderAll({ deployments, params, backtest, replay, validation, links, evidence, team }) {
+export function renderAll({ deployments, params, backtest, replay, validation, links, evidence, team, replayDesk = null }) {
   return {
     links: links ? renderLinks(links, { evidenceReady: Boolean(evidence) }) : pending(SOURCES.links),
     results: backtest && replay ? renderResults(backtest, replay, validation) : pending(SOURCES.results),
     params: params ? renderParams(params) : pending(SOURCES.params),
     "fee-schedule": params ? renderFeeSchedule(params) : pending(SOURCES["fee-schedule"]),
-    deployments: deployments ? renderDeployments(deployments) : pending(SOURCES.deployments),
+    deployments: deployments ? renderDeployments(deployments, { replayDesk }) : pending(SOURCES.deployments),
     evidence: evidence ? renderEvidence(evidence) : pending(SOURCES.evidence),
     team: team ? renderTeam(team) : pending(SOURCES.team),
   };

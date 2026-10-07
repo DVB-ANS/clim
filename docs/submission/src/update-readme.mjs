@@ -15,6 +15,7 @@ const inputs = {
   links: load(P.links),
   evidence: load(P.evidence),
   team: load(P.team),
+  replayDesk: load(P.replayDesk),
 };
 
 if (inputs.params && provisionalErrors(inputs.params).length) {

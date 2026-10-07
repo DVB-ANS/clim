@@ -1,4 +1,4 @@
-// Prints OK / MISSING / INVALID for every input of the README and the deck. Usage: node src/check-inputs.mjs [--final]
+// Prints OK / MISSING / INVALID for every input of the README generator (deck v2 is checked by deck/build-deck.mjs, which reads deck/v2/slides.json and live.json). Usage: node src/check-inputs.mjs [--final]
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { P, REPO_ROOT } from "./paths.mjs";
@@ -10,6 +10,7 @@ const items = [
     ...(collectAddresses(d).addresses.length ? [] : ["no 0x address found"]),
     ...(deskAddresses(d).length ? [] : ["no address under a key containing 'desk'"]),
   ]],
+  [P.replayDesk, (d) => (/^0x[0-9a-fA-F]{40}$/.test(d.simOperator ?? "") ? [] : ["simOperator: not a 0x address"])],
   [P.params, (d) => [...check(PARAMS_SPEC, d), ...provisionalErrors(d)]],
   [P.backtest, (d) => [...schemaErrors(d, BACKTEST_SCHEMA), ...check(BACKTEST_SPEC, d)]],
   [P.replay, (d) => [...schemaErrors(d, REPLAY_SCHEMA), ...check(REPLAY_SPEC, d)]],
