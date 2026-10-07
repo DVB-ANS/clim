@@ -29,8 +29,7 @@ export function syncData({ repoRoot, appRoot }) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const appRoot = dirname(dirname(fileURLToPath(import.meta.url)));
-  // CLIM_ROOT points at the clim repo while the app is still a separate checkout (clim-front);
-  // inside clim/app the default (the parent directory) is the repo.
+  // The repo root is the parent of app/; CLIM_ROOT overrides it.
   const repoRoot = process.env.CLIM_ROOT ? resolve(process.env.CLIM_ROOT) : dirname(appRoot);
   console.table(syncData({ repoRoot, appRoot }));
 }

@@ -9,6 +9,17 @@ redistributed as a component library, a kit or a template.
 - Package: [`motion`](https://www.npmjs.com/package/motion) (motion/react), an npm dependency: the one animation library of the ported components.
 - Licence: MIT, Copyright (c) 2024 Motion B.V. (node_modules/motion/LICENSE.md).
 
+## ua-parser-js
+
+- Package: [`ua-parser-js`](https://github.com/faisalman/ua-parser-js) 2.0.10, unmodified. It is an npm dependency of `@rainbow-me/rainbowkit` 2.2.11, which calls it to detect the browser and operating system in its wallet modal, and it is bundled into the site's JavaScript.
+- Licence: GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later), Copyright © 2012-2026 Faisal Salman (`node_modules/ua-parser-js/LICENSE.md`; full text at https://www.gnu.org/licenses/agpl-3.0.html).
+- Source: the library's source is at https://github.com/faisalman/ua-parser-js (version 2.0.10). The source of this application, which bundles it, is public at https://github.com/DVB-ANS/clim (`app/`); `app/package-lock.json` pins the exact version.
+
+## MetaMask SDK
+
+- Packages: `@metamask/sdk` 0.33.1, with `@metamask/sdk-communication-layer` 0.33.1 and `@metamask/sdk-install-modal-web` 0.32.1, unmodified. wagmi's MetaMask connector (`@wagmi/connectors` 6.2.0, through wagmi 2.19.5 and RainbowKit 2.2.11) references it, so it is part of the site's build as a lazily loaded chunk. clim's wallet list does not use that connector (`src/lib/wallet.ts`): MetaMask is offered as an installed wallet (EIP-6963) or through the browser's injected provider, so a visitor's browser does not load the SDK.
+- Notice: the MetaMask SDK is used in this application and is the copyright of ConsenSys Software Inc. ("Copyright ConsenSys Software Inc. 2022. All rights reserved."). It is used under the licence shipped with each package (`node_modules/@metamask/sdk/LICENSE`), which permits non-commercial use only and requires this notice with each copy. clim is a hackathon demo with no commercial use.
+
 ## React Bits
 
 [React Bits](https://reactbits.dev), github.com/DavidHDev/react-bits. Licence (LICENSE.md at the repository root):
