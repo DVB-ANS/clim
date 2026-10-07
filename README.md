@@ -13,7 +13,7 @@
 **TOKEN2049 Origins · Singapore, October 2026 · Main track and Chainlink "Best workflow with CRE"**
 
 <!-- clim:begin links -->
-**[Open the dashboard](https://clim-zeta.vercel.app/app)** · **Video demo** _(added at submission)_ · **Deck** _(added at submission)_ · **[CRE evidence](cre/README.md#evidence)** · **[CRE DevEx report](docs/feedback/cre-devex-report.md)** · **[CRE friction log](docs/feedback/cre-friction-log.md)**
+**[Open the dashboard](https://clim-zeta.vercel.app/app)** · **Video demo** _(added at submission)_ · **Deck** _(added at submission)_ · **[CRE evidence](docs/evidence/)** · **[CRE DevEx report](docs/feedback/cre-devex-report.md)** · **[CRE friction log](docs/feedback/cre-friction-log.md)**
 <!-- clim:end links -->
 
 </div>
@@ -411,7 +411,29 @@ a forged report the desk ignored and a sample run with its transaction are in
 transcripts are generated at submission:
 
 <!-- clim:begin evidence -->
-_Pending: generated from `docs/evidence/cre-reports-sepolia.json` at submission._
+Collected 2026-10-07T10:09:52.005Z from Sepolia blocks 11853147 to 11862296 (`RiskReported` events).
+
+**`riskDesks.live`** [`0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F`](https://sepolia.etherscan.io/address/0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F): 2025 reports written by the CRE workflow. Latest 5:
+
+| seq | Observed (UTC) | Volatility applied (annualized) | Venues | Dispersion | Transaction |
+|---|---|---|---|---|---|
+| 2025 | 2026-10-07 10:09:24 | 111.8% | 4 | 3 bp | [`0x86c9…33fe`](https://sepolia.etherscan.io/tx/0x86c95b42ed26250f8618fc2afebef06c0e9e9c0ac007f07603c6511bb1a833fe) |
+| 2024 | 2026-10-07 10:08:55 | 109.3% | 4 | 1 bp | [`0x96a8…f5da`](https://sepolia.etherscan.io/tx/0x96a8e560ed2354aaa7a7e6f574b824d326f2d1f4de16691bfd51dd6b8755f5da) |
+| 2023 | 2026-10-07 10:08:25 | 60.6% | 4 | 1 bp | [`0x4d36…c727`](https://sepolia.etherscan.io/tx/0x4d36c3de85bdebdce19148b55b9777ca9d1eb699c7637b7581b8ba18c312c727) |
+| 2022 | 2026-10-07 10:07:55 | 30.3% | 4 | 2 bp | [`0xf652…99fc`](https://sepolia.etherscan.io/tx/0xf652b717f3c4986942b689550855ee2703bba8efd07eebf5c58b8664aaad99fc) |
+| 2021 | 2026-10-07 10:07:25 | 30.3% | 4 | 2 bp | [`0xc18e…4818`](https://sepolia.etherscan.io/tx/0xc18ed851097849f9b204a6ed0f0f56f6de97cb2ba863e0ac59ac0059b2924818) |
+
+**`riskDesks.replay`** [`0x4b843dc3A7ec6202d2337cdeF8C67a0F10f24746`](https://sepolia.etherscan.io/address/0x4b843dc3A7ec6202d2337cdeF8C67a0F10f24746): 459 reports written by the CRE workflow. Latest 5:
+
+| seq | Observed (UTC) | Volatility applied (annualized) | Venues | Dispersion | Transaction |
+|---|---|---|---|---|---|
+| 459 | 2026-10-06 20:58:37 | 143.7% | 4 | 0 bp | [`0xe602…1b89`](https://sepolia.etherscan.io/tx/0xe602e6ff903c1821a3fe5f1f4a2bb9b4590606d80bb5985fea92995691921b89) |
+| 458 | 2026-10-06 20:58:07 | 143.7% | 4 | 0 bp | [`0xa8c5…6215`](https://sepolia.etherscan.io/tx/0xa8c5e21d7745a3b4e1628e16cabbd8c9cd1a5607475b92850a9deb3f35096215) |
+| 457 | 2026-10-06 20:57:38 | 143.7% | 4 | 0 bp | [`0x0734…c98b`](https://sepolia.etherscan.io/tx/0x0734d8f36efff686e4920180d92258b512355eabb87144e1f42de5750d09c98b) |
+| 456 | 2026-10-06 20:57:06 | 143.7% | 4 | 0 bp | [`0x3fa3…bce3`](https://sepolia.etherscan.io/tx/0x3fa33e28be732665e4a88204c8616abe14fd06ec9bcb800f3f30dc936f1ebce3) |
+| 455 | 2026-10-06 20:56:38 | 137.8% | 4 | 0 bp | [`0xa9d4…c008`](https://sepolia.etherscan.io/tx/0xa9d4b451eb44956b0ee477b9e513503e492573e0f54523586634b4674ec2c008) |
+
+Raw `cre workflow simulate` transcripts are in [docs/evidence](docs/evidence/).
 <!-- clim:end evidence -->
 
 ## Getting started

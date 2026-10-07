@@ -1,0 +1,6 @@
+=== 2026-10-07T10:06:53Z
+2026-10-07T10:06:55Z [USER LOG] node: sources=coinbase,kraken,binance,hyperliquid n=4 tEnd=1791367500 price=2594.84 rv15=32.0% disp=3bp tick=78616 dvol=47.18
+2026-10-07T10:06:55Z [USER LOG] consensus: sigma=32.0%/yr sigmaE9=56977 n=4 disp=3bp tick=78616 dvol=47.18 price=2594.84 tObs=1791367615
+2026-10-07T10:06:55Z [USER LOG] desk before: seq=2019 tObs=1791367584 sigma=32.0%/yr flags=0
+2026-10-07T10:07:01Z [USER LOG] Write report transaction succeeded: 0x6e4e157a8f3348087bba956ede5b840c30d37855971cda3b655a00218d83c51d
+2026-10-07T10:07:01Z [USER LOG] REPORT applied seq=2020 sigmaReported=32.0% sigmaApplied=32.0% flags=0 tx=0x6e4e157a8f3348087bba956ede5b840c30d37855971cda3b655a00218d83c51d
