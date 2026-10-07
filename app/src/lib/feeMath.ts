@@ -21,7 +21,13 @@ export type DeskState = { tObs: number; sigmaE9: number; kE4: number; flags: num
 
 export type Quote = { feePips: number; mode: FeeMode };
 
-const SCALE = 10n ** 17n;
+/** k = 1: the desk's neutral model-risk multiplier (kE4 runs from 10,000 to 20,000); this build always sends it. */
+export const K_E4_NEUTRAL = 10_000;
+
+/** sigmaE9 · etaE4 · sqrtHalfDtE6 · kE4 carries 10^(9 + 4 + 6 + 4); fees are in pips (10^-6), so the hook divides by 10^17. */
+export const FEE_SCALE_EXP = 17;
+
+const SCALE = 10n ** BigInt(FEE_SCALE_EXP);
 
 /** fee_pips = clamp(ceil(sigmaE9 * etaE4 * sqrtHalfDtE6 * kE4 / 1e17), feeMinPips, feeMaxPips) */
 export function feePips(

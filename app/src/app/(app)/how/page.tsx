@@ -1,45 +1,17 @@
 import type { Metadata } from "next";
-import ReactMarkdown, { type Components } from "react-markdown";
-import remarkGfm from "remark-gfm";
+import Link from "next/link";
 import { ContractsPanel } from "@/components/ContractsPanel";
+import { FaqHashOpener } from "@/components/how/FaqHashOpener";
+import { FaqList } from "@/components/how/FaqList";
+import { FeeFormula, FeeTable } from "@/components/how/FeeFormula";
 import { Panel } from "@/components/ui";
-import { FAQ_MD } from "@/generated/faq";
 import { params } from "@/lib/config";
-import { feePips } from "@/lib/feeMath";
-import { predictedPTrade } from "@/lib/ptrade";
-import { annualPctToSigmaE9, pipsToBp } from "@/lib/units";
+import { pipsToBp } from "@/lib/units";
+import "./how.css";
 
 export const metadata: Metadata = { title: "How it works" };
 
-const EXAMPLES = [25, 50, 100, 150, 225];
-
-// The FAQ sits under this page's "FAQ" panel (an h2): its own "# clim FAQ" title is dropped, its questions
-// become h3, and its code blocks and tables, which scroll sideways on a phone, take keyboard focus.
-/** react-markdown hands each component its syntax-tree `node`, which must not reach the DOM. */
-function dom<P extends { node?: unknown }>(props: P): Omit<P, "node"> {
-  const rest = { ...props };
-  delete rest.node;
-  return rest;
-}
-
-const FAQ_COMPONENTS: Components = {
-  h1: () => null,
-  h2: (p) => <h3 {...dom(p)} />,
-  h3: (p) => <h4 {...dom(p)} />,
-  pre: (p) => <pre role="region" aria-label="FAQ code block" tabIndex={0} {...dom(p)} />,
-  table: (p) => (
-    <div className="mt-2 overflow-x-auto focus-visible:outline-2 focus-visible:outline-accent" role="region" aria-label="FAQ table" tabIndex={0}>
-      <table {...dom(p)} />
-    </div>
-  ),
-};
-
 export default function HowPage() {
-  const rows = EXAMPLES.map((s) => {
-    const sigma = annualPctToSigmaE9(s);
-    const fee = feePips(sigma, params.etaE4, params.sqrtHalfDtE6, 10_000, params.feeMinPips, params.feeMaxPips);
-    return { s, fee, p: predictedPTrade(fee, sigma, params.sqrtHalfDtE6) };
-  });
   return (
     <div className="space-y-4">
       <h1 className="font-display text-[40px] font-normal leading-[1.1] tracking-[-0.02em]">How clim works</h1>
@@ -66,33 +38,26 @@ export default function HowPage() {
           stays between {pipsToBp(params.feeMinPips)} and {pipsToBp(params.feeMaxPips)} bp. On a DON, only the nodes&apos; signed reports count.
         </p>
       </Panel>
-      <Panel title="2. The hook reads the weather on every swap (Uniswap v4 hook)">
+      <Panel id="premium" title="2. Every swap pays the weather's premium (Uniswap v4 hook)">
         <p className="text-sm">
-          Nobody sends a transaction to change the fee. On every swap the Uniswap v4 PoolManager calls the hook&apos;s
-          <code> beforeSwap</code>; the hook reads <code>RiskDesk.state()</code>, computes the fee and returns it with
-          <code> OVERRIDE_FEE_FLAG</code>. The same fee applies in both directions and does not depend on the pool&apos;s own state,
-          so splitting a trade or sandwiching it does not change it.
+          Nobody sends a transaction to change the fee. Inside every swap, Uniswap v4&apos;s PoolManager calls the hook&apos;s{" "}
+          <code>beforeSwap</code>. The hook reads the desk&apos;s latest report from <code>RiskDesk.state()</code>, prices a premium from it
+          and returns that premium as the swap&apos;s LP fee, flagged with <code>OVERRIDE_FEE_FLAG</code>. The premium is the same whichever
+          way you trade and ignores the pool&apos;s own state, so splitting a trade or sandwiching it does not change it.
         </p>
-        <pre role="region" aria-label="Fee formula" tabIndex={0} className="mt-2 overflow-x-auto rounded-sm bg-surface-2 p-2 text-xs focus-visible:outline-2 focus-visible:outline-accent">
-          fee = clamp(η · σ · √(Δt/2) · k, {pipsToBp(params.feeMinPips)} bp, {pipsToBp(params.feeMaxPips)} bp),  η = 1/P* − 0.824 = {(params.etaE4 / 1e4).toFixed(3)},  Δt = 12 s,  k = 1
-        </pre>
         <p className="mt-2 text-sm">
-          η is chosen so that, when the floor does not bind, a share P* = {(params.pStar * 100).toFixed(0)}% of blocks gets
-          arbitraged (Milionis-Moallemi-Roughgarden 2023, fixed-block form by Nezlobin-Tassy 2025). That prediction is checked
-          continuously on the dashboard.
+          Why a premium: LPs lose money to arbitrageurs every time the market moves before the pool does, and they lose more when it moves
+          fast. So the premium grows with volatility, like storm insurance: small in calm weather, larger in a storm.
         </p>
-        <div className="mt-3 overflow-x-auto focus-visible:outline-2 focus-visible:outline-accent" role="region" aria-label="Fee and predicted arbitrage at several volatilities" tabIndex={0}>
-        <table className="text-sm tabular-nums">
-          <thead>
-            <tr className="text-left text-xs text-fg-subtle"><th className="pr-6">σ (annualised)</th><th className="pr-6">Fee</th><th>Predicted share of arbitraged blocks</th></tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.s}><td className="pr-6">{r.s}%</td><td className="pr-6">{pipsToBp(r.fee).toFixed(2)} bp</td><td>{(r.p * 100).toFixed(1)}%</td></tr>
-            ))}
-          </tbody>
-        </table>
-        </div>
+        <FeeFormula />
+        <FeeTable />
+        <p className="mt-6 text-sm">
+          The{" "}
+          <Link href="/app" className="text-link underline">
+            dashboard
+          </Link>{" "}
+          checks the predicted share against the arbitrage it sees on pool V, block by block.
+        </p>
       </Panel>
       <Panel title="3. When the stations go quiet">
         <p className="text-sm">
@@ -101,13 +66,10 @@ export default function HowPage() {
         </p>
       </Panel>
       <ContractsPanel />
-      <Panel id="faq" title="FAQ">
-        <div className="text-sm [&_pre]:mt-2 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:rounded-sm [&_pre]:bg-surface-2 [&_pre]:p-2 [&_pre:focus-visible]:outline-2 [&_pre:focus-visible]:outline-accent [&_code]:text-xs [&_code]:wrap-anywhere [&_h3]:mt-6 [&_h3]:text-base [&_h3]:font-semibold [&_hr]:my-4 [&_li]:ml-5 [&_li]:list-disc [&_p]:mt-2 [&_td]:pr-4 [&_th]:pr-4 [&_th]:text-left">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} components={FAQ_COMPONENTS}>
-            {FAQ_MD}
-          </ReactMarkdown>
-        </div>
-      </Panel>
+      <section id="faq" aria-labelledby="faq-title" className="pt-12">
+        <FaqList />
+        <FaqHashOpener />
+      </section>
     </div>
   );
 }
