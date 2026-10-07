@@ -31,8 +31,3 @@ function subscribe(onChange: () => void) {
 export function useMotionPaused(): boolean {
   return useSyncExternalStore(subscribe, isMotionPaused, () => false);
 }
-
-/** Calls `onChange` whenever the switch flips (the canvases repaint once on a pause, then hold still). */
-export function onMotionPauseChange(onChange: () => void): () => void {
-  return subscribe(onChange);
-}

@@ -216,5 +216,3 @@ export function StatusMark({
     </span>
   );
 }
-
-export default StatusMark;

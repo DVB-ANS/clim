@@ -36,11 +36,6 @@ export function fullRangeParams(tickSpacing: number, liquidityDelta: bigint, use
   return { ...fullRangeTicks(tickSpacing), liquidityDelta, salt: saltFor(user) };
 }
 
-/** sqrt of the pool price (token1 per token0) from the ETH/USD price and the pool orientation. */
-export function sqrtPriceOf(ethUsd: number, token0IsEth: boolean): number {
-  return Math.sqrt(token0IsEth ? ethUsd : 1 / ethUsd);
-}
-
 function sqrtAtTick(tick: number): number {
   return Math.exp((tick * Math.log(1.0001)) / 2);
 }

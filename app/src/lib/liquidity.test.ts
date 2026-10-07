@@ -9,7 +9,6 @@ import {
   proRata,
   saltFor,
   shareOf,
-  sqrtPriceOf,
   valueUsd,
 } from "./liquidity";
 import type { PnlRow } from "./pnl";
@@ -34,14 +33,10 @@ describe("saltFor", () => {
 describe("position math (full range, 18/18 decimals)", () => {
   const { tickLower, tickUpper } = fullRangeTicks(60);
 
-  it("reads sqrt(price) from the pool orientation", () => {
-    expect(sqrtPriceOf(2_500, true)).toBeCloseTo(50, 12);
-    expect(sqrtPriceOf(2_500, false)).toBeCloseTo(0.02, 12);
-  });
-
   it("buys about x * sqrt(P) of liquidity with x ETH, in either orientation", () => {
-    const L0 = liquidityForEth(1e18, sqrtPriceOf(2_500, true), tickLower, tickUpper, true);
-    const L1 = liquidityForEth(1e18, sqrtPriceOf(2_500, false), tickLower, tickUpper, false);
+    // ETH at 2,500 USD: sqrt price 50 with ETH as token0, sqrt(1 / 2,500) = 0.02 with ETH as token1
+    const L0 = liquidityForEth(1e18, 50, tickLower, tickUpper, true);
+    const L1 = liquidityForEth(1e18, 0.02, tickLower, tickUpper, false);
     expect(L0 / 5e19).toBeCloseTo(1, 6);
     expect(L1 / 5e19).toBeCloseTo(1, 6);
   });
