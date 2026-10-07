@@ -19,7 +19,7 @@ export const V2_DIR = path.join(SUBMISSION_DIR, "deck/v2");
 export const MAX_DECK_MB = 95; // under Drive's 100 MB preview limit, with margin for the pptx container
 const SLIDE_W = 13.333; // LAYOUT_WIDE, inches
 const SLIDE_H = 7.5;
-const PX = SLIDE_W / 1920; // the Figma frames are 1920 x 1080
+const PX = SLIDE_W / 1920; // slides.json video slots are in 1920 x 1080 units (half the 3840 x 2160 Figma frames and PNGs)
 const AUDIO_KBPS = 128;
 
 export function loadManifest(dir = V2_DIR) {

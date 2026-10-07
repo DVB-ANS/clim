@@ -119,6 +119,8 @@ test("evidence lists the latest reports newest first", () => {
   const rows = out.split("\n").filter((l) => l.startsWith("| 2 ") || l.startsWith("| 1 "));
   assert.equal(rows[0].slice(0, 4), "| 2 ");
   assert.match(rows[0], /\| 30\.9% \| 3 \| 4 bp \|/);
+  assert.match(out, /the workflow's own `\[USER LOG\]` lines, as the loop recorded them; not the CLI's full output\) are in \[docs\/evidence\]/);
+  assert.doesNotMatch(out, /Raw /);
 });
 
 test("renderAll marks missing inputs as pending", () => {

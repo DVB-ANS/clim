@@ -22,7 +22,7 @@ export function evidenceText(f) {
     `First report: ${tx("0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6")}`,
     `Forged report, mined, ignored: ${tx("0x34ee46a6947d2831fdb3e5a09f831008589efd9cf099f61dca86dc4cdadc53d9")}`,
     "One run: consensus: sigma=12.4%/yr n=4 disp=3bp price=2694.85 > REPORT applied seq=227",
-    `Transcripts and every tx: ${f.repoUrl}/tree/main/docs/evidence`,
+    `Run logs and every tx: ${f.repoUrl}/tree/main/docs/evidence`,
     ...(f.videoUrl ? [`Demo video: ${f.videoUrl}`] : []),
   ].join("\n");
 }

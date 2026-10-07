@@ -198,7 +198,7 @@ export function renderEvidence(evidence) {
       ...latest.map((x) => `| ${x.seq} | ${utc(x.tObs)} | ${pct(annualFromSigmaE9(x.sigmaApplied))} | ${x.nSources} | ${x.dispBp} bp | [\`${short(x.txHash)}\`](${ETHERSCAN}/tx/${x.txHash}) |`),
     );
   }
-  out.push("", "Raw `cre workflow simulate` transcripts are in [docs/evidence](docs/evidence/).");
+  out.push("", "Log lines of a few `cre workflow simulate --broadcast` runs (the workflow's own `[USER LOG]` lines, as the loop recorded them; not the CLI's full output) are in [docs/evidence](docs/evidence/).");
   return out.join("\n");
 }
 

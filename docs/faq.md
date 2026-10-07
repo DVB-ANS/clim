@@ -1,6 +1,6 @@
 # clim FAQ
 
-A Chainlink mentor asked two of these questions at TOKEN2049 Origins on 6 October 2026: how the fee is changed and computed (the first two answers) and whether a pool that is already live can switch to clim (the third). The others are the ones we expect from judges. Precise answers. Code references point to this repository and to [Uniswap v4 core](https://github.com/Uniswap/v4-core).
+A Chainlink mentor asked two of these questions at TOKEN2049 Origins on 6 October 2026: how the fee is changed and computed (the first two answers) and whether a pool that is already live can switch to clim (the third). A Chainlink judge suggested the last one at the booth on 7 October 2026. The others are the ones we expect from judges. Precise answers. Code references point to this repository and to [Uniswap v4 core](https://github.com/Uniswap/v4-core).
 
 ## How is the fee computed?
 
@@ -104,7 +104,7 @@ On a DON, once the expected workflow ID is pinned, simulation disabled and owner
 
 ## Why not set the fee from volume too?
 
-A judge suggested it at the booth on 7 October 2026: the fee should also read the pool's own volume, to attract traders when the pool lacks volume, and rest on established methods. It is on the roadmap, not in this build.
+A Chainlink judge suggested it at the booth on 7 October 2026: the fee should also read the pool's own volume, to attract traders when the pool lacks volume, and rest on established methods. It is on the roadmap, not in this build.
 
 **What is built.** The fee reads volatility only. Volume is not an input to the workflow, to `RiskDesk` or to `ClimHook`, and the workflow sends k = 1 in every report.
 

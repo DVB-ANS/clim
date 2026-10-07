@@ -265,8 +265,8 @@ last updated on 2024-08-30): a storm that lasts an hour barely moves them ([FAQ]
 
 ## What building it made visible
 
-We logged CRE frictions as we built: 25 rows in the
-[friction log](docs/feedback/cre-friction-log.md), 23 of them hit while building and 2 from reading
+We logged CRE frictions as we built: 27 rows in the
+[friction log](docs/feedback/cre-friction-log.md), 25 of them hit while building and 2 from reading
 the docs only, summarized for the Chainlink team in the
 [DevEx report](docs/feedback/cre-devex-report.md). The three most useful to Chainlink:
 
@@ -291,7 +291,9 @@ the docs only, summarized for the Chainlink team in the
   of our two 30 s loops (live and replay) on 2026-10-06 stopped there. On 2026-10-07 a network
   outage on our side stopped 27 live runs at that check, so the live desk went silent and the hook
   charged its 30 bp safe fee, as designed, for about 8 minutes (04:33:00 to 04:40:24 and 04:48:12
-  to 04:48:36 UTC, block times); one retail swap paid it (friction log rows 1 and 24).
+  to 04:48:36 UTC, block times); one retail swap paid it. Later that day, with our network up, the
+  check also timed out while the CRE API was slow (`context deadline exceeded`), and the live desk
+  came within 13 s of blind mode (friction log rows 1 and 24).
 
 ## What's live vs. simulated
 
@@ -299,13 +301,13 @@ the docs only, summarized for the Chainlink team in the
 |---|---|---|
 | Contracts on Sepolia | ✅ live | Both desks, both hooks, the clim pools and their fixed-fee twins, test tokens with a public faucet; clim's own contracts are verified on Sourcify ([addresses](#deployed-addresses)) |
 | A CRE report every 30 s | ✅ live, from simulation | `cre workflow simulate --broadcast` in a loop since 2026-10-06 16:26 UTC: 444 reports on the live desk (`state().seq`, read 2026-10-06 20:29 UTC). Observation time (tObs) to block: median 14 s, p90 25 s over 211 reports (last 600 blocks to about 18:40 UTC on 2026-10-06) |
-| A real storm on the live desk | ✅ live | On 7 October 2026, real market data, not a replay: from 01:58 to 02:51 UTC, 100 of the live desk's 105 reports put the clim pool's fee above the 5 bp floor; volatility peaked at 242% a year and the fee at 26.50 bp (report observed at 02:11 UTC). Every one of the 105 swaps on the clim pool in that window paid exactly the formula's fee for the desk's state (`RiskReported` and `Swap` events read with `cast`) |
+| A real storm on the live desk | ✅ live | On 7 October 2026, real market data, not a replay: from 01:58 to 02:51 UTC, 100 of the live desk's 105 reports put the clim pool's fee above the 5 bp floor; volatility peaked at 242% a year and the fee at 26.50 bp (report observed at 02:11 UTC). Every one of the 105 swaps on the clim pool in that window paid exactly the formula's fee for the desk's state (`RiskReported` and `Swap` events read with `cast`) ([/replay#latest](https://clim-zeta.vercel.app/replay#latest)) |
 | DON consensus and signature checks | 🛣️ cut | The simulator runs one node and `MockKeystoneForwarder` checks no signature. DON deploy access was requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon (still "Not enabled" on 7 October), so the DON deployment was cut (friction log row 6). The workflow is written with the CRE consensus API for a DON and has not run on one |
 | Model-risk multiplier k | 🛣️ off (k = 1) | The model check runs in the lab (`lab/out/validation.json`); `RiskDesk` already clamps k to [1, 2], so turning it on is a workflow change |
 | The 4 February 2026 storm | ✅ replayed on Sepolia | Historical Binance prices, served at wall-clock speed by `bots/src/replay-server.ts` to a second CRE loop that writes to the replay desk (its REPLAY flag discloses it). Its loop started at 16:57 UTC on 2026-10-06 and wrote 459 reports, from 17:02 to 20:58 UTC; since then the replay desk is silent and its hook quotes the 30 bp safe fee |
 | The market | simulated | Our own arbitrage and retail bots trade the clim pool and its fixed-fee twin. No mainnet pool; volume moving to cheaper pools is only approximated; just-in-time liquidity is not modeled. The arbitrage bot keeps one transaction in flight per pool, so on chain it lands fewer arbitrages than the model's arbitrageur would: on the replay it arbitraged 21.5% of the clim pool's blocks against 29.6% predicted, but counting the 90 blocks it skipped while a trade was pending, it saw the pool outside its no-arbitrage band in 349 of 1,186 blocks (29.4%) |
 | Results | simulated | Lab backtests on historical Binance ETHUSDT data (`lab/out/`), not live P&L |
-| Dashboard | ✅ live, reads Sepolia | https://clim-zeta.vercel.app: the desk and both pools at `/app`, real Sepolia swaps and liquidity at `/swap` and `/lp` (test tokens from the faucet), the finished replay at `/replay`; numbers checked against `cast` reads |
+| Dashboard | ✅ live, reads Sepolia | https://clim-zeta.vercel.app: a guided path ("Start here"), the desk and both pools at `/app`, real Sepolia swaps and liquidity at `/swap` and `/lp` (test tokens from the faucet), the 7 October live storm and the finished 4 February replay at `/replay`; numbers checked against `cast` reads |
 
 ## Can a pool that is already live use clim?
 
@@ -339,12 +341,15 @@ Details in [docs/faq.md](docs/faq.md).
    and cap, and posts the result: no contract change on their side. This is our proposal to Fables,
    not an agreement: nothing runs on Robinhood Chain yet.
    We measured Fables' keeper on-chain before proposing it ([`lab/README.md`](lab/README.md#clim-vs-fables-keeper-11-september-2026)):
-   it is not a flat fee (it tracks volatility and posts its 60 bp cap at scheduled US releases), and
-   on the 11 September 2026 storm it lost about 10 % less to arbitrage than clim's rule at the same
-   average fee in our model, because it posted its cap in the very second of the CPI release, which
-   a 15-minute volatility measure cannot anticipate. What clim adds is a public, checkable rule fed
-   by four exchanges through CRE in place of one private key; the keeper's event overrides can sit on
-   top of the desk's measured baseline, which is what the shadow mode would test.
+   it is not a flat fee (it tracks volatility, and it had its 60 bp cap in place at the two scheduled
+   US releases we studied, CPI on 11 September and FOMC on 16 September), and on the 11 September
+   2026 storm clim's rule lost about 10 % more to arbitrage than the keeper at the same average fee
+   in our model, because the keeper posted its cap in the very second of the CPI release, which a
+   15-minute volatility measure cannot anticipate. What clim adds is a public, checkable rule fed by
+   four exchanges through CRE in place of one private key (fully so once the desk runs on a DON and
+   ownership is renounced, item 3; today clim's desk is also written by a single operator key, see
+   [How it works](#how-it-works)); the keeper's event overrides can sit on top of the desk's
+   measured baseline, which is what the shadow mode would test.
 2. **One desk, many chains: Sepolia is the proof, other EVM chains are configuration.** For the
    workflow, another EVM chain that CRE supports is a new target: the chain name and the desk
    address in its config, an RPC in `cre/project.yaml` (a mainnet also needs the `isTestnet` flag in
@@ -414,8 +419,8 @@ The canonical set, with full addresses, pool keys and pool ids, lives in [`share
 The first simulated report
 ([`0x60465523…1cb6`](https://sepolia.etherscan.io/tx/0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6)),
 a forged report the desk ignored and a sample run with its transaction are in
-[`cre/README.md`](cre/README.md#evidence). The full list of reports and the raw `simulate`
-transcripts are generated at submission:
+[`cre/README.md`](cre/README.md#evidence). The full list of reports and the workflow's own log
+lines from a few `simulate` runs are generated at submission:
 
 <!-- clim:begin evidence -->
 Collected 2026-10-07T10:09:52.005Z from Sepolia blocks 11853147 to 11862296 (`RiskReported` events).
@@ -440,7 +445,7 @@ Collected 2026-10-07T10:09:52.005Z from Sepolia blocks 11853147 to 11862296 (`Ri
 | 456 | 2026-10-06 20:57:06 | 143.7% | 4 | 0 bp | [`0x3fa3…bce3`](https://sepolia.etherscan.io/tx/0x3fa33e28be732665e4a88204c8616abe14fd06ec9bcb800f3f30dc936f1ebce3) |
 | 455 | 2026-10-06 20:56:38 | 137.8% | 4 | 0 bp | [`0xa9d4…c008`](https://sepolia.etherscan.io/tx/0xa9d4b451eb44956b0ee477b9e513503e492573e0f54523586634b4674ec2c008) |
 
-Raw `cre workflow simulate` transcripts are in [docs/evidence](docs/evidence/).
+Log lines of a few `cre workflow simulate --broadcast` runs (the workflow's own `[USER LOG]` lines, as the loop recorded them; not the CLI's full output) are in [docs/evidence](docs/evidence/).
 <!-- clim:end evidence -->
 
 ## Getting started
@@ -456,7 +461,8 @@ bun install                             # root workspace: shared and bots
                                         # (see .env.example) the 3 Sepolia fork tests skip: 73 passed, 2 skipped (75 total)
                                         # (forge counts the 2-test fork suite, skipped in setUp, as one)
 (cd lab && uv sync && uv run pytest)    # lab: backtests and model checks; a fresh clone has no lab/data/
-                                        # (gitignored), so 77 tests run and the 5 that read it skip
+                                        # (gitignored): 92 passed, 8 skipped (the 7 tests that read it, and
+                                        # the Fables figure test, which needs matplotlib)
 
 # CRE risk desk: one simulated run without a transaction (needs `cre login`)
 (cd cre/risk-desk && bun install)
@@ -588,10 +594,13 @@ own license:
   interfaces and libraries clim's own contracts import, BUSL-1.1 for `PoolManager` and some internal
   libraries, and UNLICENSED for its `src/test` routers. The local tests deploy `PoolManager` and,
   through v4-core's `Deployers`, compile solmate (AGPL-3.0-only, a submodule of v4-core). clim's
-  arbitrage router on Sepolia is v4-core's unmodified `PoolSwapTest`, compiled from the submodule:
-  it includes four of those BUSL-1.1 libraries (`Lock`, `CurrencyReserves`, `NonzeroDeltaCount`,
-  `Position`), a testnet, non-production use, which BUSL-1.1 permits. clim's own deployed contracts
-  (both desks, both hooks, tETH and tUSD) compile only MIT sources.
+  arbitrage router on Sepolia is v4-core's unmodified `PoolSwapTest`, compiled from the submodule.
+  Its own files (`PoolSwapTest`, `PoolTestBase`) are among those UNLICENSED test routers, which
+  Uniswap publishes for testing and deploys itself on Sepolia
+  (`0x9B6b46e2c869aa39918Db7f52f5557FE577B6eEe`). It also includes four of those BUSL-1.1 libraries
+  (`Lock`, `CurrencyReserves`, `NonzeroDeltaCount`, `Position`), used here on testnet only, a
+  non-production use that BUSL-1.1 permits. clim's own deployed contracts (both desks, both hooks,
+  tETH and tUSD) compile only MIT sources.
 - `app/` includes third-party components and npm dependencies with their own licenses: the adapted
   components and the non-permissive packages are described in
   [`app/THIRD_PARTY_NOTICES.md`](app/THIRD_PARTY_NOTICES.md) (also at
@@ -599,7 +608,8 @@ own license:
   [`app/public/third-party-licenses.txt`](app/public/third-party-licenses.txt) (also at
   [/third-party-licenses.txt](https://clim-zeta.vercel.app/third-party-licenses.txt)). Some are not
   permissive: two React Bits components are MIT + Commons Clause, the MetaMask SDK (through wagmi
-  and RainbowKit) is under ConsenSys' license, and `ua-parser-js` 2 (through RainbowKit) is AGPL-3.0.
+  and RainbowKit) is under ConsenSys' license, and `ua-parser-js` 2 (through RainbowKit) is
+  AGPL-3.0-or-later.
 - Other npm dependencies keep their own licenses, including `@chainlink/cre-sdk` (BUSL-1.1).
 
 <div align="center">

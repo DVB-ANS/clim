@@ -1,4 +1,5 @@
-// Collects CRE evidence for judges: RiskReported events from Sepolia plus curated `cre workflow simulate` transcripts.
+// Collects CRE evidence for judges: RiskReported events from Sepolia plus the per-run logs the CRE loop kept for a few
+// `cre workflow simulate` runs (the workflow's own [USER LOG] lines and any error line, not the CLI's full output).
 // Usage: node src/collect-evidence.mjs [--logs <dir with *.log transcripts>] [--max-logs 3]
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";

@@ -12,7 +12,7 @@
 
 clim is storm insurance for Uniswap v4 liquidity providers (LPs). When the market is calm, the pool charges the pair's usual market fee (5 bp for ETH/USDC). When volatility rises, the fee rises with it, in proportion to how far the price can move before the pool can reprice.
 
-- **The risk desk** is a Chainlink CRE workflow. Every 30 s it measures ETH realized volatility over the last 15 minutes on four venues (Coinbase, Kraken, Binance, Hyperliquid). It needs at least 3 of them to agree. It takes the median of each field with CRE's consensus API and writes a report to `RiskDesk.sol`. On a DON the nodes agree on that median and sign the report; the hackathon build runs the same workflow in the CRE simulator, on one node, through `MockKeystoneForwarder`, which checks no signature (§6.8).
+- **The risk desk** is a Chainlink CRE workflow. Every 30 s it measures ETH realized volatility over the last 15 minutes on four venues (Coinbase, Kraken, Binance, Hyperliquid). At least 3 of them must have fresh prices, or no report is written; if one is more than 25 bp from the median, the report is flagged degraded and the hook charges at least the 30 bp safe fee. It takes the median of each field with CRE's consensus API and writes a report to `RiskDesk.sol`. On a DON the nodes agree on that median and sign the report; the hackathon build runs the same workflow in the CRE simulator, on one node, through `MockKeystoneForwarder`, which checks no signature (§6.8).
 - **The quoting engine** is a Uniswap v4 hook (`ClimHook`). On every swap it reads `RiskDesk` and returns a symmetric LP fee with `OVERRIDE_FEE_FLAG`.
 - **The rule** comes from Milionis, Moallemi and Roughgarden (2023) and Nezlobin and Tassy (2025). Above the floor, it sets the fee so that a target share P\* of blocks is arbitraged. That gives a falsifiable prediction, which the lab and the dashboard check against what happens (in this build the desk sends k = 1 and zone = 0, §7.6).
 
@@ -468,8 +468,9 @@ A functional dashboard with wallet connect, restyled later (Frontend scope upgra
 | Page | Content |
 |---|---|
 | `/` | Landing: the problem, how it works, the live desk and both pools in widgets |
-| `/app` | The live dashboard (panels below) and the "Contracts on Sepolia" panel |
-| `/replay`, `/lab` | The 4 February 2026 replay and the lab's backtests (both comparisons, honest numbers) |
+| `/app` | The "Start here" guided path (watch it run, verify it on chain with Etherscan links, try it yourself), then the live dashboard (panels below) and the "Contracts on Sepolia" panel |
+| `/replay` | The 7 October 2026 storm priced live by the desk (`#latest`), then the 4 February 2026 replay |
+| `/lab` | The lab's backtests (both comparisons, honest numbers) |
 | `/how` | How the fee is computed, with the live parameters, and `docs/faq.md` |
 | `/swap` | `quoteFee()` before the swap ("you will pay X bp because the weather is Y"), a swap on V or S through `uniswap.poolSwapTest` (never `routers.arb`, so it counts as retail), then the fee actually paid, read from the `Swap` event |
 | `/lp` | `TestToken.faucet()`, full-range liquidity added to or removed from V or S through `PoolModifyLiquidityTest` with `salt` = the user's address, the position (`StateView.getPositionInfo`), uncollected fees and the P&L against the same liquidity in the twin pool. The test router does not authenticate removals by salt: testnet only, said on the page |
@@ -841,7 +842,7 @@ In the original plan, the acts followed plan 06's first demo script: live first 
 - One chart: the Feb 4 replay.
 - One number: predicted against observed P_trade.
 - Plus a "not one more hook" slide, a competition slide (§11), a ready answer to "why Chainlink?" (FAQ), the math in the appendix, and the answer to the mentor's question on live pools (§5).
-- **The submitted deck (2026-10-07, after a Chainlink judge said judges read the slides simply, for the idea and the criteria, want CRE explained a bit, and like a slide with our CRE feedback):** 10 slides and no appendix: the cover with the live URL, where the idea comes from, the idea (the fee follows the weather), how it works, the results with the 4 February replay, the prediction anyone can check ("not one more volatility fee"), what is live on Sepolia, the 30-second stage video, why Chainlink CRE and our feedback to Chainlink, and the roadmap (not a new DEX, a fee engine for existing ones, Fables first) with the team. What the appendix held, the math, the live-pool answer, safety, limits and the CRE evidence, is in the speaker notes, which a reader (or an AI) reads first. The slide list is plan 06's "Deck content, slide by slide"; the 20-slide version is archived in the Figma file.
+- **The submitted deck (2026-10-07, after a Chainlink judge said judges read the slides simply, for the idea and the criteria, want CRE explained a bit, and like a slide with our CRE feedback):** 10 slides and no appendix: the cover with the live URL, where the idea comes from, the idea (the fee follows the weather), how it works, the results (the one-year backtest and both comparisons; the 7 October live storm in the notes, the 4 February replay only in their unread sources), the prediction anyone can check ("not one more volatility fee"), what is live on Sepolia, the 30-second stage video, why Chainlink CRE and our feedback to Chainlink, and the roadmap (not a new DEX, a fee engine for existing ones, Fables first) with the team. What the appendix held, the math, the live-pool answer, safety, limits and the CRE evidence, is in the speaker notes, which a reader (or an AI) reads first. The slide list is plan 06's "Deck content, slide by slide"; the 20-slide version's PNGs are in git history (the maintainer deleted its Figma archive, section `162:2`, on 2026-10-07).
 
 **Never cut**
 - CRE → `onReport` → RiskDesk → hook f(σ̂), with its bounds and circuit breaker.

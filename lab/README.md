@@ -61,6 +61,8 @@ Sources: Binance `GET /api/v3/klines` (intervals `1s` and `1m`, symbol `ETHUSDT`
 
 ## clim vs Fables' keeper (11 September 2026)
 
+![11 September 2026, 12:30 to 16:30 UTC: Fables' keeper fee rebuilt from its on-chain logs, against clim's rule in the lab model, with Binance RV15](../docs/media/fables-compare.png)
+
 **Headline.** On 11 September 2026, 12:30 to 16:30 UTC, Fables' keeper fee on its ETH/USDG pool (Robinhood Chain) averaged 43.7 bp and sat at its 60 bp cap 42 % of the time. That fee is measured on-chain: it matches the fee paid by all 1,820 swaps. At the same average fee, the lab's arbitrage model has clim's rule (12 s blocks) losing 9.8 % more to arbitrage than the keeper's fee path. The keeper's edge is one poke: its 60 bp cap in the same second as the US CPI release (12:30:00 UTC), while clim's desk still read 48 %/yr (5.3 bp). The gap comes entirely from the next 15 minutes. Delay the keeper's pokes by 30 s, or start the window after the 12:30:12 block, and clim's rule loses 5 to 10 % less than the keeper at the same average fee. The keeper is not a flat fee with occasional overrides: over 30 days its fee correlates 0.83 with RV15.
 
 **Method, in three lines.**

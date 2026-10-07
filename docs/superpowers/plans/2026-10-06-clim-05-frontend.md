@@ -3186,7 +3186,7 @@ git commit -m "feat(app): sync shared/, lab/out and docs/faq.md into the app wit
 
 ### Task 14: Lab fixtures, first sync, config modules
 
-Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `f289f29`. Today every source reads `repo` (`npm run sync` at `d05ee94`, session log 2026-10-07) and the suite is 24 files, 211 tests (21 and 170 at the import; the timeWindow, faq and ledger tests were added on 2026-10-07 in `e9aab85`, `3d0ae57` and `4dedb1b`, and 6 ledger and story tests in `c2ef0e5`, then net +1 in audit round 3 (a story test in `080884f`, the sqrtPriceOf test removed in `c9347f4`, a FAQ order test in `2dca157`)).
+Done in DVB-ANS/clim-front, imported into app/ by master Task 14 (subtree 758ab5a); clim-front commit `f289f29`. Today every source reads `repo` (`npm run sync` at `d05ee94`, session log 2026-10-07) and the suite is 30 files, 265 tests at `1a246b3` (21 and 170 at the import; the timeWindow, faq and ledger tests were added on 2026-10-07 in `e9aab85`, `3d0ae57` and `4dedb1b`, and 6 ledger and story tests in `c2ef0e5`, then net +1 in audit round 3 (a story test in `080884f`, the sqrtPriceOf test removed in `c9347f4`, a FAQ order test in `2dca157`): 24 files, 211 tests; then the audit round 4 fixes `a078171`, the guided path on /app `d57c3c5` (29 files, 256 tests) and /replay's 7 October storm `d6262e3`, session log 2026-10-07).
 
 **Delegable:** yes
 **Depends on:** Tasks 7, 12, 13

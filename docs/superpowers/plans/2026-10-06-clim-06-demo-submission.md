@@ -6,7 +6,7 @@
 
 **Architecture:** A small Node.js package in `docs/submission/` (plain ES modules, `node:test`, no build step; the fee formula is imported from plan 04's `shared/src/units.ts`, which Node 22 loads directly) reads the single sources of truth (`shared/deployments/sepolia.json`, `shared/params.json`, `lab/out/backtest-summary.json`, `lab/out/replay-2026-02-04.json`, on-chain `RiskReported` events) and generates (1) the numeric blocks of `README.md` between `<!-- clim:begin X -->` markers, (2) `docs/evidence/` (CRE evidence), and (3) the deck `docs/submission/out/clim.pptx`, assembled with pptxgenjs from the slides the maintainer designs in Figma (deck v2 since 2026-10-07, cut to 10 slides the same day: one full-bleed PNG per slide, the slide text and speaker notes from `deck/v2/slides.json`, the 30-second stage cut of the demo video he records embedded, re-encoded with ffmpeg when needed; the full video goes on Google Drive and its link is the Project link). One Python script (run with `uv run --no-project`) draws the README figure. No number in the README or the evidence is typed by hand; the numbers on the slides are typed in Figma from the same sources, which each slide's speaker notes name, and the live report count comes from `deck/v2/live.json`.
 
-**Tech Stack:** Node.js 22 (ES modules, `node:test`), pptxgenjs 4.0.1, viem 2.57.3, Python 3 via uv (matplotlib, Pillow, pytest), Figma (the slides, exported at 2x), ffmpeg/ffprobe (video checks and re-encoding), Foundry `cast` (the live report count), LibreOffice run from its disk image (slide render), Microsoft PowerPoint for Mac (installed) for the final playback check, the `anthropic-skills:pptx` skill for deck QA, Google Drive (browser), Builderbase (submission platform), `gh`.
+**Tech Stack:** Node.js 22 (ES modules, `node:test`), pptxgenjs 4.0.1, viem 2.57.3, Python 3 via uv (matplotlib, Pillow, pytest), Figma (the slides, 3840 x 2160 frames exported at 1x), ffmpeg/ffprobe (video checks and re-encoding), Foundry `cast` (the live report count), LibreOffice run from its disk image (slide render), Microsoft PowerPoint for Mac (installed) for the final playback check, the `anthropic-skills:pptx` skill for deck QA, Google Drive (browser), Builderbase (submission platform), `gh`.
 
 All commands below use absolute paths because subagent shells reset their working directory. `CLIM` means `/Users/fianso/Development/hackathons/clim`.
 
@@ -69,7 +69,7 @@ Task 12 runs `npm run check`, which prints OK, MISSING or INVALID for each input
 ## Deviations from the canonical layout (explicit)
 
 - `docs/submission/`: submission tooling (README generator, evidence collector, CRE evidence text, deck assembler and its Figma exports, README figure). Generated files and the stage cut of the demo video go to `docs/submission/out/` (gitignored).
-- `docs/evidence/`: committed CRE evidence for judges (on-chain report list and simulate transcripts).
+- `docs/evidence/`: committed CRE evidence for judges (on-chain report list and the workflow's log lines from a few simulate runs).
 - `docs/media/`: committed README figure.
 - `.gitignore`: plan 04 Task 1 narrows `out/` to `app/out/` (so `lab/out/` is tracked) and ignores `bots/out/*` except its two evidence files. Task 1 here only adds `docs/submission/out/` (deck and video, too large for git), applying plan 04's edit first if it has not run yet.
 - This plan owns `README.md` and `docs/faq.md`. If an earlier plan created a stub, Task 10 and Task 11 replace it and keep any extra FAQ entry the stub had.
@@ -90,12 +90,12 @@ Task 12 runs `npm run check`, which prints OK, MISSING or INVALID for each input
 | `docs/submission/src/update-readme.mjs` | CLI: rewrites the README blocks. |
 | `docs/submission/src/check-inputs.mjs` | CLI: OK / MISSING / INVALID per input. |
 | `docs/submission/src/evidence.mjs` | Event decoding, block ranges, secret scanning, URL redaction. |
-| `docs/submission/src/collect-evidence.mjs` | CLI: reads `RiskReported` from Sepolia, copies transcripts into `docs/evidence/`. |
+| `docs/submission/src/collect-evidence.mjs` | CLI: reads `RiskReported` from Sepolia, copies a few runs' log lines (the loop's per-run files) into `docs/evidence/`. |
 | `docs/submission/src/scan-secrets.mjs` | CLI: fails if a tracked file, or any commit's patch on any ref, contains a secret from a `.env` file. |
 | `docs/submission/figures/fee_figure.py` | Draws `docs/media/fee-follows-weather.png`. |
 | `docs/submission/figures/test_figures.py` | pytest for the figure script. |
 | `docs/submission/src/cre-evidence-text.mjs` | CLI (`npm run evidence:text`): prints the CRE-track evidence text with a fresh on-chain report count, at most 1,500 characters. |
-| `docs/submission/deck/v2/png/*.png` | The 10 slides (`01-cover.png` to `10-roadmap.png`), exported from the maintainer's Figma file at 2x (3840 x 2160). |
+| `docs/submission/deck/v2/png/*.png` | The 10 slides (`01-cover.png` to `10-roadmap.png`), exported from the maintainer's Figma file at 1x (3840 x 2160 frames). |
 | `docs/submission/deck/v2/slides.json` | Per slide: PNG, Figma node, title, on-slide text, speaker notes. The source of truth for the deck content. |
 | `docs/submission/deck/v2/live.json` | Live report count and read time shown on slide 07. |
 | `docs/submission/deck/build-deck.mjs` | CLI (`npm run deck`, `npm run deck:draft`) and `buildDeck()`: PNGs, notes and the stage video into `out/clim.pptx`, under 95 MB. |
@@ -1093,6 +1093,8 @@ test("evidence lists the latest reports newest first", () => {
   const rows = out.split("\n").filter((l) => l.startsWith("| 2 ") || l.startsWith("| 1 "));
   assert.equal(rows[0].slice(0, 4), "| 2 ");
   assert.match(rows[0], /\| 30\.9% \| 3 \| 4 bp \|/);
+  assert.match(out, /the workflow's own `\[USER LOG\]` lines, as the loop recorded them; not the CLI's full output\) are in \[docs\/evidence\]/);
+  assert.doesNotMatch(out, /Raw /);
 });
 
 test("renderAll marks missing inputs as pending", () => {
@@ -1317,7 +1319,7 @@ export function renderEvidence(evidence) {
       ...latest.map((x) => `| ${x.seq} | ${utc(x.tObs)} | ${pct(annualFromSigmaE9(x.sigmaApplied))} | ${x.nSources} | ${x.dispBp} bp | [\`${short(x.txHash)}\`](${ETHERSCAN}/tx/${x.txHash}) |`),
     );
   }
-  out.push("", "Raw `cre workflow simulate` transcripts are in [docs/evidence](docs/evidence/).");
+  out.push("", "Log lines of a few `cre workflow simulate --broadcast` runs (the workflow's own `[USER LOG]` lines, as the loop recorded them; not the CLI's full output) are in [docs/evidence](docs/evidence/).");
   return out.join("\n");
 }
 
@@ -1686,7 +1688,8 @@ export function redactUrls(text) {
 
 `docs/submission/src/collect-evidence.mjs`:
 ```js
-// Collects CRE evidence for judges: RiskReported events from Sepolia plus curated `cre workflow simulate` transcripts.
+// Collects CRE evidence for judges: RiskReported events from Sepolia plus the per-run logs the CRE loop kept for a few
+// `cre workflow simulate` runs (the workflow's own [USER LOG] lines and any error line, not the CLI's full output).
 // Usage: node src/collect-evidence.mjs [--logs <dir with *.log transcripts>] [--max-logs 3]
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -2211,7 +2214,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/submission/scripts/
 > - `src/cre-evidence-text.mjs`: `npm run evidence:text` prints the CRE-track evidence text with a fresh on-chain count (at most 1,500 characters);
 > - tests: `test/deck.test.mjs` (rewritten, 4 tests) and `test/cre-evidence-text.test.mjs` (1 test); `npm test` passes 40.
 >
-> **Cut to 10 slides later on 2026-10-07** (the maintainer's decision, after a Chainlink judge said judges read the slides simply, want CRE explained a bit and like a slide with our CRE feedback; session log 2026-10-07): the frames to export are Figma section `198:2` "clim° deck · 10 slides (export these frames)", section `162:2` is archived as "archive · deck v2, 20 slides (not exported)", and `deck/v2/png/` holds `01-cover.png` to `10-roadmap.png` (the 18 PNGs no longer used were removed with `git rm`; `01-cover.png` and `02-origin.png` kept their names). There is no appendix: its content is in the speaker notes. `build-deck.mjs` embeds only `demo-stage.mp4`, full-bleed on slide 08, with the whole size budget, and refuses to build without it unless `--allow-missing-video`; the full video goes on Google Drive as the Project link. `test/deck.test.mjs` keeps 4 tests (10 slides, one mp4 on slide 08, the refusal without the stage video, every note with "Slide text:" and "Sources (not read aloud):"), so `npm test` still passes 40.
+> **Cut to 10 slides later on 2026-10-07** (the maintainer's decision, after a Chainlink judge said judges read the slides simply, want CRE explained a bit and like a slide with our CRE feedback; session log 2026-10-07): the frames to export are Figma section `198:2` "clim° deck · 10 slides (export these frames)", section `162:2` is archived as "archive · deck v2, 20 slides (not exported)" (both sections were deleted that evening, when the maintainer moved the 10 frames to his group `204:320`, 3840 x 2160, exported at 1x: see Task 17), and `deck/v2/png/` holds `01-cover.png` to `10-roadmap.png` (the 18 PNGs no longer used were removed with `git rm`; `01-cover.png` and `02-origin.png` kept their names). There is no appendix: its content is in the speaker notes. `build-deck.mjs` embeds only `demo-stage.mp4`, full-bleed on slide 08, with the whole size budget, and refuses to build without it unless `--allow-missing-video`; the full video goes on Google Drive as the Project link. `test/deck.test.mjs` keeps 4 tests (10 slides, one mp4 on slide 08, the refusal without the stage video, every note with "Slide text:" and "Sources (not read aloud):"), so `npm test` still passes 40.
 >
 > The steps below are the history of the v1 builder: do not recreate `style.mjs`, `data.mjs` or `slides.mjs`. The final build and its checks are Task 17; the slide list is "Deck content, slide by slide".
 
@@ -3188,8 +3191,8 @@ last updated on 2024-08-30): a storm that lasts an hour barely moves them ([FAQ]
 
 ## What building it made visible
 
-We logged CRE frictions as we built: 25 rows in the
-[friction log](docs/feedback/cre-friction-log.md), 23 of them hit while building and 2 from reading
+We logged CRE frictions as we built: 27 rows in the
+[friction log](docs/feedback/cre-friction-log.md), 25 of them hit while building and 2 from reading
 the docs only, summarized for the Chainlink team in the
 [DevEx report](docs/feedback/cre-devex-report.md). The three most useful to Chainlink:
 
@@ -3214,7 +3217,9 @@ the docs only, summarized for the Chainlink team in the
   of our two 30 s loops (live and replay) on 2026-10-06 stopped there. On 2026-10-07 a network
   outage on our side stopped 27 live runs at that check, so the live desk went silent and the hook
   charged its 30 bp safe fee, as designed, for about 8 minutes (04:33:00 to 04:40:24 and 04:48:12
-  to 04:48:36 UTC, block times); one retail swap paid it (friction log rows 1 and 24).
+  to 04:48:36 UTC, block times); one retail swap paid it. Later that day, with our network up, the
+  check also timed out while the CRE API was slow (`context deadline exceeded`), and the live desk
+  came within 13 s of blind mode (friction log rows 1 and 24).
 
 ## What's live vs. simulated
 
@@ -3222,13 +3227,13 @@ the docs only, summarized for the Chainlink team in the
 |---|---|---|
 | Contracts on Sepolia | ✅ live | Both desks, both hooks, the clim pools and their fixed-fee twins, test tokens with a public faucet; clim's own contracts are verified on Sourcify ([addresses](#deployed-addresses)) |
 | A CRE report every 30 s | ✅ live, from simulation | `cre workflow simulate --broadcast` in a loop since 2026-10-06 16:26 UTC: 444 reports on the live desk (`state().seq`, read 2026-10-06 20:29 UTC). Observation time (tObs) to block: median 14 s, p90 25 s over 211 reports (last 600 blocks to about 18:40 UTC on 2026-10-06) |
-| A real storm on the live desk | ✅ live | On 7 October 2026, real market data, not a replay: from 01:58 to 02:51 UTC, 100 of the live desk's 105 reports put the clim pool's fee above the 5 bp floor; volatility peaked at 242% a year and the fee at 26.50 bp (report observed at 02:11 UTC). Every one of the 105 swaps on the clim pool in that window paid exactly the formula's fee for the desk's state (`RiskReported` and `Swap` events read with `cast`) |
+| A real storm on the live desk | ✅ live | On 7 October 2026, real market data, not a replay: from 01:58 to 02:51 UTC, 100 of the live desk's 105 reports put the clim pool's fee above the 5 bp floor; volatility peaked at 242% a year and the fee at 26.50 bp (report observed at 02:11 UTC). Every one of the 105 swaps on the clim pool in that window paid exactly the formula's fee for the desk's state (`RiskReported` and `Swap` events read with `cast`) ([/replay#latest](https://clim-zeta.vercel.app/replay#latest)) |
 | DON consensus and signature checks | 🛣️ cut | The simulator runs one node and `MockKeystoneForwarder` checks no signature. DON deploy access was requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon (still "Not enabled" on 7 October), so the DON deployment was cut (friction log row 6). The workflow is written with the CRE consensus API for a DON and has not run on one |
 | Model-risk multiplier k | 🛣️ off (k = 1) | The model check runs in the lab (`lab/out/validation.json`); `RiskDesk` already clamps k to [1, 2], so turning it on is a workflow change |
 | The 4 February 2026 storm | ✅ replayed on Sepolia | Historical Binance prices, served at wall-clock speed by `bots/src/replay-server.ts` to a second CRE loop that writes to the replay desk (its REPLAY flag discloses it). Its loop started at 16:57 UTC on 2026-10-06 and wrote 459 reports, from 17:02 to 20:58 UTC; since then the replay desk is silent and its hook quotes the 30 bp safe fee |
 | The market | simulated | Our own arbitrage and retail bots trade the clim pool and its fixed-fee twin. No mainnet pool; volume moving to cheaper pools is only approximated; just-in-time liquidity is not modeled. The arbitrage bot keeps one transaction in flight per pool, so on chain it lands fewer arbitrages than the model's arbitrageur would: on the replay it arbitraged 21.5% of the clim pool's blocks against 29.6% predicted, but counting the 90 blocks it skipped while a trade was pending, it saw the pool outside its no-arbitrage band in 349 of 1,186 blocks (29.4%) |
 | Results | simulated | Lab backtests on historical Binance ETHUSDT data (`lab/out/`), not live P&L |
-| Dashboard | ✅ live, reads Sepolia | https://clim-zeta.vercel.app: the desk and both pools at `/app`, real Sepolia swaps and liquidity at `/swap` and `/lp` (test tokens from the faucet), the finished replay at `/replay`; numbers checked against `cast` reads |
+| Dashboard | ✅ live, reads Sepolia | https://clim-zeta.vercel.app: a guided path ("Start here"), the desk and both pools at `/app`, real Sepolia swaps and liquidity at `/swap` and `/lp` (test tokens from the faucet), the 7 October live storm and the finished 4 February replay at `/replay`; numbers checked against `cast` reads |
 
 ## Can a pool that is already live use clim?
 
@@ -3262,12 +3267,15 @@ Details in [docs/faq.md](docs/faq.md).
    and cap, and posts the result: no contract change on their side. This is our proposal to Fables,
    not an agreement: nothing runs on Robinhood Chain yet.
    We measured Fables' keeper on-chain before proposing it ([`lab/README.md`](lab/README.md#clim-vs-fables-keeper-11-september-2026)):
-   it is not a flat fee (it tracks volatility and posts its 60 bp cap at scheduled US releases), and
-   on the 11 September 2026 storm it lost about 10 % less to arbitrage than clim's rule at the same
-   average fee in our model, because it posted its cap in the very second of the CPI release, which
-   a 15-minute volatility measure cannot anticipate. What clim adds is a public, checkable rule fed
-   by four exchanges through CRE in place of one private key; the keeper's event overrides can sit on
-   top of the desk's measured baseline, which is what the shadow mode would test.
+   it is not a flat fee (it tracks volatility, and it had its 60 bp cap in place at the two scheduled
+   US releases we studied, CPI on 11 September and FOMC on 16 September), and on the 11 September
+   2026 storm clim's rule lost about 10 % more to arbitrage than the keeper at the same average fee
+   in our model, because the keeper posted its cap in the very second of the CPI release, which a
+   15-minute volatility measure cannot anticipate. What clim adds is a public, checkable rule fed by
+   four exchanges through CRE in place of one private key (fully so once the desk runs on a DON and
+   ownership is renounced, item 3; today clim's desk is also written by a single operator key, see
+   [How it works](#how-it-works)); the keeper's event overrides can sit on top of the desk's
+   measured baseline, which is what the shadow mode would test.
 2. **One desk, many chains: Sepolia is the proof, other EVM chains are configuration.** For the
    workflow, another EVM chain that CRE supports is a new target: the chain name and the desk
    address in its config, an RPC in `cre/project.yaml` (a mainnet also needs the `isTestnet` flag in
@@ -3309,8 +3317,8 @@ Details in [docs/faq.md](docs/faq.md).
 The first simulated report
 ([`0x60465523…1cb6`](https://sepolia.etherscan.io/tx/0x6046552302b7711c4987ee7706d957538dc11ee77ca557b18c92261154e21cb6)),
 a forged report the desk ignored and a sample run with its transaction are in
-[`cre/README.md`](cre/README.md#evidence). The full list of reports and the raw `simulate`
-transcripts are generated at submission:
+[`cre/README.md`](cre/README.md#evidence). The full list of reports and the workflow's own log
+lines from a few `simulate` runs are generated at submission:
 
 <!-- clim:begin evidence -->
 <!-- clim:end evidence -->
@@ -3328,7 +3336,8 @@ bun install                             # root workspace: shared and bots
                                         # (see .env.example) the 3 Sepolia fork tests skip: 73 passed, 2 skipped (75 total)
                                         # (forge counts the 2-test fork suite, skipped in setUp, as one)
 (cd lab && uv sync && uv run pytest)    # lab: backtests and model checks; a fresh clone has no lab/data/
-                                        # (gitignored), so 77 tests run and the 5 that read it skip
+                                        # (gitignored): 92 passed, 8 skipped (the 7 tests that read it, and
+                                        # the Fables figure test, which needs matplotlib)
 
 # CRE risk desk: one simulated run without a transaction (needs `cre login`)
 (cd cre/risk-desk && bun install)
@@ -3457,10 +3466,13 @@ own license:
   interfaces and libraries clim's own contracts import, BUSL-1.1 for `PoolManager` and some internal
   libraries, and UNLICENSED for its `src/test` routers. The local tests deploy `PoolManager` and,
   through v4-core's `Deployers`, compile solmate (AGPL-3.0-only, a submodule of v4-core). clim's
-  arbitrage router on Sepolia is v4-core's unmodified `PoolSwapTest`, compiled from the submodule:
-  it includes four of those BUSL-1.1 libraries (`Lock`, `CurrencyReserves`, `NonzeroDeltaCount`,
-  `Position`), a testnet, non-production use, which BUSL-1.1 permits. clim's own deployed contracts
-  (both desks, both hooks, tETH and tUSD) compile only MIT sources.
+  arbitrage router on Sepolia is v4-core's unmodified `PoolSwapTest`, compiled from the submodule.
+  Its own files (`PoolSwapTest`, `PoolTestBase`) are among those UNLICENSED test routers, which
+  Uniswap publishes for testing and deploys itself on Sepolia
+  (`0x9B6b46e2c869aa39918Db7f52f5557FE577B6eEe`). It also includes four of those BUSL-1.1 libraries
+  (`Lock`, `CurrencyReserves`, `NonzeroDeltaCount`, `Position`), used here on testnet only, a
+  non-production use that BUSL-1.1 permits. clim's own deployed contracts (both desks, both hooks,
+  tETH and tUSD) compile only MIT sources.
 - `app/` includes third-party components and npm dependencies with their own licenses: the adapted
   components and the non-permissive packages are described in
   [`app/THIRD_PARTY_NOTICES.md`](app/THIRD_PARTY_NOTICES.md) (also at
@@ -3468,7 +3480,8 @@ own license:
   [`app/public/third-party-licenses.txt`](app/public/third-party-licenses.txt) (also at
   [/third-party-licenses.txt](https://clim-zeta.vercel.app/third-party-licenses.txt)). Some are not
   permissive: two React Bits components are MIT + Commons Clause, the MetaMask SDK (through wagmi
-  and RainbowKit) is under ConsenSys' license, and `ua-parser-js` 2 (through RainbowKit) is AGPL-3.0.
+  and RainbowKit) is under ConsenSys' license, and `ua-parser-js` 2 (through RainbowKit) is
+  AGPL-3.0-or-later.
 - Other npm dependencies keep their own licenses, including `@chainlink/cre-sdk` (BUSL-1.1).
 
 <div align="center">
@@ -3515,7 +3528,7 @@ Replace `docs/faq.md` entirely with the text below. The FAQ written with the spe
 ````markdown
 # clim FAQ
 
-A Chainlink mentor asked two of these questions at TOKEN2049 Origins on 6 October 2026: how the fee is changed and computed (the first two answers) and whether a pool that is already live can switch to clim (the third). The others are the ones we expect from judges. Precise answers. Code references point to this repository and to [Uniswap v4 core](https://github.com/Uniswap/v4-core).
+A Chainlink mentor asked two of these questions at TOKEN2049 Origins on 6 October 2026: how the fee is changed and computed (the first two answers) and whether a pool that is already live can switch to clim (the third). A Chainlink judge suggested the last one at the booth on 7 October 2026. The others are the ones we expect from judges. Precise answers. Code references point to this repository and to [Uniswap v4 core](https://github.com/Uniswap/v4-core).
 
 ## How is the fee computed?
 
@@ -3619,7 +3632,7 @@ On a DON, once the expected workflow ID is pinned, simulation disabled and owner
 
 ## Why not set the fee from volume too?
 
-A judge suggested it at the booth on 7 October 2026: the fee should also read the pool's own volume, to attract traders when the pool lacks volume, and rest on established methods. It is on the roadmap, not in this build.
+A Chainlink judge suggested it at the booth on 7 October 2026: the fee should also read the pool's own volume, to attract traders when the pool lacks volume, and rest on established methods. It is on the roadmap, not in this build.
 
 **What is built.** The fee reads volatility only. Volume is not an input to the workflow, to `RiskDesk` or to `ClimHook`, and the workflow sends k = 1 in every report.
 
@@ -3757,7 +3770,7 @@ Open each `docs/evidence/cre-simulate-*.log` with the Read tool. Each must show 
 What shows that the clim risk desk ran as a Chainlink CRE workflow:
 
 - `cre-reports-sepolia.json`: every `RiskReported` event emitted by the clim risk desks on Ethereum Sepolia since the hackathon kickoff (2026-10-06 04:00 UTC), with the transaction hash of each report written by `cre workflow simulate --broadcast`. Generated by `docs/submission/src/collect-evidence.mjs`.
-- `cre-simulate-*.log`: terminal transcripts of `cre workflow simulate` runs, one file per run. RPC keys and the local home directory are redacted.
+- `cre-simulate-*.log`: the workflow's own log lines (`[USER LOG]`) from single `cre workflow simulate --broadcast` runs, one file per run, as the simulation loop recorded them (it keeps only these lines and any error line, not the CLI's full output). RPC keys and the local home directory are redacted.
 - [`bots/out/cre-runs.jsonl`](../../bots/out/cre-runs.jsonl): one line per run of the simulation loop (status, transaction hash, block, gas, forwarder result, decoded report).
 - [`bots/out/security-demos.jsonl`](../../bots/out/security-demos.jsonl): the forged-report demo (`bun run forge-report`: forwarder result `false`, no `RiskReported` in the forged transaction).
 - Blind mode (circuit breaker): with the loop stopped, the live hook quoted the 30.00 bp safe fee (`quoteFee()` = 3000 pips, mode 2) 218 s after the last report (kill delay 180 s), and 500 pips, mode 0 again 16 s after the loop restarted (seq 16); logged in [`docs/sessions/2026-10-06.md`](../sessions/2026-10-06.md) (plan 04 Task 23 smoke test). The replay hook `0xf6E4CEC98865A0B1D8b2D59f70a0A0036bF4D080` has quoted 3000 pips, mode 2 since the replay desk stopped reporting: `cast call 0xf6E4CEC98865A0B1D8b2D59f70a0A0036bF4D080 "quoteFee()(uint24,uint8)" --rpc-url https://ethereum-sepolia-rpc.publicnode.com`.
@@ -3916,7 +3929,7 @@ Expected: `{ "seq": <n>, "readUtc": "<d Mon HH:MM UTC>" }`, for example `"seq": 
 
 - [ ] **Step 3: Update slide 07 in Figma, then re-export it** **End of session.**
 
-In Figma file `LyeDZ1KdOYws6nTzD8dI76` (group `204:320` "Pres"), put the same two values as `live.json` in slide 07 (frame `204:212`, "2x 07 · What is live"), keeping the rest of each text and the number format of Step 2: `204:216` "LIVE seq" (the count) and `204:217` "LIVE seq read" (the read time). Slide 07 is the only slide with the live count since the 10-slide cut (the archived slide 19's nodes `168:50` and `168:52` are no longer exported).
+In Figma file `LyeDZ1KdOYws6nTzD8dI76` (group `204:320` "Pres"), put the same two values as `live.json` in slide 07 (frame `204:212`, "2x 07 · What is live"), keeping the rest of each text and the number format of Step 2: `204:216` "LIVE seq" (the count) and `204:217` "LIVE seq read" (the read time). Slide 07 is the only slide with the live count since the 10-slide cut (the old slide 19's nodes were deleted with section `162:2`).
 
 Check that a longer number does not wrap or overlap, and that every other text in frame `204:212` matches slide 07's `text` in `slides.json` word for word. Fix any difference in Figma first. Export the frame as PNG at 1x over `docs/submission/deck/v2/png/07-live.png` (the frame is already 3840 x 2160; in Figma: select the frame, Export, 1x, PNG). Then:
 ```bash
@@ -4026,7 +4039,7 @@ Expected: `# pass 40`, `# fail 0`, `0`.
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run scan`
 Expected: `no .env secret in the patches of <c> commits (all refs)`, then `no .env secret in <n> tracked files (<m> secret values checked)`. Also run `cd /Users/fianso/Development/hackathons/clim && git status --short | grep -E "\.env$|secrets\.yaml$"` and expect no output. Any leak: rotate that testnet key at once (main is public and pushed as work goes on, so a value in any pushed commit counts as exposed, rewritten or not), then remove the value.
 
-- [x] **Step 3: Clean-clone smoke test of "Getting started"** Done on 2026-10-07 at `9edd30f` (session log 2026-10-07: forge 73 passed, 2 skipped; lab 77 passed, 5 skipped; `cre workflow simulate` completes without a broadcast; the app installs, syncs and builds; no README fix needed). Since then README Getting started, the lockfiles and `.gitmodules` are unchanged, and so is the code under contracts/, lab/ and bots/; under cre/risk-desk/ and shared/ only a comment in `scripts/latency.ts` and the removal of the unused `poolManagerAbi` from `shared/src/abis.ts` changed (shared, bots and risk-desk tests and typechecks green, session log 2026-10-07), and `app/package.json` only gained the `licenses` script. Re-run it only if one of them changes before the final push.
+- [x] **Step 3: Clean-clone smoke test of "Getting started"** Done on 2026-10-07 at `9edd30f` (session log 2026-10-07: forge 73 passed, 2 skipped; lab 77 passed, 5 skipped; `cre workflow simulate` completes without a broadcast; the app installs, syncs and builds; no README fix needed). Since then the commands of README Getting started, the lockfiles and `.gitmodules` are unchanged, and so is the code under contracts/ and bots/; lab/ gained the Fables study in `aeb72a2` (18 tests; `lab/pyproject.toml` and `lab/uv.lock` unchanged), so its line was re-run on a clean copy of HEAD without `lab/data/` (`git archive HEAD lab shared`, then `uv run pytest -q`): 92 passed, 8 skipped, which README Getting started's lab comment now says (audit round 6); under cre/risk-desk/ and shared/ only a comment in `scripts/latency.ts` and the removal of the unused `poolManagerAbi` from `shared/src/abis.ts` changed (shared, bots and risk-desk tests and typechecks green, session log 2026-10-07), and `app/package.json` only gained the `licenses` script. Re-run it only if one of them changes before the final push.
 
 ```bash
 T=$(mktemp -d) && git clone --recurse-submodules /Users/fianso/Development/hackathons/clim $T/clim && cd $T/clim
@@ -4220,9 +4233,9 @@ The current script and shot plan are the maintainer's, in his private notes (out
 
 ## Deck content, slide by slide
 
-Source of truth: `docs/submission/deck/v2/slides.json`, which holds per slide the PNG, the Figma node, the title, the on-slide text and the speaker notes (the spoken part, then "Sources (not read aloud): ..."). The slides are designed in the maintainer's Figma file `LyeDZ1KdOYws6nTzD8dI76`, section `198:2` "clim° deck · 10 slides (export these frames)", and exported at 2x into `deck/v2/png/`. A change is made in Figma and in `slides.json` together, then the slide is re-exported and the deck rebuilt (Task 17), never in the .pptx. The numbers on the slides are typed in Figma from the lab outputs, `shared/params.json` and the chain, and each slide's notes name their source; only the live report count on slide 07 comes from `deck/v2/live.json`.
+Source of truth: `docs/submission/deck/v2/slides.json`, which holds per slide the PNG, the Figma node, the title, the on-slide text and the speaker notes (the spoken part, then "Sources (not read aloud): ..."). The slides are designed in the maintainer's Figma file `LyeDZ1KdOYws6nTzD8dI76`, group `204:320` "Pres" (token2049 > Pres; frames `204:3` to `204:252`, 3840 x 2160), and exported at 1x into `deck/v2/png/`. A change is made in Figma and in `slides.json` together, then the slide is re-exported and the deck rebuilt (Task 17), never in the .pptx. The numbers on the slides are typed in Figma from the lab outputs, `shared/params.json` and the chain, and each slide's notes name their source; only the live report count on slide 07 comes from `deck/v2/live.json`.
 
-Since 2026-10-07 the deck has 10 slides and no appendix: the maintainer cut it after a Chainlink judge said that judges read the slides simply (the idea and the criteria), want CRE explained a bit, and like a slide with our CRE feedback. The 20-slide version (13 main slides and a 7-slide appendix) is archived in Figma section `162:2` "archive · deck v2, 20 slides (not exported)", and its unused PNGs were removed from `deck/v2/png/`. What the appendix held is in the speaker notes, which a reader (or an AI) reads first: the fee rule in slide 03's notes; the 4 February storm and the limits of the backtest in 05's; safety, the CRE evidence and the limits of the live build in 07's; the trust condition on a DON and our feedback to Chainlink in 09's; the live-pool question and the team in 10's; the old problem illustration in 02's. Only the 30-second stage video is embedded (slide 08, full-bleed); the full demo video goes on Google Drive and its link is the submission's Project link. The live URL, clim-zeta.vercel.app, is on slides 01, 07 and 10. The mentor's question 1 (who changes the fee) is slide 04; his question 2 (a pool that is already live) is answered in slide 10's notes and in `docs/faq.md`. This list replaces the 20-slide list of deck v2 and the 22-slide list of deck v1.
+Since 2026-10-07 the deck has 10 slides and no appendix: the maintainer cut it after a Chainlink judge said that judges read the slides simply (the idea and the criteria), want CRE explained a bit, and like a slide with our CRE feedback. The 20-slide version (13 main slides and a 7-slide appendix) was archived in Figma section `162:2` until the maintainer deleted it on 2026-10-07; its PNGs are in git history, and the unused ones were removed from `deck/v2/png/`. What the appendix held is in the speaker notes, which a reader (or an AI) reads first: the fee rule in slide 03's notes; the 7 October live storm and the limits of the backtest in 05's (the 4 February replay only in its unread sources); safety, the CRE evidence and the limits of the live build in 07's; the trust condition on a DON and our feedback to Chainlink in 09's; the live-pool question and the team in 10's; the old problem illustration in 02's. Only the 30-second stage video is embedded (slide 08, full-bleed); the full demo video goes on Google Drive and its link is the submission's Project link. The live URL, clim-zeta.vercel.app, is on slides 01, 07 and 10. The mentor's question 1 (who changes the fee) is slide 04; his question 2 (a pool that is already live) is answered in slide 10's notes and in `docs/faq.md`. This list replaces the 20-slide list of deck v2 and the 22-slide list of deck v1.
 
 | # | PNG (`deck/v2/png/`) | Figma frame | Title | The notes also carry | Video |
 |---|---|---|---|---|---|
@@ -4230,14 +4243,14 @@ Since 2026-10-07 the deck has 10 slides and no appendix: the maintainer cut it a
 | 02 | `02-origin.png` | `204:96` | Where the idea comes from | why the loss grows with volatility (the old slide 03) |  |
 | 03 | `03-idea.png` | `204:290` | The idea: the fee follows the weather | the fee rule (the old appendix A1) |  |
 | 04 | `04-how.png` | `204:127` | How it works: nobody changes the fee by hand | the quorum and the degraded rule; the mentor's question 1 |  |
-| 05 | `05-results.png` | `204:178` | Does it work: LPs lose less to arbitrage | the 4 February storm (the old slide 06), the backtest's limits (A4) |  |
+| 05 | `05-results.png` | `204:178` | Does it work: LPs lose less to arbitrage | the 7 October live storm, the backtest's limits (A4); the 4 February replay (the old slide 06) in the unread sources |  |
 | 06 | `06-prediction.png` | `204:187` | Not one more volatility fee |  |  |
 | 07 | `07-live.png` | `204:212` | What is live on Sepolia | safety (A3), the CRE evidence (A5), the live build's limits (A4); the live count (`live.json`) |  |
 | 08 | `08-demo.png` | `204:221` | Demo (stage version) | where the full video is | `demo-stage.mp4`, full-bleed |
 | 09 | `09-cre.png` | `204:224` | Why Chainlink CRE, and our feedback | why CRE (the old slide 12), the DON trust condition, the CRE evidence (A5), our feedback to Chainlink |  |
 | 10 | `10-roadmap.png` | `204:252` | Roadmap: not a new DEX, a fee engine for existing ones | the rollout with Fables (the old slide 11), a live pool (A2), the volume input, the team (the old slide 13), the Project link |  |
 
-From the 20-slide version: 01 and 02 are unchanged; 03 was 04; 04 was 05, with the caption under the CRE logo now "CRE workflow: every 30 s, the median of the four"; 05 was 07, with the footnote "4 Feb 2026 storm replay: −18.6 %. None of its 92 rolling 4-hour windows beats it; median −2.1 %."; 06 was 08; 07 was 09; 08 was 10; 09 and 10 are new.
+From the 20-slide version: 01 and 02 are unchanged; 03 was 04; 04 was 05, with the caption under the CRE logo now "CRE workflow: every 30 s, the median of the four"; 05 was 07, whose footnote "4 Feb 2026 storm replay: −18.6 %. None of its 92 rolling 4-hour windows beats it; median −2.1 %." reads since `ed03239` "Lab backtests on Binance ETHUSDT at the deployed parameters. Insurance, not a steady yield." (the 4 February replay moved to the notes' unread sources); 06 was 08; 07 was 09; 08 was 10; 09 and 10 are new.
 
 ---
 
@@ -4291,7 +4304,7 @@ Read the numbers in brackets from `lab/out/backtest-summary.json` and `shared/pa
 **Short description:** A liquidity provider is an insurer: arbitrage bots make it pay every time the market moves. clim gives it a premium that follows the market's weather: four exchanges, read every 30 seconds by a Chainlink CRE workflow and required to agree, publish one volatility figure on-chain, and a Uniswap v4 hook turns it into the fee of every swap: the pair's usual 5 bp tier when it is calm, rising with volatility in a storm. Chainlink CRE is the only partner track we entered, on purpose: the product is built around it (the risk desk is the CRE workflow, and without a fresh CRE report the hook falls back to the safe fee).
 
 **Long description:**
-clim is a volatility-indexed LP fee with a prediction you can check. When prices move, the fastest traders profit from a pool's stale price at its LPs' expense; clim makes that speed cost more in a storm and charges the usual fee when it is calm. A Chainlink CRE workflow (the "risk desk") fetches one-minute ETH prices from Coinbase, Kraken, Binance and Hyperliquid, drops stale venues, requires a quorum of three, computes 15-minute realized volatility and venue dispersion, takes the median of each field with CRE's consensus API, and writes one report to `RiskDesk.sol` every 30 seconds. During the hackathon it runs in the CRE simulator (`cre workflow simulate --broadcast`, one node), and the operator key sends each report through Chainlink's MockKeystoneForwarder on Sepolia: DON deploy access was requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon, so the DON deployment was cut. The workflow is written with the consensus API for a DON, where the nodes would sign the report, and has not run on one. Chainlink CRE is the only partner track we entered, on purpose: the product is built around it, and without a fresh CRE report the hook falls back to the safe fee. A Uniswap v4 hook built on OpenZeppelin's `BaseOverrideFee` reads the desk inside every swap and returns the fee: the pair's market tier when it is calm, η standard deviations of the half-block price move in a storm, and a safe fee if the desk goes silent or the venues disagree. η is chosen so that a known share of blocks gets arbitraged (Milionis, Moallemi and Roughgarden 2023; Nezlobin and Tassy 2025), which we check against what happens on-chain and on historical data. Live on Sepolia with twin pools (the clim pool, and a fixed-fee twin whose fee was set before deployment at the lab's forecast of clim's average fee; the live averages differ since the 7 October storm), our own arbitrage and retail bots, and a dashboard with a guided path to check every claim on Etherscan, where all seven clim contracts are verified; on 7 October 2026 the live desk priced a real storm (volatility up to 242 % a year, fee up to 26.50 bp). clim is not a new DEX: it is a fee engine that existing protocols can plug in, Fables first (our proposal, not an agreement). Numbers, limits and evidence are in the README.
+clim is a volatility-indexed LP fee with a prediction you can check. When prices move, the fastest traders profit from a pool's stale price at its LPs' expense; clim makes that speed cost more in a storm and charges the usual fee when it is calm. A Chainlink CRE workflow (the "risk desk") fetches one-minute ETH prices from Coinbase, Kraken, Binance and Hyperliquid, drops stale venues, requires a quorum of three, computes 15-minute realized volatility and venue dispersion, takes the median of each field with CRE's consensus API, and writes one report to `RiskDesk.sol` every 30 seconds. During the hackathon it runs in the CRE simulator (`cre workflow simulate --broadcast`, one node), and the operator key sends each report through Chainlink's MockKeystoneForwarder on Sepolia: DON deploy access was requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon, so the DON deployment was cut. The workflow is written with the consensus API for a DON, where the nodes would sign the report, and has not run on one. Chainlink CRE is the only partner track we entered, on purpose: the product is built around it, and without a fresh CRE report the hook falls back to the safe fee. A Uniswap v4 hook built on OpenZeppelin's `BaseOverrideFee` reads the desk inside every swap and returns the fee: the pair's market tier when it is calm, η standard deviations of the half-block price move in a storm, and a safe fee if the desk goes silent or the venues disagree. η is chosen so that a known share of blocks gets arbitraged (Milionis, Moallemi and Roughgarden 2023; Nezlobin and Tassy 2025), which we check against what happens on-chain and on historical data. Live on Sepolia with twin pools (the clim pool, and a fixed-fee twin whose fee was set before deployment at the lab's forecast of clim's average fee; the live averages differ since the 7 October storm), our own arbitrage and retail bots, and a dashboard with a guided path to check the live claims (reports, the hook's fee, swaps, refused reports, source code) on Etherscan, where all seven contracts clim deployed are verified (its six own and Uniswap's unmodified PoolSwapTest as the arbitrage router); on 7 October 2026 the live desk priced a real storm (volatility up to 242 % a year, fee up to 26.50 bp). clim is not a new DEX: it is a fee engine that existing protocols can plug in, Fables first (our proposal, not an agreement). Numbers, limits and evidence are in the README.
 
 **Built with:** Chainlink CRE (TypeScript SDK, cron trigger, HTTP capability, consensus by median, EVM write), Uniswap v4 hooks, OpenZeppelin uniswap-hooks, Solidity and Foundry, TypeScript, viem and Bun bots, Next.js, Python. Network: Ethereum Sepolia.
 
@@ -4303,7 +4316,7 @@ clim is a volatility-indexed LP fee with a prediction you can check. When prices
 
 **Spec coverage.**
 - README for judges: picture (Task 7, 14), 30-second pitch, how the fee is computed and that no transaction changes it (README text, sequence diagram), why Chainlink CRE, live-pool FAQ, architecture diagram, generated addresses and CRE transaction table (Tasks 4, 6, 13), Getting started (checked in Task 19), limits, references, team (Task 10, `team.json`).
-- Deck as .pptx (deck v2 since 2026-10-07, designed in Figma, cut to 10 slides the same day; this bullet first listed the 22 slides of deck v1, then the 20 of deck v2): cover with the live URL (01), where the idea comes from (02), the idea (03), how it works and that nobody changes the fee (04), results with both comparisons and the 4 February replay (05), the prediction anyone can check (06), what is live (07), embedded stage demo (08), why Chainlink CRE and our feedback (09), roadmap with Fables, and the team (10); no appendix: the fee rule, the live-pool question, safety, limits and the CRE evidence are in the speaker notes; the full demo video is the Project link: Task 9 (history and replacement), Task 17.
+- Deck as .pptx (deck v2 since 2026-10-07, designed in Figma, cut to 10 slides the same day; this bullet first listed the 22 slides of deck v1, then the 20 of deck v2): cover with the live URL (01), where the idea comes from (02), the idea (03), how it works and that nobody changes the fee (04), results with both comparisons (05; the 7 October live storm in its notes), the prediction anyone can check (06), what is live (07), embedded stage demo (08), why Chainlink CRE and our feedback (09), roadmap with Fables, and the team (10); no appendix: the fee rule, the live-pool question, safety, limits and the CRE evidence are in the speaker notes; the full demo video is the Project link: Task 9 (history and replacement), Task 17.
 - The maintainer's own video (on camera, then a live demo; script in his private notes), the checks of both files and the embedding (Tasks 15 to 17 and "Demo script").
 - Google Drive upload and sharing (Task 18). Submission checklist for the main track and the CRE track, with CRE evidence (Tasks 13, 21). Friction log final pass and send-ready message (Task 22). Vault notes, paths kept out of the repo (Task 23). 30-second pitch and the Q&A bank with the six required questions plus three more. Mentor questions 1 and 2 in `docs/faq.md`, the README, slide 04 (question 1) and slide 10's speaker notes (question 2).
 - Rules verified from the Builderbase JSON, token2049.com and the T&C, and quoted at the top.
