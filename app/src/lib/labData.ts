@@ -1,6 +1,8 @@
 import band from "../../public/data/lab/ptrade-band.json";
+import fables from "../../public/data/lab/fables-storm-2026-10-07.json";
 import replay from "../../public/data/lab/replay-2026-02-04.json";
 import summary from "../../public/data/lab/summary.json";
+import { parseFablesStorm } from "./fables";
 import { parsePTradeBand, parseReplay, parseSummary } from "./lab";
 
 // public/data/lab/* is written by `npm run sync` from lab/out (real files only).
@@ -9,3 +11,4 @@ import { parsePTradeBand, parseReplay, parseSummary } from "./lab";
 export const labSummary = parseSummary(summary);
 export const labReplay = parseReplay(replay);
 export const labBand = parsePTradeBand(band);
+export const fablesStorm = parseFablesStorm(fables);

@@ -11,6 +11,8 @@ import { spanLabel } from "@/lib/ledger";
 import { LATEST_STORM_WINDOW, type StormStats, stormStats } from "@/lib/storm";
 import { utcTime } from "@/lib/theme";
 import { formatBp, pipsToBp } from "@/lib/units";
+import type { FablesStorm as FablesStormData } from "@/lib/fables";
+import { FablesStorm } from "./FablesStorm";
 import { ExtLink } from "./ui";
 import { WeatherChart } from "./WeatherChart";
 
@@ -63,7 +65,7 @@ function items(st: StormStats, staticFeePips: number, arbRouter?: string): Item[
   return out;
 }
 
-export function LatestStorm() {
+export function LatestStorm({ fables }: { fables?: FablesStormData }) {
   const data = useClimData("live");
   const { reports, swaps, pair } = data;
   const stats = useMemo(
@@ -103,6 +105,7 @@ export function LatestStorm() {
         the report in force. The desk&apos;s CRE workflow runs in CRE&apos;s simulator on one node: our operator key sends each report through
         MockKeystoneForwarder, which checks no signature.
       </p>
+      {fables ? <FablesStorm fables={fables} data={data} stats={stats} /> : null}
     </div>
   );
 }

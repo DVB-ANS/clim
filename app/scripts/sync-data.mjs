@@ -4,7 +4,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const LAB_FILES = ["summary.json", "replay-2026-02-04.json", "ptrade-band.json"];
+export const LAB_FILES = ["summary.json", "replay-2026-02-04.json", "ptrade-band.json", "fables-storm-2026-10-07.json"];
 
 /**
  * /lab's main-scenario sentence needs ETH's own gain (the README's "+0.39% a year"), which the lab's

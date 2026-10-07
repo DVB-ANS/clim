@@ -7,7 +7,7 @@ import { LazyDetails } from "@/components/LazyDetails";
 import { ExtLink, linkCls } from "@/components/ui";
 import { deployments, params } from "@/lib/config";
 import { etherscanAddress } from "@/lib/contracts";
-import { labBand, labSummary } from "@/lib/labData";
+import { fablesStorm, labBand, labSummary } from "@/lib/labData";
 import { lessMore, replayWindowsSpread } from "@/lib/labText";
 import { pipsToBp, shortHash } from "@/lib/units";
 
@@ -35,7 +35,7 @@ export default function ReplayPage() {
             <ExtLink href={etherscanAddress(live.hook)}>{shortHash(live.hook)}</ExtLink>
           </p>
         ) : null}
-        <LatestStorm />
+        <LatestStorm fables={fablesStorm} />
       </section>
       <section id="earlier" aria-labelledby="earlier-title" className="space-y-4 border-t border-line pt-10">
         <h2 id="earlier-title" className="font-display text-[26px] tracking-[-0.02em]">
