@@ -99,7 +99,7 @@ Task 12 runs `npm run check`, which prints OK, MISSING or INVALID for each input
 | `docs/submission/deck/v2/slides.json` | Per slide: PNG, Figma node, title, on-slide text, speaker notes. The source of truth for the deck content. |
 | `docs/submission/deck/v2/live.json` | Live report count and read time shown on slide 07. |
 | `docs/submission/deck/build-deck.mjs` | CLI (`npm run deck`, `npm run deck:draft`) and `buildDeck()`: PNGs, notes and the stage video into `out/clim.pptx`, under 95 MB. |
-| `docs/submission/out/video/demo-stage.mp4` | The 30-second stage cut of the maintainer's demo video (gitignored), dropped in by hand (Task 16), embedded on slide 08. The full video is not in the repository: it goes on Google Drive (Task 18), and its link is the Project link. |
+| `docs/submission/out/video/demo-stage.mp4` | The 40-second stage cut of the maintainer's demo video (gitignored): the storm, the desk running, the 7 October storm priced live and his conclusion. Embedded framed on slide 10 (not full-bleed), beside the link to the full video (https://youtu.be/xbfjvNv6KR0, `videoUrl` in `links.json`). The full video is not in the repository. |
 | `docs/submission/test/*.test.mjs`, `test/fixtures/*.json` | Unit tests and fixtures. |
 | `docs/evidence/README.md`, `cre-reports-sepolia.json`, `cre-simulate-*.log` | CRE evidence. |
 | `docs/media/fee-follows-weather.png` | The README picture. |
