@@ -22,6 +22,7 @@ describe("the contracts list (synced Sepolia deployment)", () => {
   it("gives every pool its id, its fee and the transaction that initialized it", () => {
     if (deployments.fixture) return;
     const pools = poolRows(deployments, (p) => `${(p / 100).toFixed(2)} bp`);
+    expect(pools.map((p) => p.name)).toEqual(["Pool V · clim (live)", "Pool S · static twin (live)", "Pool V · clim (replay)", "Pool S · static twin (replay)"]);
     expect(pools.map((p) => p.fee)).toEqual([
       "dynamic: set by ClimHook on every swap",
       "5.11 bp, fixed",

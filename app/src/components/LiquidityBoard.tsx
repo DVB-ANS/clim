@@ -169,7 +169,7 @@ export function LiquidityBoard() {
       fee: quoteNow ? formatBp(pipsToBp(quoteNow.feePips), 2) : "…",
       badge: quoteNow ? <ModeBadge mode={quoteNow.mode} /> : null,
     },
-    { value: "S", title: "Pool S · fixed", subtitle: depth("S"), fee: pair ? formatBp(pipsToBp(pair.S.key.fee), 2) : "…" },
+    { value: "S", title: "Pool S · static twin", subtitle: depth("S"), fee: pair ? formatBp(pipsToBp(pair.S.key.fee), 2) : "…" },
   ];
 
   return (

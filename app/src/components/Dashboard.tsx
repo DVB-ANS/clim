@@ -6,10 +6,12 @@ import { deployments, EXPLORER, params } from "@/lib/config";
 import type { Pair } from "@/lib/deployments";
 import { finishedRun } from "@/lib/finished";
 import type { LabPTradeBand } from "@/lib/lab";
+import { MOCK_STATIC_FEE_PIPS } from "@/lib/mock";
 import { utcTime } from "@/lib/theme";
 import { pipsToBp, shortHash } from "@/lib/units";
 import { DeskPanel } from "./DeskPanel";
 import { PnlPanel } from "./PnlPanel";
+import { PoolsKey } from "./PoolsKey";
 import { RecentSwapsPanel } from "./RecentSwapsPanel";
 import { QuotePanel } from "./QuotePanel";
 import { SafetyPanel } from "./SafetyPanel";
@@ -18,7 +20,11 @@ import { VolQuadPanel } from "./VolQuadPanel";
 import { Toggle } from "./ui";
 import { WeatherChart } from "./WeatherChart";
 
-export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand; initialPair?: Pair }) {
+/**
+ * The desk, the hook and both pools of one pair, read from chain logs. `keyShownAbove`: the page already
+ * shows the pools key for that pair (as /replay does), so the dashboard leaves its own out while on it.
+ */
+export function Dashboard({ band, initialPair = "live", keyShownAbove }: { band: LabPTradeBand; initialPair?: Pair; keyShownAbove?: Pair }) {
   const pairs: Pair[] = deployments.pairs.replay ? ["live", "replay"] : ["live"];
   const [pair, setPair] = useState<Pair>(initialPair);
   const data = useClimData(pair);
@@ -27,6 +33,8 @@ export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand;
   const history: ClimData = run
     ? { ...data, nowSec: run.endSec, state: data.state ? { ...data.state, latestBlock: { number: run.endBlock, timestamp: run.endSec } } : undefined }
     : data;
+  const keyVariant = data.source === "mock" ? "mock" : pair;
+  const staticFeePips = data.pair?.S.key.fee ?? (data.source === "mock" ? MOCK_STATIC_FEE_PIPS : deployments.pairs[pair]?.S.key.fee ?? MOCK_STATIC_FEE_PIPS);
 
   return (
     <div className="space-y-4">
@@ -49,6 +57,7 @@ export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand;
         ) : null}
         {data.error ? <span className="text-xs text-danger">RPC error: {data.error}</span> : null}
       </div>
+      {pair === keyShownAbove && keyVariant !== "mock" ? null : <PoolsKey variant={keyVariant} staticFeePips={staticFeePips} />}
       {run ? (
         <p className="max-w-4xl rounded-md bg-surface-2 px-4 py-3 text-sm leading-relaxed">
           This replay is over. Its desk published reports #{run.firstSeq} to #{run.lastSeq} on Sepolia from {utcTime(run.startSec)} to{" "}
@@ -58,7 +67,7 @@ export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand;
         </p>
       ) : null}
       {data.status === "loading" ? (
-        <p className="text-sm text-fg-subtle">Loading desk reports and swaps…</p>
+        <LoadingGrid />
       ) : data.status === "error" ? (
         <p className="text-sm text-danger">Could not load chain data. Set NEXT_PUBLIC_SEPOLIA_RPC_URL or retry.</p>
       ) : (
@@ -73,6 +82,28 @@ export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand;
           <RecentSwapsPanel data={history} />
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * While the first chain read runs: the ready grid's shape in flat blocks (two half-width cards, the three
+ * full-width charts and tables, two half-width cards), so the page below does not jump when data lands.
+ */
+function LoadingGrid() {
+  const block = "rounded-lg bg-surface-2 animate-pulse motion-reduce:animate-none";
+  return (
+    <div>
+      <p className="sr-only" role="status" aria-live="polite">Loading desk reports and swaps…</p>
+      <div aria-hidden className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className={`${block} h-[380px]`} />
+        <div className={`${block} h-[380px]`} />
+        <div className={`${block} h-[420px] lg:col-span-2`} />
+        <div className={`${block} h-[360px] lg:col-span-2`} />
+        <div className={`${block} h-[300px] lg:col-span-2`} />
+        <div className={`${block} h-[400px]`} />
+        <div className={`${block} h-[400px]`} />
+      </div>
     </div>
   );
 }

@@ -18,7 +18,7 @@ import { ActionButton, type TxMode, TxModeSwitch } from "./TxModeSwitch";
 import { TxSteps } from "./TxSteps";
 import { ModeBadge, Panel, Stat, TxLink } from "./ui";
 
-/** /swap: the fee of V (clim) or S (static) before the swap, the weather that sets it, then the fee paid. */
+/** /swap: the fee of pool V (clim) or pool S (its static twin) before the swap, the weather that sets it, then the fee paid. */
 export function SwapForm() {
   const data = useClimData("live");
   const ready = useMemo(() => writeReadiness(deployments, "swap"), []);
@@ -120,8 +120,8 @@ export function SwapForm() {
           <>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               <Stat label="σ applied by the desk" value={`${sigmaPct.toFixed(1)}%/yr`} hint={lastReport ? `report #${lastReport.seq}, ${formatAge(data.nowSec - desk.tObs)} ago` : undefined} />
-              <Stat label="Pool V (clim) now" value={formatBp(pipsToBp(quote.feePips), 2)} hint={<ModeBadge mode={quote.mode} />} />
-              <Stat label="Pool S (fixed)" value={formatBp(pipsToBp(staticFeePips), 2)} hint="fixed in its PoolKey" />
+              <Stat label="Pool V now" value={formatBp(pipsToBp(quote.feePips), 2)} hint={<ModeBadge mode={quote.mode} />} />
+              <Stat label="Pool S, fixed" value={formatBp(pipsToBp(staticFeePips), 2)} hint="forecast of V's average" />
             </div>
             <div className="mt-4">
               <FeeCurveChart sigmaNowPct={sigmaPct} feeNowBp={pipsToBp(quote.feePips)} staticFeeBp={pipsToBp(staticFeePips)} />
@@ -148,7 +148,7 @@ export function SwapForm() {
           onChange={setPool}
           options={[
             { value: "V", title: "Pool V · clim", subtitle: "fee set by the weather", fee: feeVBp === undefined ? "…" : formatBp(feeVBp, 2), badge: quote ? <ModeBadge mode={quote.mode} /> : null },
-            { value: "S", title: "Pool S · fixed", subtitle: "fee fixed in its PoolKey", fee: formatBp(pipsToBp(staticFeePips), 2) },
+            { value: "S", title: "Pool S · static twin", subtitle: "fixed, forecast of V's average", fee: formatBp(pipsToBp(staticFeePips), 2) },
           ]}
         />
         <div className="mt-2">

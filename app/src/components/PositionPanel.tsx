@@ -7,7 +7,7 @@ import { formatAmount, formatTusdCents } from "@/lib/units";
 import { TokenIcon } from "./dex";
 import { ActionButton, type TxMode } from "./TxModeSwitch";
 
-const POOL_LABEL: Record<PoolName, string> = { V: "Pool V · clim", S: "Pool S · fixed fee" };
+const POOL_LABEL: Record<PoolName, string> = { V: "Pool V · clim", S: "Pool S · static twin" };
 
 const BAR: Record<PoolName, string> = { V: "bg-v", S: "bg-s" };
 

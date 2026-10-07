@@ -8,6 +8,8 @@ import { COLORS, utcTime } from "@/lib/theme";
 import { ChartTooltip, TOOLTIP } from "./ChartTooltip";
 
 const tick = { fontSize: 11, fill: COLORS.muted };
+// legends read "Pool V, Pool S", in the order the cards name them (Recharts sorts alphabetically by default)
+const vFirst = (item: { value?: unknown }) => (item.value === "Pool V" ? 0 : 1);
 
 /** One chart of the replay, a picture to assistive tech (no keyboard layer) whose text is `text`. */
 function Row({ title, text, children }: { title: string; text: string; children: ReactElement }) {
@@ -59,23 +61,23 @@ export function ReplayCharts({ replay }: { replay: LabReplay }) {
         </LineChart>
       </Row>
       <Row
-        title="Fee (bp): V follows the storm, S is static at the same time-average"
-        text={`Fee over the replay: pool V ${span(data.map((r) => r.feeVBp), (v) => `${v.toFixed(1)} bp`)}, pool S static at ${replay.feeSBp.toFixed(1)} bp.`}
+        title="Fee (bp): pool V follows the storm, pool S stays at V's average"
+        text={`Fee over the replay: pool V ${span(data.map((r) => r.feeVBp), (v) => `${v.toFixed(1)} bp`)}, pool S fixed at ${replay.feeSBp.toFixed(2)} bp, V's average.`}
       >
         <LineChart accessibilityLayer={false} data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
-          <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis unit=" bp" tick={tick} width={56} />{tip}<Legend wrapperStyle={{ fontSize: 11 }} />
-          <Line type="stepAfter" dataKey="feeVBp" name="V (clim)" stroke={COLORS.V} dot={false} strokeWidth={2} isAnimationActive={false} />
-          <Line type="stepAfter" dataKey="feeSBp" name="S (static)" stroke={COLORS.S} strokeDasharray="6 3" dot={false} strokeWidth={2} isAnimationActive={false} />
+          <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis unit=" bp" tick={tick} width={56} />{tip}<Legend wrapperStyle={{ fontSize: 11 }} itemSorter={vFirst} />
+          <Line type="stepAfter" dataKey="feeVBp" name="Pool V" stroke={COLORS.V} dot={false} strokeWidth={2} isAnimationActive={false} />
+          <Line type="stepAfter" dataKey="feeSBp" name="Pool S" stroke={COLORS.S} strokeDasharray="6 3" dot={false} strokeWidth={2} isAnimationActive={false} />
         </LineChart>
       </Row>
       <Row
-        title="Cumulative ARB: LP losses to arbitrage net of fees (USD)"
+        title="Lost to arbitrage, cumulative, net of the fees arbitrageurs paid (USD)"
         text={last ? `Cumulative LP losses to arbitrage net of fees at the end of the replay: pool V ${usd(last.arbCumVUsd)}, pool S ${usd(last.arbCumSUsd)}.` : "No data."}
       >
         <LineChart accessibilityLayer={false} data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
-          <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis tick={tick} width={56} />{tip}<Legend wrapperStyle={{ fontSize: 11 }} />
-          <Line dataKey="arbCumVUsd" name="V (clim)" stroke={COLORS.V} dot={false} strokeWidth={2} isAnimationActive={false} />
-          <Line dataKey="arbCumSUsd" name="S (static)" stroke={COLORS.S} dot={false} strokeWidth={2} isAnimationActive={false} />
+          <CartesianGrid stroke={COLORS.grid} vertical={false} />{x}<YAxis tick={tick} width={56} />{tip}<Legend wrapperStyle={{ fontSize: 11 }} itemSorter={vFirst} />
+          <Line dataKey="arbCumVUsd" name="Pool V" stroke={COLORS.V} dot={false} strokeWidth={2} isAnimationActive={false} />
+          <Line dataKey="arbCumSUsd" name="Pool S" stroke={COLORS.S} strokeDasharray="6 3" dot={false} strokeWidth={2} isAnimationActive={false} />
         </LineChart>
       </Row>
     </div>

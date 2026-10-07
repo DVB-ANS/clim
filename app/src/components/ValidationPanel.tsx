@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import { Area, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartTooltip, TOOLTIP } from "./ChartTooltip";
@@ -9,7 +10,7 @@ import type { LabPTradeBand } from "@/lib/lab";
 import { arbBlocksOf, makeBlockClock, makePredictor, pTradeTotals, rollingPTrade } from "@/lib/ptrade";
 import { downsample } from "@/lib/series";
 import { COLORS, utcTime } from "@/lib/theme";
-import { FixtureNote, Panel } from "./ui";
+import { dataTable, FixtureNote, Panel } from "./ui";
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
@@ -42,7 +43,13 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
   return (
     <Panel
       title="Validation: predicted vs observed arbitrage frequency"
-      subtitle={`Share of blocks with an arbitrage on V, rolling ${band.windowBlocks} blocks. Model: P_trade = 1 / (η_eff + 0.824), η_eff = fee / (σ·√(Δt/2)). Band: the model's Monte Carlo paths with clustered arbitrage (${band.method.replace(/^model simulation: /, "")}).`}
+      subtitle={
+        <>
+          Share of blocks with an arbitrage on V over the last {band.windowBlocks} blocks, against the model&apos;s prediction from the fee
+          and σ (the formula is on <Link className="text-link underline" href="/how#premium">How it works</Link>). Band: where 95% of the
+          model&apos;s simulated runs land.
+        </>
+      }
       className="col-span-full"
     >
       <FixtureNote show={band.fixture}>The band is a fixture until the lab writes lab/out/ptrade-band.json.</FixtureNote>
@@ -50,22 +57,22 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
         <p className="text-sm text-fg-subtle">{data.arbRouter ? "Waiting for desk reports and swaps." : "Arbitrage router unknown: add routers.arb to shared/deployments/sepolia.json."}</p>
       ) : (
         <>
-          <div className="mb-3 overflow-x-auto" role="region" aria-label="Arbitrage frequency, observed against predicted" tabIndex={0}>
-            <table className="text-sm tabular-nums">
-            <thead>
-              <tr className="text-left text-xs text-fg-subtle">
-                <th className="pr-6">Pool</th><th className="pr-6">Blocks</th><th className="pr-6">With arbitrage</th><th className="pr-6">Observed</th><th>Predicted</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.totals.map((t) => (
-                <tr key={t.name}>
-                  <td className="pr-6 font-medium" style={{ color: t.name === "V" ? COLORS.V : COLORS.S }}>{t.name}</td>
-                  <td className="pr-6">{t.blocks}</td><td className="pr-6">{t.arbBlocks}</td><td className="pr-6">{pct(t.observed)}</td><td>{pct(t.predicted)}</td>
+          <div className="mb-3 max-w-xl overflow-x-auto focus-visible:outline-2 focus-visible:outline-accent" role="region" aria-label="Arbitrage frequency, observed against predicted" tabIndex={0}>
+            <table className={dataTable}>
+              <thead>
+                <tr>
+                  <th className="pr-4 text-left">Pool</th><th className="num hidden pl-3 sm:table-cell sm:pl-4">Blocks</th><th className="num pl-3 sm:pl-4">With arbitrage</th><th className="num pl-3 sm:pl-4">Observed</th><th className="num pl-3 sm:pl-4">Predicted</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {result.totals.map((t) => (
+                  <tr key={t.name}>
+                    <td className="whitespace-nowrap pr-4 font-medium" style={{ color: t.name === "V" ? COLORS.V : COLORS.S }}>Pool {t.name}</td>
+                    <td className="num hidden pl-3 sm:table-cell sm:pl-4">{t.blocks.toLocaleString("en-US")}</td><td className="num pl-3 sm:pl-4">{t.arbBlocks.toLocaleString("en-US")}</td><td className="num pl-3 sm:pl-4">{pct(t.observed)}</td><td className="num pl-3 sm:pl-4">{pct(t.predicted)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
           <p className="mb-3 text-xs text-fg-muted">
             Our arbitrage bot keeps one transaction in flight per pool: while a trade is pending, it skips the blocks where that pool is
@@ -89,7 +96,7 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Area dataKey="band95" name="95% band (model)" stroke="none" fill={COLORS.band} isAnimationActive={false} />
                   <Line dataKey="predicted" name="Predicted" stroke={COLORS.ink} strokeDasharray="4 3" strokeWidth={2} dot={false} isAnimationActive={false} />
-                  <Line dataKey="observed" name="Observed (V)" stroke={COLORS.V} strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line dataKey="observed" name="Observed on V" stroke={COLORS.V} strokeWidth={2} dot={false} isAnimationActive={false} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

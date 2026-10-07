@@ -23,6 +23,13 @@ export function Stat({ label, value, hint }: { label: string; value: ReactNode; 
   );
 }
 
+/**
+ * The app's data tables: small header in the caption grey, a hairline above every body row, tabular
+ * figures. Give numeric cells (and their headers) className="num" to right-align them.
+ */
+export const dataTable =
+  "w-full text-sm tabular-nums [&_th]:pb-2 [&_th]:text-xs [&_th]:font-normal [&_th]:text-fg-subtle [&_td]:border-t [&_td]:border-line [&_td]:py-2 [&_.num]:text-right";
+
 /** The hook's mode as a tinted pill: icon, label and colour, never colour alone. */
 export function ModeBadge({ mode }: { mode: FeeMode }) {
   const m = MODE_STYLE[mode];

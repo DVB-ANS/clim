@@ -87,8 +87,8 @@ export function poolRows(d: Deployments, feeLabel: (pips: number) => string): Po
     const pair = d.pairs[p];
     if (!pair) continue;
     out.push(
-      { name: `clim pool V (${PAIR_LABEL[p]})`, poolId: pair.V.poolId, fee: "dynamic: set by ClimHook on every swap", initTx: POOL_INIT_TX[pair.V.poolId] },
-      { name: `fixed-fee twin S (${PAIR_LABEL[p]})`, poolId: pair.S.poolId, fee: `${feeLabel(pair.S.key.fee)}, fixed`, initTx: POOL_INIT_TX[pair.S.poolId] },
+      { name: `Pool V · clim (${PAIR_LABEL[p]})`, poolId: pair.V.poolId, fee: "dynamic: set by ClimHook on every swap", initTx: POOL_INIT_TX[pair.V.poolId] },
+      { name: `Pool S · static twin (${PAIR_LABEL[p]})`, poolId: pair.S.poolId, fee: `${feeLabel(pair.S.key.fee)}, fixed`, initTx: POOL_INIT_TX[pair.S.poolId] },
     );
   }
   return out;

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { PoolsKey } from "@/components/PoolsKey";
 import { SwapForm } from "@/components/SwapForm";
+import { dataSource, deployments } from "@/lib/config";
+import { MOCK_STATIC_FEE_PIPS } from "@/lib/mock";
 
 export const metadata: Metadata = { title: "Swap" };
 
@@ -9,10 +12,14 @@ export default function SwapPage() {
       <div>
         <h1 className="font-display text-[40px] font-normal leading-[1.1] tracking-[-0.02em]">Swap: see the fee before you pay it</h1>
         <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-fg-muted">
-          Pool V charges the clim fee, computed inside every swap by the hook from the latest Chainlink CRE report; pool S charges
-          a fixed fee. Pick a pool, read the weather that sets your fee, swap, then check the fee you actually paid in the Swap event.
+          Two pools trade the same pair. Pick one, read the fee it will charge you, swap, then check the fee you actually paid in the Swap
+          event.
         </p>
       </div>
+      <PoolsKey
+        variant={dataSource("live") === "mock" ? "mock" : "live"}
+        staticFeePips={deployments.pairs.live?.S.key.fee ?? MOCK_STATIC_FEE_PIPS}
+      />
       <SwapForm />
     </div>
   );
