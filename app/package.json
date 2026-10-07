@@ -14,7 +14,9 @@
     "fixtures": "tsx scripts/make-fixtures.ts",
     "snapshot": "tsx scripts/snapshot.ts",
     "e2e:onchain": "tsx scripts/e2e-onchain.ts",
-    "dither": "node scripts/make-dither.mjs"
+    "dither": "node scripts/make-dither.mjs",
+    "logos": "node scripts/make-logos.mjs",
+    "world-dots": "node scripts/make-world-dots.mjs"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.11",
@@ -42,5 +44,8 @@
     "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.3"
+  },
+  "overrides": {
+    "ws@^8": "^8.21.0"
   }
 }
