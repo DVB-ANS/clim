@@ -1,5 +1,7 @@
-// Health check of one pair: desk state, hook fee (checked against the shared/ mirror), pool prices, market
-// price and bot balances. Exits 1 on a hard problem. --watch prints one line per block (blind-mode demo).
+// Health check of one pair: desk state, hook fee (checked against the shared/ mirror), pool prices, pool
+// liquidity, market price and bot balances. Exits 1 on a hard problem. --watch prints one line per block
+// (blind-mode demo). The seed liquidity sits in Uniswap's shared PoolModifyLiquidityTest router at salt 0,
+// which does not tie a position to its owner, so a pool below half its seed depth is reported as a problem.
 // Usage: bun src/scripts/status.ts --pair live|replay [--watch]
 import {
   arbRouter,
@@ -8,6 +10,7 @@ import {
   loadParams,
   pipsToBp,
   quoteFeeMirror,
+  stateViewAbi,
   resolvePair,
   sigmaE9ToAnnual,
   type FeeModeValue,
@@ -24,6 +27,7 @@ const d = loadDeployments();
 const p = resolvePair(d, pair);
 const params = loadParams();
 const client = publicClientFor();
+const seedLiquidity = BigInt((d as unknown as { liquidity?: Record<string, string | null> }).liquidity?.[pair] ?? "0");
 const MODE_NAME: Record<number, string> = { [FeeMode.Normal]: "normal", [FeeMode.Degraded]: "degraded", [FeeMode.Blind]: "blind" };
 
 async function market(): Promise<string> {
@@ -38,19 +42,30 @@ async function market(): Promise<string> {
 }
 
 async function snapshot(blockNumber: bigint): Promise<{ line: string; problems: string[] }> {
-  const [s, block, m] = await Promise.all([readPairState(client, d, p, blockNumber), client.getBlock({ blockNumber }), market()]);
+  const liq = (poolId: `0x${string}`) =>
+    client.readContract({ address: d.uniswap.stateView, abi: stateViewAbi, functionName: "getLiquidity", args: [poolId], blockNumber });
+  const [s, block, m, lV, lS] = await Promise.all([
+    readPairState(client, d, p, blockNumber),
+    client.getBlock({ blockNumber }),
+    market(),
+    liq(p.V.poolId),
+    liq(p.S.poolId),
+  ]);
   const now = Number(block.timestamp);
   const mirror = quoteFeeMirror(s.desk, params, now);
   const problems: string[] = [];
   if (mirror.fee !== s.hookFee || mirror.mode !== (s.hookMode as FeeModeValue)) {
     problems.push(`hook quoteFee ${s.hookFee}/${s.hookMode} != shared mirror ${mirror.fee}/${mirror.mode} (params.json differs from the deployed hook?)`);
   }
+  for (const [name, l] of [["V", lV], ["S", lS]] as const) {
+    if (seedLiquidity > 0n && l * 2n < seedLiquidity) problems.push(`pool ${name} liquidity ${l} is below half its seed ${seedLiquidity} (restore with contracts/script/04_AddLiquidity.s.sol)`);
+  }
   if (s.V.protocolFee !== 0 || s.S.protocolFee !== 0) problems.push(`protocol fee is not 0 (V ${s.V.protocolFee}, S ${s.S.protocolFee})`);
   const age = s.desk.seq === 0 ? "never" : `${now - s.desk.tObs}s`;
   const line =
     `block ${blockNumber} | desk seq ${s.desk.seq} age ${age} sigma ${(sigmaE9ToAnnual(s.desk.sigmaE9) * 100).toFixed(1)}%/yr k ${s.desk.kE4 / 1e4} flags ${s.desk.flags}` +
     ` | V fee ${s.hookFee} pips (${pipsToBp(s.hookFee).toFixed(2)} bp, ${MODE_NAME[s.hookMode] ?? s.hookMode})` +
-    ` | S fee ${s.S.lpFee} pips | V ${s.V.ethUsd.toFixed(2)} S ${s.S.ethUsd.toFixed(2)} | market ${m}`;
+    ` | S fee ${s.S.lpFee} pips | V ${s.V.ethUsd.toFixed(2)} S ${s.S.ethUsd.toFixed(2)} | L V ${Number(lV).toExponential(3)} S ${Number(lS).toExponential(3)} | market ${m}`;
   return { line, problems };
 }
 
