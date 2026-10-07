@@ -3805,13 +3805,13 @@ cd /Users/fianso/Development/hackathons/clim && mkdir -p docs/media && uv run --
 ```
 Expected: `wrote docs/media/fee-follows-weather.png`. Open it with the Read tool: the amber step line must rise and fall with the blue volatility line, and the grey dashed line must be flat. If the fee line sits on the floor the whole time, the replay was computed at other parameters than `shared/params.json`: ask plan 03 to recompute.
 
-- [ ] **Step 2: Regenerate and read the README as a judge would** **End of session.**
+- [x] **Step 2: Regenerate and read the README as a judge would** **Done 2026-10-07 (end of session).** README regenerated at `69c9b4e` and after (no `_Pending:` block); read in full by six audit rounds (consistency and honesty lenses).
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run readme && grep -c "_Pending:" /Users/fianso/Development/hackathons/clim/README.md`
 Expected: `README.md updated: ...` then `0`.
 Read the whole README once. The hand-written text must not contradict the generated numbers (for example "the pair's usual tier when it is calm" requires `feeMinPips` to be the market tier). Fix the prose, not the generated blocks.
 
-- [ ] **Step 3: Commit** **End of session.**
+- [x] **Step 3: Commit** **Done 2026-10-07 (end of session).** README committed with the evidence (`69c9b4e`) and every later fix.
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/media/fee-follows-weather.png README.md && git commit -m "docs: README figure and numbers at the deployed parameters" -- docs/media/fee-follows-weather.png README.md || echo "nothing to commit"
@@ -3879,7 +3879,7 @@ cp "<stage export>.mp4" /Users/fianso/Development/hackathons/clim/docs/submissio
 ```
 The name matters: `deck/build-deck.mjs` embeds `demo-stage.mp4` full-bleed on slide 08 and refuses to build the final deck without it.
 
-- [ ] **Step 2: Check duration, sound and format** **End of session.**
+- [ ] **Step 2: Check duration, sound and format** **Maintainer's step (needs his videos; `npm run deck` probes the stage video's duration, sound and codec and re-encodes when needed).**
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/docs/submission/out/video && f=demo-stage.mp4 && printf '%s  %.1f s  audio=%s  video=%s  %s MB\n' "$f" "$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$f")" "$(ffprobe -v error -select_streams a -show_entries stream=codec_name -of csv=p=0 "$f" | head -1)" "$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,pix_fmt -of csv=p=0 "$f")" "$(du -m "$f" | cut -f1)"
@@ -3937,7 +3937,7 @@ cd /Users/fianso/Development/hackathons/clim/docs/submission/deck/v2/png && sips
 ```
 Expected: `pixelWidth: 3840` and `pixelHeight: 2160`. Open it with the Read tool: the count and the read time match `live.json`.
 
-- [ ] **Step 4: Build, check the size, render every slide, commit** **End of session.**
+- [ ] **Step 4: Build, check the size, render every slide, commit** **Maintainer's step (`npm run deck` with his stage video; the build, the size check and the LibreOffice render were run on the draft and on a 30 s test video on 2026-10-07).**
 
 1. Build:
 ```bash
@@ -4027,14 +4027,14 @@ To change the deck before submitting, keep the same link: right click the file, 
 **Delegable:** yes
 **Depends on:** Task 18
 
-- [ ] **Step 1: Tests and generated content** **End of session.**
+- [x] **Step 1: Tests and generated content** **Done 2026-10-07 (end of session).** `# pass 40`; README markers: only the deck and video links say "added at submission" until the maintainer's Task 18.
 
 ```bash
 cd /Users/fianso/Development/hackathons/clim/docs/submission && npm test 2>&1 | grep -E "^# (pass|fail)" && grep -c -E "_Pending:|added at submission" /Users/fianso/Development/hackathons/clim/README.md
 ```
 Expected: `# pass 40`, `# fail 0`, `0`.
 
-- [ ] **Step 2: Secret scan** **End of session.**
+- [x] **Step 2: Secret scan** **Done 2026-10-07 (end of session).** `npm run scan`: no .env secret in the patches of 293 commits (all refs) nor in 482 tracked files.
 
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run scan`
 Expected: `no .env secret in the patches of <c> commits (all refs)`, then `no .env secret in <n> tracked files (<m> secret values checked)`. Also run `cd /Users/fianso/Development/hackathons/clim && git status --short | grep -E "\.env$|secrets\.yaml$"` and expect no output. Any leak: rotate that testnet key at once (main is public and pushed as work goes on, so a value in any pushed commit counts as exposed, rewritten or not), then remove the value.
@@ -4069,7 +4069,7 @@ cd /Users/fianso/Development/hackathons/clim && P=(README.md docs/sessions) && g
 **Delegable:** no (the maintainer approves pushes)
 **Depends on:** Task 19
 
-- [ ] **Step 1: Ask before pushing** **End of session.**
+- [x] **Step 1: Ask before pushing** **Done 2026-10-07 (end of session).** Pushes were allowed by the maintainer after a secret scan for this session.
 
 Ask the maintainer: "Everything is committed and checked. May I push `main` to `origin` (github.com/DVB-ANS/clim, public)?" Push only after an explicit yes:
 ```bash
@@ -4085,7 +4085,7 @@ gh repo view DVB-ANS/clim --json visibility,description,homepageUrl,repositoryTo
 ```
 Expected: `"visibility":"PUBLIC"`, the event line, `https://clim-zeta.vercel.app` and the 14 topics.
 
-- [ ] **Step 3: Look at the README on GitHub** **End of session.**
+- [x] **Step 3: Look at the README on GitHub** **Done 2026-10-07 (end of session).** GitHub serves `92aec12`: both mermaid diagrams, the figure (200), public repo, homepage https://clim-zeta.vercel.app.
 
 Open https://github.com/DVB-ANS/clim: both mermaid diagrams render, the figure shows, every Etherscan and Sourcify link opens the right address or transaction, the table of contents and the docs/faq.md anchors work.
 
@@ -4204,14 +4204,14 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/feedback/cre-fricti
 **Delegable:** no
 **Depends on:** Task 21
 
-- [ ] **Step 1: Session log** **End of session.**
+- [x] **Step 1: Session log** **Done 2026-10-07 (end of session).** Judge feedback (Chainlink DevRel, at the booth) and the maintainer's decisions logged under Feedback received and Decisions.
 
 Append to today's session log every mentor, judge or organizer feedback received while demoing or submitting that is not logged yet (one line each, `- **<who>:** <what>, <what we did>`). Commit:
 ```bash
 cd /Users/fianso/Development/hackathons/clim && git add docs/sessions && git commit -m "docs(session): feedback from submission day" -- docs/sessions || echo "nothing to commit"
 ```
 
-- [ ] **Step 2: Private vault notes (never committed)** **End of session.**
+- [x] **Step 2: Private vault notes (never committed)** **Done 2026-10-07 (end of session).** Overview, Feedbacks, both one-pagers, the video script and the final report updated in French.
 
 Read `CLAUDE.local.md` (gitignored) for the vault paths and writing rules, then update, in French:
 - the hackathon Overview note: `result` (submitted, tracks) and `team` (Sofiane Ben Taleb only, as `docs/submission/team.json`) in the front matter, the links (repo, live URL, Drive folder, demo video), and its "Dans ce dossier" section;
