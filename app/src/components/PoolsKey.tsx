@@ -39,7 +39,7 @@ export function PoolsKey({ variant, staticFeePips, className }: { variant: Pools
         />
       </div>
       <p className="mt-3 text-[13px] leading-relaxed text-fg-subtle">
-        Both pools get the same retail swaps (every order goes to both) and the same arbitrage bot. At the same average fee, any gap
+        Our retail bot sends every order to both pools, and the same arbitrage bot trades both. At the same average fee, any gap
         between them comes from when V charges more: in a storm, or in a safe mode while the desk is silent or the venues disagree.
       </p>
     </section>

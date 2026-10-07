@@ -3,30 +3,30 @@
 import { useMemo } from "react";
 import type { ClimData } from "@/hooks/useClimData";
 import { params } from "@/lib/config";
+import { utcClock, utcDay, utcSpan } from "@/lib/ledger";
 import { blindEpisodes } from "@/lib/series";
-import { utcTime } from "@/lib/theme";
 import { formatAge, pipsToBp } from "@/lib/units";
-import { Panel, TxLink } from "./ui";
+import { type HeadingLevel, Panel, TxLink } from "./ui";
 
 // each list shows its latest rows; the count above it stays the total, so it says when the list is cut
 const LISTED = 5;
 const cut = (n: number) => (n > LISTED ? ` (latest ${LISTED} listed)` : "");
 
-export function SafetyPanel({ data }: { data: ClimData }) {
+export function SafetyPanel({ data, level }: { data: ClimData; level?: HeadingLevel }) {
   const live = data.source === "sepolia";
   const episodes = useMemo(() => blindEpisodes(data.reports, params.tauKillSec, data.nowSec), [data.reports, data.nowSec]);
   const rejected = data.deliveries.filter((d) => !d.accepted);
   const accepted = data.deliveries.length - rejected.length;
   const pf = data.state?.protocolFees;
   return (
-    <Panel title="Safety evidence" subtitle="Everything below is read from logs: forwarder deliveries, desk silences, pool state.">
+    <Panel id="safety" level={level} title="Safety evidence" subtitle="Everything below is read from logs: forwarder deliveries, desk silences, pool state.">
       <ul className="space-y-3 text-sm">
         <li>
           <span className="font-medium">Forged or invalid reports rejected: {rejected.length}{cut(rejected.length)}</span>
           <span className="text-fg-subtle"> (accepted deliveries: {accepted}). A rejected report emits ReportProcessed(…, false) and no RiskReported.</span>
           <ul className="mt-1 space-y-0.5">
             {rejected.slice(-LISTED).map((d) => (
-              <li key={`${d.txHash}:${d.logIndex}`} className="text-xs">{utcTime(d.blockTimestamp)} UTC <TxLink hash={d.txHash} live={live} /></li>
+              <li key={`${d.txHash}:${d.logIndex}`} className="text-xs">{utcDay(d.blockTimestamp)}, {utcClock(d.blockTimestamp)} UTC <TxLink hash={d.txHash} live={live} /></li>
             ))}
           </ul>
         </li>
@@ -35,7 +35,7 @@ export function SafetyPanel({ data }: { data: ClimData }) {
           <ul className="mt-1 space-y-0.5">
             {episodes.slice(-LISTED).map((e) => (
               <li key={e.from} className="text-xs">
-                {utcTime(e.from)} to {e.ongoing ? "now" : `${utcTime(e.to)} UTC`} ({formatAge(e.to - e.from)}): last report <TxLink hash={e.lastTx} live={live} />
+                {utcSpan(e.from, e.to, e.ongoing)} ({formatAge(e.to - e.from)}): last report <TxLink hash={e.lastTx} live={live} />
                 {e.resumeTx ? <> , resumed <TxLink hash={e.resumeTx} live={live} /></> : null}
               </li>
             ))}

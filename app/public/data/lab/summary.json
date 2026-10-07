@@ -59,7 +59,7 @@
     "window": "2026-02-04 12:00-16:00 UTC",
     "sigmaMinPct": 33.674499,
     "sigmaMaxPct": 295.67968,
-    "feeVMinBp": 5.0,
+    "feeVMinBp": 5,
     "feeVMaxBp": 32.37,
     "feeSBp": 15.03,
     "arbChangePct": -18.631183,
@@ -80,7 +80,8 @@
       0.70240233
     ],
     "volatileAssetPctPerYearMax": 0.39936743,
-    "shareFromTop5WeeksPct": 52.87945
+    "shareFromTop5WeeksPct": 52.87945,
+    "mainScenarioEthPctPerYear": 0.39110205
   },
   "modelSeverityRatio": [
     1.2886895,

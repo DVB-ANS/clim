@@ -2,6 +2,7 @@
 
 import type { Address, Hex } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { sepolia } from "wagmi/chains";
 import { poolModifyLiquidityTestAbi, poolSwapTestAbi, testTokenAbi } from "@/lib/abis";
 import type { PoolKey } from "@/lib/deployments";
 import { type SwapPlan, swapArgs } from "@/lib/swap";
@@ -9,7 +10,11 @@ import { type FlowStep, receiptLogs, withGasMargin } from "@/lib/tx";
 
 export type LiquidityParams = { tickLower: number; tickUpper: number; liquidityDelta: bigint; salt: Hex };
 
-/** Real Sepolia writes (wagmi): one FlowStep per transaction, the receipt read back as RawLogs. */
+/**
+ * Real Sepolia writes (wagmi): one FlowStep per transaction, the receipt read back as RawLogs. Every write
+ * is pinned to Sepolia (chainId), so if the wallet moves to another network between two steps of one flow,
+ * the next step fails with a chain mismatch instead of sending a transaction there.
+ */
 export function useChainSteps() {
   const client = usePublicClient();
   const { address } = useAccount();
@@ -35,7 +40,7 @@ export function useChainSteps() {
               return;
             }
           }
-          const hash = await writeContractAsync({ address: token, abi: testTokenAbi, functionName: "approve", args: [spender, amount] });
+          const hash = await writeContractAsync({ address: token, abi: testTokenAbi, functionName: "approve", args: [spender, amount], chainId: sepolia.id });
           onHash(hash);
           await mined(hash);
         },
@@ -47,7 +52,7 @@ export function useChainSteps() {
         run: async (onHash) => {
           const call = { address: router, abi: poolSwapTestAbi, functionName: "swap", args: swapArgs(plan) } as const;
           const gas = client && address ? withGasMargin(await client.estimateContractGas({ ...call, account: address })) : undefined;
-          const hash = await writeContractAsync({ ...call, gas });
+          const hash = await writeContractAsync({ ...call, gas, chainId: sepolia.id });
           onHash(hash);
           return mined(hash);
         },
@@ -57,7 +62,7 @@ export function useChainSteps() {
       return {
         label: `Faucet ${symbol}`,
         run: async (onHash) => {
-          const hash = await writeContractAsync({ address: token, abi: testTokenAbi, functionName: "faucet" });
+          const hash = await writeContractAsync({ address: token, abi: testTokenAbi, functionName: "faucet", chainId: sepolia.id });
           onHash(hash);
           await mined(hash);
         },
@@ -69,7 +74,7 @@ export function useChainSteps() {
         run: async (onHash) => {
           const call = { address: router, abi: poolModifyLiquidityTestAbi, functionName: "modifyLiquidity", args: [key, params, "0x"] } as const;
           const gas = client && address ? withGasMargin(await client.estimateContractGas({ ...call, account: address })) : undefined;
-          const hash = await writeContractAsync({ ...call, gas });
+          const hash = await writeContractAsync({ ...call, gas, chainId: sepolia.id });
           onHash(hash);
           return mined(hash);
         },

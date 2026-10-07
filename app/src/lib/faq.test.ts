@@ -5,10 +5,11 @@ import { faqSlug, splitFaq } from "./faq";
 describe("splitFaq", () => {
   const faq = splitFaq(FAQ_MD);
 
-  it("splits docs/faq.md into its 10 questions, in order", () => {
-    expect(faq.items).toHaveLength(10);
+  it("splits docs/faq.md into its 11 questions, in order", () => {
+    expect(faq.items).toHaveLength(11);
     expect(faq.items[0].question).toBe("How is the fee computed?");
     expect(faq.items[9].question).toBe("Can the owner change the fee?");
+    expect(faq.items[10].question).toBe("Why not set the fee from volume too?");
   });
 
   it("gives every question a unique id, its slug", () => {

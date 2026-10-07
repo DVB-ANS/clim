@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useAccount } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { useChainModal, useConnectModal } from "@rainbow-me/rainbowkit";
 import type { ReactNode } from "react";
+import { linkCls } from "./ui";
 
 export type TxMode = "mock" | "chain";
 
@@ -13,7 +15,21 @@ export type TxMode = "mock" | "chain";
  * deployment). The simulated flow is a fallback for a build without contracts only.
  */
 export function TxModeSwitch({ mode, onChange, ready }: { mode: TxMode; onChange: (m: TxMode) => void; ready: { ok: boolean; reason?: string } }) {
-  if (ready.ok) return <p className="text-xs text-fg-subtle">Real transactions on Ethereum Sepolia, signed by your wallet; test tokens only.</p>;
+  if (ready.ok) {
+    return (
+      <p className="text-xs leading-relaxed text-fg-subtle">
+        Real transactions on Ethereum Sepolia, signed by your wallet, with test tokens only. Gas is paid in Sepolia ETH:{" "}
+        <Link className={linkCls} href="/swap#try">
+          how to get some
+        </Link>
+        . No wallet?{" "}
+        <Link className={linkCls} href="/app#verify">
+          Check it on the dashboard
+        </Link>
+        .
+      </p>
+    );
+  }
   const tab = (m: TxMode, label: string, disabled = false) => (
     <button
       type="button"

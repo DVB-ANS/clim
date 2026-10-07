@@ -3,11 +3,12 @@
 import type { ClimData } from "@/hooks/useClimData";
 import { params } from "@/lib/config";
 import { FLAG_DEGRADED, FLAG_REPLAY, quoteFee } from "@/lib/feeMath";
+import { CRE_RUNS_TODAY } from "@/lib/guide";
 import { utcStamp } from "@/lib/ledger";
 import { utcTime } from "@/lib/theme";
 import { dvolE2ToPct, formatAge, formatPct, sigmaE9ToAnnualPct } from "@/lib/units";
 import { AnimatedCounter } from "./AnimatedCounter";
-import { ModeBadge, Panel, Stat, TxLink } from "./ui";
+import { type HeadingLevel, ModeBadge, Panel, Stat, TxLink } from "./ui";
 
 // RiskReported.zone (spec §3.4): the model-control traffic light, 0 in the hackathon build.
 const ZONES = ["not evaluated", "green", "yellow", "red"];
@@ -15,8 +16,7 @@ const ZONES = ["not evaluated", "green", "yellow", "red"];
 // What runs, said plainly: CRE's one-node simulator, sent by our operator key through MockKeystoneForwarder
 // (no signature check). The workflow is written for a DON, but the DON deployment was cut: deploy access,
 // requested on 6 October, was not granted during the hackathon.
-const RUNS_TODAY =
-  "It runs in CRE's simulator on one node: our operator key sends each report through MockKeystoneForwarder, which checks no signature. The workflow is written with CRE's consensus API for a DON, whose nodes would sign the report, but it has not run on one: DON deploy access, requested on 6 October, was not granted during the hackathon.";
+const RUNS_TODAY = `${CRE_RUNS_TODAY} The workflow is written with CRE's consensus API for a DON, whose nodes would sign the report, but it has not run on one: DON deploy access, requested on 6 October, was not granted during the hackathon.`;
 const LIVE_SUBTITLE = `4 venues, quorum 3, median of each field, one report to RiskDesk.onReport every 30 s. ${RUNS_TODAY}`;
 
 /** The finished replay desk, in the past tense, with its span read from its own reports. */
@@ -30,17 +30,17 @@ function replaySubtitle(first?: number, last?: number): string {
   return `Replay desk: one Binance series served on all 4 venue paths, one report every 30 s${span}, now finished. It ran in CRE's simulator on one node: its own operator key sent each report through MockKeystoneForwarder, which checks no signature.`;
 }
 
-export function DeskPanel({ data }: { data: ClimData }) {
+export function DeskPanel({ data, level }: { data: ClimData; level?: HeadingLevel }) {
   const last = data.reports.at(-1);
   const desk = data.state?.desk;
-  if (!last || !desk) return <Panel title="Risk desk (Chainlink CRE)">No report yet.</Panel>;
+  if (!last || !desk) return <Panel id="desk" level={level} title="Risk desk (Chainlink CRE)">No report yet.</Panel>;
   const mode = quoteFee(desk, data.nowSec, params).mode;
   const latencies = data.reports.slice(-20).map((r) => r.latencySec).sort((a, b) => a - b);
   const medianLatency = latencies[Math.floor(latencies.length / 2)];
   const flags = [desk.flags & FLAG_DEGRADED ? "DEGRADED" : null, desk.flags & FLAG_REPLAY ? "REPLAY" : null].filter(Boolean);
   const replay = (desk.flags & FLAG_REPLAY) !== 0;
   return (
-    <Panel title="Risk desk (Chainlink CRE)" subtitle={replay ? replaySubtitle(data.reports[0]?.blockTimestamp, last.blockTimestamp) : LIVE_SUBTITLE}>
+    <Panel id="desk" level={level} title="Risk desk (Chainlink CRE)" subtitle={replay ? replaySubtitle(data.reports[0]?.blockTimestamp, last.blockTimestamp) : LIVE_SUBTITLE}>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="σ applied (hook input)" value={<AnimatedCounter value={sigmaE9ToAnnualPct(desk.sigmaE9)} decimals={1} suffix="%" className="-my-[0.25em]" />} hint={`reported ${formatPct(sigmaE9ToAnnualPct(last.sigmaReported))}`} />
         <Stat label="RV15" value={formatPct(sigmaE9ToAnnualPct(last.rv15E9))} />

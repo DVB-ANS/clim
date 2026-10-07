@@ -1,12 +1,13 @@
 import { deployments } from "@/lib/config";
-import { contractGroups, etherscanAddress, etherscanTx, poolRows, sourcifyAddress } from "@/lib/contracts";
+import { contractGroups, etherscanAddress, etherscanCode, etherscanTx, poolRows, sourcifyAddress } from "@/lib/contracts";
+import { GITHUB_URL } from "@/lib/links";
 import { formatBp, pipsToBp } from "@/lib/units";
 import { Panel } from "./ui";
 
 const link = "text-link underline decoration-line underline-offset-2 hover:decoration-current";
 const short = (a: string) => `${a.slice(0, 10)}…${a.slice(-4)}`;
 
-/** Every contract of the demo on Sepolia, from the synced deployment: Etherscan for all, Sourcify for those clim deployed. */
+/** Every contract of the demo on Sepolia, from the synced deployment: Etherscan for all, and the verified source on Etherscan and Sourcify for those clim deployed. */
 export function ContractsPanel({ id = "contracts" }: { id?: string }) {
   const groups = contractGroups(deployments);
   const pools = poolRows(deployments, (pips) => formatBp(pipsToBp(pips), 2));
@@ -14,7 +15,7 @@ export function ContractsPanel({ id = "contracts" }: { id?: string }) {
     <Panel
       id={id}
       title="Contracts on Sepolia"
-      subtitle="Ethereum Sepolia (chain id 11155111). Every address links to Etherscan; the source of every contract clim deployed (its six own contracts and the arbitrage bot's router) is verified on Sourcify."
+      subtitle="Ethereum Sepolia (chain id 11155111). Every address links to Etherscan. The source of every contract clim deployed (its six own contracts and the arbitrage bot's router) is verified on Etherscan and Sourcify, so Etherscan's Read Contract tab calls RiskDesk.state() and ClimHook.quoteFee() with no wallet."
     >
       <div className="overflow-x-auto" role="region" aria-label="Contract addresses" tabIndex={0}>
         <table className="w-full min-w-[640px] text-sm">
@@ -41,7 +42,11 @@ export function ContractsPanel({ id = "contracts" }: { id?: string }) {
                   </td>
                   <td className="py-1 pr-6 whitespace-nowrap">
                     {r.verified ? (
-                      <a className={link} href={sourcifyAddress(r.address)} target="_blank" rel="noreferrer">Sourcify</a>
+                      <>
+                        <a className={link} href={etherscanCode(r.address)} target="_blank" rel="noreferrer">Etherscan</a>
+                        {" · "}
+                        <a className={link} href={sourcifyAddress(r.address)} target="_blank" rel="noreferrer">Sourcify</a>
+                      </>
                     ) : (
                       <span className="text-fg-subtle">–</span>
                     )}
@@ -85,7 +90,7 @@ export function ContractsPanel({ id = "contracts" }: { id?: string }) {
       ) : null}
       <p className="mt-3 text-xs text-fg-subtle">
         The full addresses, pool keys and pool ids are in{" "}
-        <a className={link} href="https://github.com/DVB-ANS/clim/blob/main/shared/deployments/sepolia.json" target="_blank" rel="noreferrer">
+        <a className={link} href={`${GITHUB_URL}/blob/main/shared/deployments/sepolia.json`} target="_blank" rel="noreferrer">
           shared/deployments/sepolia.json
         </a>
         .

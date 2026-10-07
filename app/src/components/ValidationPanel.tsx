@@ -10,7 +10,7 @@ import type { LabPTradeBand } from "@/lib/lab";
 import { arbBlocksOf, makeBlockClock, makePredictor, pTradeTotals, rollingPTrade } from "@/lib/ptrade";
 import { downsample } from "@/lib/series";
 import { COLORS, utcTime } from "@/lib/theme";
-import { dataTable, FixtureNote, Panel } from "./ui";
+import { dataTable, FixtureNote, type HeadingLevel, Panel } from "./ui";
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
@@ -19,7 +19,7 @@ const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 const REPLAY_SKIPS =
   "On this replay it skipped 90 such blocks on V: counting them, the bot saw V outside the band in 349 of the 1,186 blocks it processed (29.4%), against the prediction above.";
 
-export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTradeBand }) {
+export function ValidationPanel({ data, band, level }: { data: ClimData; band: LabPTradeBand; level?: HeadingLevel }) {
   const replay = !!deployments.pairs.replay && data.pair?.V.poolId === deployments.pairs.replay.V.poolId;
   const result = useMemo(() => {
     if (!data.pair || !data.arbRouter || data.reports.length === 0 || !data.state) return null;
@@ -42,6 +42,7 @@ export function ValidationPanel({ data, band }: { data: ClimData; band: LabPTrad
 
   return (
     <Panel
+      level={level}
       title="Validation: predicted vs observed arbitrage frequency"
       subtitle={
         <>

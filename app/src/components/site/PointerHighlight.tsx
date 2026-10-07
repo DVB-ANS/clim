@@ -27,7 +27,8 @@ const DRAW_S = 1;
 /**
  * Marks an inline word: once it scrolls into view, and `delay` seconds later, a pink box draws itself
  * around it while a name tag, `label`, rides the box's bottom-right corner into place; the tag hangs to
- * the left of the corner, inside the word's width, so it never leaves the hero.
+ * the left of the corner, inside the word's width, so it never leaves the hero (on phones it hangs just
+ * under the box: CursorTag).
  * Spans only (it sits inside an h1); the box and the tag are hidden from assistive tech and
  * left out of copied text.
  */

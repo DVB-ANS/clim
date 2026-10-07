@@ -4,15 +4,15 @@ import { useMemo } from "react";
 import type { ClimData } from "@/hooks/useClimData";
 import { recentSwapRows } from "@/lib/pnl";
 import { COLORS, utcTime } from "@/lib/theme";
-import { dataTable, Panel, TxLink } from "./ui";
+import { dataTable, type HeadingLevel, Panel, TxLink } from "./ui";
 
-export function RecentSwapsPanel({ data }: { data: ClimData }) {
+export function RecentSwapsPanel({ data, level }: { data: ClimData; level?: HeadingLevel }) {
   const rows = useMemo(
     () => (data.pair ? recentSwapRows({ swaps: data.swaps, pair: data.pair, arbRouter: data.arbRouter, limit: 12 }) : []),
     [data.swaps, data.pair, data.arbRouter],
   );
   return (
-    <Panel title="Recent swaps" subtitle="The fee each swap paid, read from its Swap event. On pool V it is the premium the hook returned at that moment; on pool S it never changes." className="col-span-full">
+    <Panel id="recent-swaps" level={level} title="Recent swaps" subtitle="The fee each swap paid, read from its Swap event. On pool V it is the premium the hook returned at that moment; on pool S it never changes." className="col-span-full">
       <div className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-accent" role="region" aria-label="Recent swaps" tabIndex={0}>
         <table className={`${dataTable} whitespace-nowrap`}>
           <thead>

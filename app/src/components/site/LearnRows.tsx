@@ -1,6 +1,11 @@
 import Link from "next/link";
 
 const ROWS = [
+  {
+    href: "/app#verify",
+    title: "Check it yourself, no wallet",
+    text: "The latest CRE report, the fee the hook quotes now and the last fee paid on each pool, each with its Etherscan link.",
+  },
   { href: "/how", title: "How the desk works", text: "The CRE workflow, RiskDesk's checks and the fee formula, step by step." },
   { href: "/how#faq", title: "Questions a judge would ask", text: "Who changes the fee, what if a venue lags or lies, what if the desk stops." },
   { href: "/replay", title: "Replay the 4 Feb storm", text: "Pool V against pool S, report by report: the lab's replay of the real Binance data, then the same window replayed on Sepolia." },

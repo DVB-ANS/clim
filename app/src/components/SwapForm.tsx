@@ -11,12 +11,13 @@ import { MOCK_ADDR } from "@/lib/mock";
 import { postSwapEthUsd } from "@/lib/pnl";
 import { estimateOut, feeReason, planSwap, type PoolName, type SwapPlan, swapResult, type SwapSide } from "@/lib/swap";
 import { mockStep, mockSwapLogs, mockTxHash, writeReadiness } from "@/lib/tx";
+import { etherscanTxLogs } from "@/lib/contracts";
 import { formatAge, formatAmount, formatBp, pipsToBp, sigmaE9ToAnnualPct, tickToEthUsd } from "@/lib/units";
 import { AmountBox, DetailRow, FlipButton, PoolCards, TokenIcon } from "./dex";
 import { FeeCurveChart } from "./FeeCurveChart";
 import { ActionButton, type TxMode, TxModeSwitch } from "./TxModeSwitch";
 import { TxSteps } from "./TxSteps";
-import { ModeBadge, Panel, Stat, TxLink } from "./ui";
+import { ExtLink, ModeBadge, Panel, Stat, TxLink } from "./ui";
 
 /** /swap: the fee of pool V (clim) or pool S (its static twin) before the swap, the weather that sets it, then the fee paid. */
 export function SwapForm() {
@@ -187,6 +188,12 @@ export function SwapForm() {
             {flow.running ? "Swapping…" : `Swap on pool ${pool}`}
           </ActionButton>
           <TxModeSwitch mode={mode} onChange={setMode} ready={ready} />
+          {lastSwap && mode === "chain" ? (
+            <p className="text-xs text-fg-subtle">
+              Last swap on pool {pool}: paid {formatBp(pipsToBp(lastSwap.fee), 2)}, {formatAge(data.nowSec - lastSwap.blockTimestamp)} ago.{" "}
+              <ExtLink href={etherscanTxLogs(lastSwap.txHash)}>Swap event on Etherscan</ExtLink>
+            </p>
+          ) : null}
           <TxSteps steps={flow.steps} live={mode === "chain"} />
           {result && paid ? (
             <div className="rounded-md bg-surface-2 px-4 py-3 text-sm">

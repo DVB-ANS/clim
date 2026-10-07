@@ -6,13 +6,12 @@ redistributed as a component library, a kit or a template.
 
 The license text of every npm package in the site's dependencies, permissive ones included, is in
 `public/third-party-licenses.txt` (served at [/third-party-licenses.txt](https://clim-zeta.vercel.app/third-party-licenses.txt);
-`npm run licenses` regenerates it). The sections below cover the components, data and fonts clim adapts,
-and the npm packages with non-permissive terms.
+`npm run licenses` regenerates it). The sections below cover the code, data and fonts clim copies or adapts
+whose licenses require a notice, and the npm packages with non-permissive terms.
 
-## motion
-
-- Package: [`motion`](https://www.npmjs.com/package/motion) (motion/react), an npm dependency: the one animation library of the ported components.
-- License: MIT, Copyright (c) 2024 Motion B.V. (node_modules/motion/LICENSE.md).
+Patterns re-implemented with no code copied, so with no notice below (their files' headers still name them):
+Dither it! (`src/components/site/LcdStorm.tsx`, `scripts/make-dither.mjs`) and Aceternity UI
+(`src/components/site/PointerHighlight.tsx`, `src/components/site/FloatingNav.tsx`).
 
 ## ua-parser-js
 
@@ -125,7 +124,7 @@ SOFTWARE.
   - The `cn` import now points to `@/lib/cn`.
   - The two `#000` stops in the mask gradient are now `rgba(0,0,0,1)`, which is the same alpha.
   - Added a license header and doc comments on the exports.
-- License: MIT License, Copyright (c) 2026 Swami Malode. This is the license in force at commit 53956741. Rare UI's later license (MIT + Commons Clause + Attribution, from commit 32b7b52a) does not apply to this copy. The rareui.com credit is kept as a courtesy.
+- License: MIT License, Copyright (c) 2026 Swami Malode. This is the license in force at commit 53956741. Rare UI's later license (MIT + Commons Clause + Attribution, from commit 32b7b52a) does not apply to this copy.
 
 ### Gooey Nav
 
@@ -141,7 +140,6 @@ SOFTWARE.
   - Added a keyboard focus ring and a hover colour.
   - A modified click (new tab or window) no longer moves the active tile.
   - Imports `cn` from `@/lib/cn` instead of clsx/tailwind-merge.
-- The rareui.com credit link is kept as a courtesy, in the landing's footer credits.
 
 ### Scroll Progress
 
@@ -210,49 +208,6 @@ SOFTWARE.
     - The halves stack vertically on mobile, with y as the spring axis there.
     - Reduced motion is gated inside the animated values instead of dropping the props.
     - Restyled with clim tokens (bg-wash, bg-surface-2, dashed border-line, rounded-lg, --clim-shadow-lift, .dotted-divider), and every dark: class is gone.
-
-## Aceternity UI (patterns only)
-
-[Aceternity UI](https://ui.aceternity.com)'s components are free to use but its license forbids redistributing their source
-files, so none is copied here. Two clim components re-implement a pattern of theirs from its behaviour:
-
-- `src/components/site/PointerHighlight.tsx`, after "Pointer Highlight" (https://ui.aceternity.com/components/pointer-highlight):
-  a box drawing itself around a word while a tag travels to its corner (Aceternity's version moves a cursor).
-- `src/components/site/FloatingNav.tsx`, after "Floating Navbar" (https://ui.aceternity.com/components/floating-navbar): a pill
-  that slides in once the hero has scrolled away. Its active marker follows ObsidianUI's Spotlight Navigation idea (MIT); no code copied.
-
-## Dither it!
-
-- Source: https://github.com/alexharris/ditherit (tool: https://ditheritv3.netlify.app). No commit pinned: nothing was copied verbatim.
-- License: MIT License, Copyright (c) 2025 Nuxt UI Templates.
-- What was adapted: the ordered (Bayer) dithering approach of app/utils/dithering.ts (generateBayerIndex / toBayerThresholds, L13-40), re-implemented from the textbook recursive definition in two places:
-  - scripts/make-dither.mjs: Bayer 8x8, generates public/textures/storm-front.png, a blue → white → pink storm front from the clim tokens #0847f7 / #ffffff / #f50db4.
-  - src/components/site/LcdStorm.tsx: Bayer 4x4 thresholds for the CL-1 dot-matrix screen.
-- The generated texture is clim's own output, made from clim's own palette.
-
-```
-MIT License
-
-Copyright (c) 2025 Nuxt UI Templates
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
 
 ## @web3icons/core
 

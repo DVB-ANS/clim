@@ -2,7 +2,7 @@ import { params } from "@/lib/config";
 import type { DeskCheck, DeskStatus } from "@/lib/desk";
 import { DISP_MAX_BP } from "@/lib/series";
 import { windowLabel } from "@/lib/story";
-import { pipsToBp } from "@/lib/units";
+import { formatAge, pipsToBp } from "@/lib/units";
 import { DeskChecks } from "./DeskChecks";
 import { FeeDial } from "./FeeDial";
 import { IsobarCanvas } from "./IsobarCanvas";
@@ -21,13 +21,14 @@ const FEE_MIN = pipsToBp(params.feeMinPips), FEE_MAX = pipsToBp(params.feeMaxPip
  * 03 the hook charges (an interactive dial on its real formula), 04 the safe modes, with what the desk
  * did over the window.
  */
-export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated }: {
+export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated, silent = false }: {
   live: HowLive;
   sigmaPeak?: number;
   checks: DeskCheck[];
   statuses: DeskStatus[];
   safety?: SafetyCounts;
   simulated: boolean;
+  silent?: boolean;
 }) {
   return (
     <div id="how" className="anchor bg-bg px-2 pb-24 pt-20 md:px-4">
@@ -100,6 +101,10 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated 
             mock={<FeeDial sigmaNow={live.sigmaPct} sigmaPeak={sigmaPeak} feeSBp={live.feeSBp} kE4={live.kE4} simulated={simulated} />}
           >
             <p>
+              When prices move, the fastest traders, arbitrageurs racing to the pool&apos;s stale price, profit at the LPs&apos; expense. clim
+              makes that speed cost more in a storm and charges the market&apos;s usual fee when it is calm.
+            </p>
+            <p>
               Nobody sends a transaction to change the fee. On every swap the PoolManager calls the hook, which reads the latest report and
               returns η · σ · √(Δt/2), between {FEE_MIN} and {FEE_MAX} bp.
             </p>
@@ -113,7 +118,7 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated 
             title="Safe modes, by design"
             subtitle="When the desk cannot be trusted, the fee does not guess"
             link={{ href: "/how", label: "Read the safety rules" }}
-            mock={<DeskChecks checks={checks} statuses={statuses} simulated={simulated} />}
+            mock={<DeskChecks checks={checks} statuses={statuses} simulated={simulated} silent={silent} />}
           >
             <p>
               <span aria-hidden className="text-degraded">▲</span> <span className="text-fg">Degraded:</span> the venues disagree by more than {DISP_MAX_BP} bp,
@@ -127,7 +132,7 @@ export function HowStack({ live, sigmaPeak, checks, statuses, safety, simulated 
               <p className="text-[14px]">
                 Over the last {windowLabel(safety.hours)}{simulated ? " (simulated)" : ""}: {safety.degraded} degraded report{safety.degraded === 1 ? "" : "s"},{" "}
                 {safety.blindGaps} blind gap{safety.blindGaps === 1 ? "" : "s"}
-                {safety.blindGaps ? `, the longest ${Math.round(safety.longestBlindSec)} s` : ""}.
+                {safety.blindGaps ? `, the longest ${formatAge(safety.longestBlindSec)}` : ""}.
               </p>
             ) : null}
           </ServiceSection>

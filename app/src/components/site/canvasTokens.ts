@@ -18,7 +18,7 @@ export function canvasTokens(el: Element): CanvasTokens {
   return {
     fg: v("--clim-fg", "#0e1119"),
     signal: v("--clim-signal", "#0847f7"),
-    deep: v("--clim-deep", "#1a2b6b"),
+    deep: v("--clim-deep", "#4e5560"),
     wash: v("--clim-wash", "#eff6ff"),
     sigma: v("--clim-sigma", "#f50db4"),
     lcdBg: v("--clim-lcd-bg", "#0e1119"),

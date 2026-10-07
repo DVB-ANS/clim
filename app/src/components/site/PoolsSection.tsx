@@ -51,7 +51,7 @@ export function PoolsSection({ d }: { d: LandingData }) {
           Two pools, one market
         </h2>
         <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-fg-muted">
-          Same pair, same retail flow, the same arbitrage bot. One fee reads the weather; the other never moves.
+          Same pair. Our retail bot sends every order to both pools, and the same arbitrage bot trades both. One fee reads the weather; the other never moves.
         </p>
 
         <div className="mt-10 grid gap-6 rounded-lg bg-surface p-5 shadow-[0_0_0_1px_var(--clim-line)] md:p-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-center">

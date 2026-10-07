@@ -50,4 +50,11 @@ describe("SafetyPanel", () => {
     expect(html).toContain("rejected: 7 (latest 5 listed)</span>");
     expect(rows(html)).toBe(5 + 5);
   });
+
+  it("dates each rejection and each blind episode, since the history spans several days", () => {
+    const html = render(silentReports(1), rejections(1));
+    // the fixtures sit on 1 January 1970, from 1,000 s
+    expect(html).toContain("1 Jan, 00:16:40 UTC");
+    expect(html).toContain("1 Jan, 00:19:36 to 00:21:20 UTC (1 min 44 s)");
+  });
 });

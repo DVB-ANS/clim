@@ -86,7 +86,7 @@ export function LiquidityForm({ mode, busy, balances, quote, onAdd, pools, ethUs
         <DetailRow label="Position value">{value === undefined ? "…" : `≈ ${formatAmount(value, 2)} tUSD`}</DetailRow>
         <DetailRow label="Held by">the test router, salt = your address</DetailRow>
       </div>
-      {short ? <p className="mt-1 px-2 text-sm text-degraded">Not enough test tokens for this deposit: use the faucet above.</p> : null}
+      {short ? <p className="mt-1 px-2 text-sm text-danger">Not enough test tokens for this deposit: use the faucet above.</p> : null}
       <div className="mt-3 space-y-3 px-1">
         <ActionButton mode={mode} block disabled={!q || short || busy} onClick={() => onAdd(pool, eth)}>
           {busy ? "Working…" : `Approve and add to pool ${pool}`}

@@ -29,7 +29,13 @@ export type LabSummary = {
     pTradePredicted: number;
     pTradeObserved: number;
   };
-  lpGain: { fullRangeEthPctPerYear: [number, number]; volatileAssetPctPerYearMax: number; shareFromTop5WeeksPct: number };
+  lpGain: {
+    fullRangeEthPctPerYear: [number, number];
+    volatileAssetPctPerYearMax: number;
+    shareFromTop5WeeksPct: number;
+    // ETH's gain in the main scenario, % a year: scripts/sync-data.mjs adds it from backtest-summary.json's yearAttribution
+    mainScenarioEthPctPerYear?: number;
+  };
   modelSeverityRatio: [number, number];
   inPoolVolGainSharePct: [number, number];
 };

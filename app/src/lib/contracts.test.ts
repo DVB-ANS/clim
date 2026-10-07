@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { deployments } from "./config";
-import { contractGroups, poolRows, sourcifyAddress } from "./contracts";
+import { contractGroups, etherscanCode, etherscanRead, etherscanTxLogs, poolRows, sourcifyAddress } from "./contracts";
 
 describe("the contracts list (synced Sepolia deployment)", () => {
   const groups = contractGroups(deployments);
@@ -30,5 +30,19 @@ describe("the contracts list (synced Sepolia deployment)", () => {
       "15.03 bp, fixed",
     ]);
     for (const p of pools) expect(p.initTx).toMatch(/^0x[0-9a-f]{64}$/);
+  });
+});
+
+describe("Etherscan links that open the right tab", () => {
+  const h = "0x5568b2037b83037de9f81c8b8d9ff8ad060a94ce46f057e087c6a97bebb44580";
+  const a = "0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F";
+
+  it("opens a transaction on its event log", () => {
+    expect(etherscanTxLogs(h)).toBe(`https://sepolia.etherscan.io/tx/${h}#eventlog`);
+  });
+
+  it("opens an address on Read Contract or on its verified code", () => {
+    expect(etherscanRead(a)).toMatch(/#readContract$/);
+    expect(etherscanCode(a)).toMatch(/#code$/);
   });
 });

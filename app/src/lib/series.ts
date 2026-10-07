@@ -71,6 +71,17 @@ export function downsample<T>(xs: T[], maxPoints: number): T[] {
   return out;
 }
 
+/**
+ * downsample for the hook's step series: it also keeps every point whose mode differs from the previous
+ * one, so a blind or degraded step keeps its exact start and end (a 27 s blind spell is not dropped, nor
+ * drawn as 100 s). It can return a little more than maxPoints: the last point, and the points where the mode changes.
+ */
+export function downsampleSteps<T extends { mode: FeeMode }>(xs: T[], maxPoints: number): T[] {
+  if (xs.length <= maxPoints) return xs;
+  const k = Math.ceil(xs.length / maxPoints);
+  return xs.filter((p, i) => i % k === 0 || i === xs.length - 1 || (i > 0 && p.mode !== xs[i - 1].mode));
+}
+
 export type BlindEpisode = { from: number; to: number; ongoing: boolean; lastTx: Hex; resumeTx?: Hex };
 
 /** Periods when the hook quoted blind because the desk was silent for more than tauKillSec. */

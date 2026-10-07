@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useEffectEvent, useId, useMemo, useRef, useS
 import { CartesianGrid, ComposedChart, Legend, Line, ReferenceArea, ReferenceLine, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis } from "recharts";
 import type { ClimData } from "@/hooks/useClimData";
 import { params } from "@/lib/config";
-import { blindEpisodes, downsample, extent, swapFeeDots, weatherSeries } from "@/lib/series";
+import { blindEpisodes, downsample, downsampleSteps, extent, swapFeeDots, weatherSeries } from "@/lib/series";
 import { COLORS, LABEL_HALO, utcTime } from "@/lib/theme";
 import {
   type Bounds,
@@ -26,7 +26,7 @@ import {
 import { pipsToBp } from "@/lib/units";
 import { ChartTooltip, TOOLTIP } from "./ChartTooltip";
 import { RangeSelector } from "./RangeSelector";
-import { Panel, Toggle } from "./ui";
+import { type HeadingLevel, Panel, Toggle } from "./ui";
 
 // Points drawn per panel: the visible window is downsampled to this, so zooming in shows every report
 // (more only slows the hover down: every move re-renders the chart). The range selector under the
@@ -70,7 +70,7 @@ function StepButton({ label, onClick, disabled, children }: { label: string; onC
  * pointer, Shift + wheel or a sideways swipe to pan. Presets only offer windows that differ from the
  * whole history loaded (the frozen snapshot plus every block polled since).
  */
-export function WeatherChart({ data, initialWindow = "1 h" }: { data: ClimData; initialWindow?: string }) {
+export function WeatherChart({ data, initialWindow = "1 h", level }: { data: ClimData; initialWindow?: string; level?: HeadingLevel }) {
   const syncId = useId();
   const box = useRef<HTMLDivElement>(null);
   const nowBucket = Math.floor(data.nowSec / 10) * 10;
@@ -83,11 +83,13 @@ export function WeatherChart({ data, initialWindow = "1 h" }: { data: ClimData; 
   const [from, to] = range;
   const setRange = (r: Range) => setView({ kind: "custom", from: r[0], to: r[1], follow: r[1] >= bounds[1] - 1 });
 
-  const { points, dots, blind } = useMemo(() => {
-    const visible = downsample(sliceSteps(full, [from, to]), MAX_POINTS);
+  const { points, slice, dots, blind } = useMemo(() => {
+    const slice = sliceSteps(full, [from, to]);
+    // every mode change is kept, so a blind spell's 30 bp step keeps its exact width when the window is long
+    const visible = downsampleSteps(slice, MAX_POINTS);
     const v = data.pair ? swapFeeDots(data.swaps, data.pair.V.poolId).filter((d) => d.t >= from && d.t <= to) : [];
     const episodes = blindEpisodes(data.reports, params.tauKillSec, nowBucket).filter((e) => e.to >= from && e.from <= to);
-    return { points: visible, dots: downsample(v, MAX_DOTS), blind: episodes };
+    return { points: visible, slice, dots: downsample(v, MAX_DOTS), blind: episodes };
   }, [full, from, to, data.reports, data.swaps, data.pair, nowBucket]);
   const overview = useMemo(() => downsample(full, OVERVIEW_POINTS).map((p) => ({ t: p.t, v: p.sigmaPct })), [full]);
 
@@ -124,10 +126,11 @@ export function WeatherChart({ data, initialWindow = "1 h" }: { data: ClimData; 
   const width = to - from;
   const where = `${utcTime(from)} to ${utcTime(to)} UTC`;
 
-  // the charts are pictures to assistive tech (no keyboard layer): these sentences are their text
-  const last = points.at(-1);
-  const sig = extent(points.map((p) => p.sigmaPct));
-  const fee = extent(points.map((p) => p.feeVBp));
+  // the charts are pictures to assistive tech (no keyboard layer): these sentences are their text, read
+  // from every point in the window, not the downsampled ones, so the ranges are exact
+  const last = slice.at(-1);
+  const sig = extent(slice.map((p) => p.sigmaPct));
+  const fee = extent(slice.map((p) => p.feeVBp));
   const sigmaText = sig && last
     ? `σ applied by the desk, ${where}: ${sig[0].toFixed(1)}% to ${sig[1].toFixed(1)}% a year, ${last.sigmaPct.toFixed(1)}% at the end.`
     : "No desk report in this window.";
@@ -137,6 +140,8 @@ export function WeatherChart({ data, initialWindow = "1 h" }: { data: ClimData; 
 
   return (
     <Panel
+      id="weather"
+      level={level}
       title="Weather: volatility and the fee it sets"
       subtitle="Top: volatility published by the CRE desk. Bottom: the fee the hook charges on every swap (line), the fee actually paid by swaps on V (dots), and the static twin S. The fee is never sent by a transaction: Uniswap calls the hook's beforeSwap, which reads σ and returns the fee."
       className="col-span-full"
@@ -195,8 +200,8 @@ export function WeatherChart({ data, initialWindow = "1 h" }: { data: ClimData; 
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Line type="stepAfter" dataKey="sigmaPct" name="σ applied" stroke={COLORS.sigma} strokeWidth={2} dot={false} isAnimationActive={false} />
-              <Line type="stepAfter" dataKey="sigmaReportedPct" name="σ reported" stroke={COLORS.muted} strokeWidth={1} strokeDasharray="3 3" dot={false} isAnimationActive={false} />
-              <Line type="stepAfter" dataKey="dvolPct" name="DVOL" stroke={COLORS.muted} strokeWidth={1} dot={false} isAnimationActive={false} />
+              <Line type="stepAfter" dataKey="sigmaReportedPct" name="σ reported" stroke={COLORS.mutedLine} strokeWidth={1} strokeDasharray="3 3" dot={false} isAnimationActive={false} />
+              <Line type="stepAfter" dataKey="dvolPct" name="DVOL" stroke={COLORS.mutedLine} strokeWidth={1} dot={false} isAnimationActive={false} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -209,7 +214,16 @@ export function WeatherChart({ data, initialWindow = "1 h" }: { data: ClimData; 
               <Tooltip {...TOOLTIP} content={<ChartTooltip only={["feeVBp"]} labelFormat={(t) => `${utcTime(Number(t))} UTC`} valueFormat={(v) => `${v.toFixed(2)} bp`} />} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               {blind.map((e) => (
-                <ReferenceArea key={e.from} x1={Math.max(e.from, from)} x2={Math.min(e.to, to)} fill={COLORS.blind} fillOpacity={0.08} />
+                <ReferenceArea
+                  key={e.from}
+                  x1={Math.max(e.from, from)}
+                  x2={Math.min(e.to, to)}
+                  fill={COLORS.blind}
+                  fillOpacity={0.12}
+                  stroke={COLORS.blind}
+                  strokeOpacity={0.9}
+                  strokeWidth={1}
+                />
               ))}
               <ReferenceLine y={staticFeeBp} stroke={COLORS.S} strokeWidth={2} strokeDasharray="6 3" label={{ value: "S static", position: "insideTopRight", fontSize: 12, style: LABEL_HALO }} />
               <Line type="stepAfter" dataKey="feeVBp" name="V fee (hook)" stroke={COLORS.V} strokeWidth={2} dot={false} isAnimationActive={false} />
@@ -223,7 +237,9 @@ export function WeatherChart({ data, initialWindow = "1 h" }: { data: ClimData; 
       ) : null}
       <p className="mt-1 text-xs text-fg-subtle">
         Under the charts, the whole history&apos;s σ: drag the window or its edges to move or resize it. On a computer, Ctrl or ⌘ + scroll (or a pinch) zooms, Shift + scroll pans.
-        Times in UTC. Shaded: blind mode, the desk was silent for more than {params.tauKillSec} s, so the hook quoted at least {pipsToBp(params.feeSafePips)} bp. No transaction changes the fee: every swap reads the latest CRE report.
+        Times in UTC.{" "}
+        <span aria-hidden className="mr-1 inline-block h-2.5 w-3 border border-blind bg-blind/15 align-middle" />
+        Shaded: blind mode, the desk was silent for more than {params.tauKillSec} s, so the hook quoted at least {pipsToBp(params.feeSafePips)} bp. No transaction changes the fee: every swap reads the latest CRE report.
       </p>
     </Panel>
   );

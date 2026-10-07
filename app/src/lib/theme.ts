@@ -8,11 +8,12 @@ export const COLORS = {
   S: "var(--clim-s)", // static twin pool, slot 2
   sigma: "var(--clim-sigma)", // desk volatility, slot 3
   pink: "var(--clim-pink)", // brand pink marks (live dots), not a data series
-  muted: "var(--clim-muted)", // secondary series (DVOL, reported sigma), axes
+  muted: "var(--clim-muted)", // axes, captions on the dark CRE box
+  mutedLine: "var(--clim-muted-line)", // secondary chart lines (DVOL, reported sigma): 3:1 or more on white and surface-2
   grid: "var(--clim-grid)",
   band: "var(--clim-band)", // P_trade simulated band (sequential blue step 100)
   ink: "var(--clim-ink)", // neutral series: predicted P_trade, ETH/USD price
-  blind: "var(--clim-blind)", // blind-mode shading, drawn at low opacity
+  blind: "var(--clim-blind)", // blind-mode shading: a light fill with a solid edge, so a short spell still shows
   surface: "var(--clim-surface)", // ring around highlighted dots
 } as const;
 

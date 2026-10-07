@@ -15,14 +15,6 @@ const FOOT = [
   },
 ];
 
-const ADAPTED = [
-  { href: "https://reactbits.dev", label: "React Bits" },
-  { href: "https://rareui.com", label: "Rare UI (rareui.com)" },
-  { href: "https://www.obsidianui.dev", label: "ObsidianUI" },
-];
-
-const credit = "underline decoration-line underline-offset-2 hover:text-fg";
-
 /** External links open a new tab; the way into the app opens it from the link, like "Launch app". */
 function FootLink({ href, children, className = "" }: { href: string; children: string; className?: string }) {
   return href.startsWith("http") ? (
@@ -38,7 +30,7 @@ function FootLink({ href, children, className = "" }: { href: string; children: 
   );
 }
 
-/** The landing's footer, light like the rest: links, credits for the adapted components, and the wordmark's giant degree sign in pink. */
+/** The landing's footer, light like the rest: links, one discreet "Licenses" link to /credits, and the wordmark's giant degree sign in pink. */
 export function SiteFooter({ simulated }: { simulated: boolean }) {
   return (
     <footer className="relative mx-2 mb-2 overflow-hidden rounded-lg bg-surface-2 px-6 pb-8 pt-12 text-fg md:px-14">
@@ -65,31 +57,11 @@ export function SiteFooter({ simulated }: { simulated: boolean }) {
           </div>
         ))}
       </div>
-      <p className="relative mt-14 max-w-2xl text-[13px] leading-relaxed text-fg-muted">
-        Components adapted from{" "}
-        {ADAPTED.map((c, i) => (
-          <span key={c.href}>
-            <FootLink href={c.href} className={credit}>
-              {c.label}
-            </FootLink>
-            {i < ADAPTED.length - 2 ? ", " : i === ADAPTED.length - 2 ? " and " : ""}
-          </span>
-        ))}{" "}
-        · patterns after{" "}
-        <FootLink href="https://ui.aceternity.com" className={credit}>
-          Aceternity UI
-        </FootLink>{" "}
-        · dithering after{" "}
-        <FootLink href="https://ditheritv3.netlify.app" className={credit}>
-          Dither it!
-        </FootLink>{" "}
-        ·{" "}
-        <FootLink href="/credits" className={`${credit} whitespace-nowrap`}>
-          Third-party notices
-        </FootLink>
-      </p>
-      <div className="relative mt-6 flex flex-wrap gap-x-8 gap-y-2 text-[13px] text-fg-muted">
+      <div className="relative mt-14 flex flex-wrap gap-x-8 gap-y-2 text-[13px] text-fg-muted">
         <span>© clim 2026 · TOKEN2049 Origins</span>
+        <FootLink href="/credits" className="underline decoration-line underline-offset-2 hover:text-fg">
+          Licenses
+        </FootLink>
         {simulated ? <span>Simulated data</span> : null}
       </div>
     </footer>

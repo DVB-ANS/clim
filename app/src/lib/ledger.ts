@@ -45,8 +45,28 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 
 /** "14:05 UTC on 7 Oct": deterministic (no locale data), the same on the server and in every browser. */
 export function utcStamp(t: number): string {
+  return `${utcTime(t)} UTC on ${utcDay(t)}`;
+}
+
+/** "7 Oct": the UTC day. */
+export function utcDay(t: number): string {
   const d = new Date(t * 1000);
-  return `${utcTime(t)} UTC on ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+}
+
+/** "16:27:12": the UTC clock to the second. */
+export function utcClock(t: number): string {
+  return new Date(t * 1000).toISOString().slice(11, 19);
+}
+
+/**
+ * A dated UTC span for event lists that cover several days: "7 Oct, 04:48:02 to 04:48:48 UTC", the day
+ * repeated only when the span crosses midnight, and "to now" while it is still open.
+ */
+export function utcSpan(from: number, to: number, ongoing = false): string {
+  const start = `${utcDay(from)}, ${utcClock(from)}`;
+  if (ongoing) return `${start} UTC to now`;
+  return `${start} to ${utcDay(to) === utcDay(from) ? "" : `${utcDay(to)}, `}${utcClock(to)} UTC`;
 }
 
 /** How much V's amount differs from S's, in % of S's (the arbitrage loss, the hedged P&L); NaN when S's is not positive. */

@@ -6,9 +6,9 @@ import { deployments } from "@/lib/config";
 import { formatBp, pipsToBp, sigmaE9ToAnnualPct } from "@/lib/units";
 import { AnimatedCounter } from "./AnimatedCounter";
 import { FeeCurveChart } from "./FeeCurveChart";
-import { ModeBadge, Panel, Stat } from "./ui";
+import { type HeadingLevel, ModeBadge, Panel, Stat } from "./ui";
 
-export function QuotePanel({ data }: { data: ClimData }) {
+export function QuotePanel({ data, level }: { data: ClimData; level?: HeadingLevel }) {
   const q = data.state?.quote;
   const desk = data.state?.desk;
   const staticFeeBp = data.pair ? pipsToBp(data.pair.S.key.fee) : 0;
@@ -16,6 +16,7 @@ export function QuotePanel({ data }: { data: ClimData }) {
   const replay = !!deployments.pairs.replay && data.pair?.V.poolId === deployments.pairs.replay.V.poolId;
   return (
     <Panel
+      level={level}
       title="Quote: fee now"
       subtitle={
         <>

@@ -35,6 +35,16 @@ export function postSwapEthUsd(sqrtPriceX96: bigint, token0IsEth: boolean): numb
   return token0IsEth ? p : 1 / p;
 }
 
+/**
+ * When the P&L's window starts: the first swap on poolId that a desk report prices (a report at or before
+ * its block, pnlExplain's rule), so the headline never dates itself from a swap the ledger leaves out.
+ */
+export function firstPricedSwapSec(swaps: SwapRow[], reports: { blockNumber: number }[], poolId: Hex): number | undefined {
+  const firstReport = reports[0]?.blockNumber;
+  if (firstReport === undefined) return undefined;
+  return swaps.find((s) => s.poolId === poolId && s.blockNumber >= firstReport)?.blockTimestamp;
+}
+
 export function pnlExplain(o: {
   swaps: SwapRow[];
   reports: DeskReport[];

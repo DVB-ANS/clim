@@ -1,6 +1,7 @@
-// Every contract the demo uses on Sepolia, grouped as in the README's "Deployed addresses" table, with an
-// Etherscan link for each and a Sourcify link for the seven clim deployed and verified: its six own contracts
-// and the arbitrage bot's router (Uniswap's unmodified PoolSwapTest, "match" on Sourcify since 2026-10-06).
+// Every contract the demo uses on Sepolia, grouped as in the README's "Deployed addresses" table. Every
+// address links to Etherscan. The seven contracts clim deployed (its six own contracts and the arbitrage
+// bot's router, Uniswap's unmodified PoolSwapTest) are verified on Etherscan and on Sourcify, so
+// Etherscan's Read Contract tab calls RiskDesk.state() and ClimHook.quoteFee() with no wallet.
 import type { Address, Hex } from "viem";
 import type { Deployments, Pair } from "./deployments";
 
@@ -10,6 +11,12 @@ export const SOURCIFY_REPO = "https://repo.sourcify.dev/11155111";
 export const etherscanAddress = (a: string) => `${ETHERSCAN}/address/${a}`;
 export const etherscanTx = (h: string) => `${ETHERSCAN}/tx/${h}`;
 export const sourcifyAddress = (a: string) => `${SOURCIFY_REPO}/${a}`;
+/** A transaction opened on its event log (Swap's fee field, ReportProcessed, RiskReported). */
+export const etherscanTxLogs = (h: string) => `${ETHERSCAN}/tx/${h}#eventlog`;
+/** An address's Read Contract tab: state() and quoteFee() with no wallet. */
+export const etherscanRead = (a: string) => `${ETHERSCAN}/address/${a}#readContract`;
+/** An address's verified source. */
+export const etherscanCode = (a: string) => `${ETHERSCAN}/address/${a}#code`;
 
 export type ContractRow = { name: string; address: Address; role: string; verified: boolean };
 export type ContractGroup = { title: string; rows: ContractRow[] };

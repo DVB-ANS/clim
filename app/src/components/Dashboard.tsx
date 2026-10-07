@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { type ClimData, useClimData } from "@/hooks/useClimData";
+import { type ClimData, POLL_MS, useClimData } from "@/hooks/useClimData";
 import { deployments, EXPLORER, params } from "@/lib/config";
 import type { Pair } from "@/lib/deployments";
 import { finishedRun } from "@/lib/finished";
+import { silentNote } from "@/lib/guide";
 import type { LabPTradeBand } from "@/lib/lab";
 import { MOCK_STATIC_FEE_PIPS } from "@/lib/mock";
 import { utcTime } from "@/lib/theme";
 import { pipsToBp, shortHash } from "@/lib/units";
 import { DeskPanel } from "./DeskPanel";
+import { StartHere } from "./guide/StartHere";
 import { PnlPanel } from "./PnlPanel";
 import { PoolsKey } from "./PoolsKey";
 import { RecentSwapsPanel } from "./RecentSwapsPanel";
@@ -17,15 +19,33 @@ import { QuotePanel } from "./QuotePanel";
 import { SafetyPanel } from "./SafetyPanel";
 import { ValidationPanel } from "./ValidationPanel";
 import { VolQuadPanel } from "./VolQuadPanel";
-import { Toggle } from "./ui";
+import { type HeadingLevel, Toggle } from "./ui";
 import { WeatherChart } from "./WeatherChart";
 
 /**
  * The desk, the hook and both pools of one pair, read from chain logs. `keyShownAbove`: the page already
  * shows the pools key for that pair (as /replay does), so the dashboard leaves its own out while on it.
+ * `guide`: /app's "Start here" card goes first, above the loading branch, so its anchors render on the
+ * server; it reads this dashboard's data, never a second copy. `lockPair`: the page's heading names the
+ * pair (/replay's section 2), so there is no Live/Replay toggle to show the other one under it.
+ * `panelLevel`: the cards' heading level, 3 when the page groups them under its own h2.
  */
-export function Dashboard({ band, initialPair = "live", keyShownAbove }: { band: LabPTradeBand; initialPair?: Pair; keyShownAbove?: Pair }) {
-  const pairs: Pair[] = deployments.pairs.replay ? ["live", "replay"] : ["live"];
+export function Dashboard({
+  band,
+  initialPair = "live",
+  keyShownAbove,
+  guide,
+  lockPair,
+  panelLevel,
+}: {
+  band: LabPTradeBand;
+  initialPair?: Pair;
+  keyShownAbove?: Pair;
+  guide?: boolean;
+  lockPair?: boolean;
+  panelLevel?: HeadingLevel;
+}) {
+  const pairs: Pair[] = lockPair ? [initialPair] : deployments.pairs.replay ? ["live", "replay"] : ["live"];
   const [pair, setPair] = useState<Pair>(initialPair);
   const data = useClimData(pair);
   // The replay pair ran once and stopped: its history ends with its last report and swaps, not "now".
@@ -35,10 +55,13 @@ export function Dashboard({ band, initialPair = "live", keyShownAbove }: { band:
     : data;
   const keyVariant = data.source === "mock" ? "mock" : pair;
   const staticFeePips = data.pair?.S.key.fee ?? (data.source === "mock" ? MOCK_STATIC_FEE_PIPS : deployments.pairs[pair]?.S.key.fee ?? MOCK_STATIC_FEE_PIPS);
+  // on /app, StartHere shows the silent-desk note instead
+  const silent = !guide && !run && pair === "live" && data.source === "sepolia" ? silentNote(data.reports, data.nowSec, params) : undefined;
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
+      {guide ? <StartHere data={data} pair={pair} /> : null}
+      <div id="dashboard" className="flex flex-wrap items-center gap-3">
         {pairs.length > 1 ? (
           <Toggle<Pair> value={pair} options={pairs.map((p) => ({ value: p, label: p === "live" ? "Live pair" : "Replay pair (4 Feb 2026, finished)" }))} onChange={setPair} />
         ) : null}
@@ -52,12 +75,21 @@ export function Dashboard({ band, initialPair = "live", keyShownAbove }: { band:
             <a className="text-link underline" href={`${EXPLORER}/address/${data.pair.riskDesk}`} target="_blank" rel="noreferrer">{shortHash(data.pair.riskDesk)}</a>
             , hook{" "}
             <a className="text-link underline" href={`${EXPLORER}/address/${data.pair.hook}`} target="_blank" rel="noreferrer">{shortHash(data.pair.hook)}</a>
-            {data.usedSnapshot ? ", history from the frozen snapshot" : ""}
+            {data.usedSnapshot ? ", older history from a saved copy of the chain logs, new blocks read live" : ""}
           </span>
         ) : null}
-        {data.error ? <span className="text-xs text-danger">RPC error: {data.error}</span> : null}
+        {data.status === "ready" && data.error ? (
+          <span className="text-xs text-danger" title={data.error}>
+            Sepolia read failed. Showing the last data read; retrying every {POLL_MS / 1000} s.
+          </span>
+        ) : null}
       </div>
       {pair === keyShownAbove && keyVariant !== "mock" ? null : <PoolsKey variant={keyVariant} staticFeePips={staticFeePips} />}
+      {silent ? (
+        <p role="note" className="max-w-4xl rounded-md bg-notice-bg px-4 py-3 text-sm leading-relaxed text-notice-fg">
+          {silent}
+        </p>
+      ) : null}
       {run ? (
         <p className="max-w-4xl rounded-md bg-surface-2 px-4 py-3 text-sm leading-relaxed">
           This replay is over. Its desk published reports #{run.firstSeq} to #{run.lastSeq} on Sepolia from {utcTime(run.startSec)} to{" "}
@@ -67,19 +99,19 @@ export function Dashboard({ band, initialPair = "live", keyShownAbove }: { band:
         </p>
       ) : null}
       {data.status === "loading" ? (
-        <LoadingGrid />
+        <LoadingGrid visible={!guide} />
       ) : data.status === "error" ? (
-        <p className="text-sm text-danger">Could not load chain data. Set NEXT_PUBLIC_SEPOLIA_RPC_URL or retry.</p>
+        <p className="text-sm text-danger">{`Could not reach Sepolia through the public RPCs. Retrying every ${POLL_MS / 1000} s.`}</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <DeskPanel data={data} />
-          <QuotePanel data={data} />
-          <WeatherChart key={run ? "run" : pair} data={history} initialWindow={run ? "All" : "1 h"} />
-          <ValidationPanel data={history} band={band} />
-          <PnlPanel data={history} />
-          <VolQuadPanel data={history} band={band} finished={run !== undefined} />
-          <SafetyPanel data={data} />
-          <RecentSwapsPanel data={history} />
+          <DeskPanel data={data} level={panelLevel} />
+          <QuotePanel data={data} level={panelLevel} />
+          <WeatherChart key={run ? "run" : pair} data={history} initialWindow="All" level={panelLevel} />
+          <ValidationPanel data={history} band={band} level={panelLevel} />
+          <PnlPanel data={history} level={panelLevel} />
+          <VolQuadPanel data={history} band={band} finished={run !== undefined} level={panelLevel} />
+          <SafetyPanel data={data} level={panelLevel} />
+          <RecentSwapsPanel data={history} level={panelLevel} />
         </div>
       )}
     </div>
@@ -89,12 +121,19 @@ export function Dashboard({ band, initialPair = "live", keyShownAbove }: { band:
 /**
  * While the first chain read runs: the ready grid's shape in flat blocks (two half-width cards, the three
  * full-width charts and tables, two half-width cards), so the page below does not jump when data lands.
+ * `visible`: say so on screen too (on /app, StartHere's Verify card already does, so it stays sr-only).
  */
-function LoadingGrid() {
+function LoadingGrid({ visible }: { visible?: boolean }) {
   const block = "rounded-lg bg-surface-2 animate-pulse motion-reduce:animate-none";
   return (
     <div>
-      <p className="sr-only" role="status" aria-live="polite">Loading desk reports and swaps…</p>
+      {visible ? (
+        <p role="status" aria-live="polite" className="mb-3 text-sm text-fg-subtle">
+          {`Reading the desk's reports and the pools' swaps from Sepolia. The first load takes a few seconds.`}
+        </p>
+      ) : (
+        <p className="sr-only" role="status" aria-live="polite">Loading desk reports and swaps…</p>
+      )}
       <div aria-hidden className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className={`${block} h-[380px]`} />
         <div className={`${block} h-[380px]`} />

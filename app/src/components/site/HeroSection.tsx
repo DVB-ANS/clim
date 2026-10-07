@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import type { CSSProperties } from "react";
 import { params } from "@/lib/config";
+import { silentLabel } from "@/lib/guide";
 import { pipsToBp } from "@/lib/units";
 import { AnimatedCounter } from "../AnimatedCounter";
+import { linkCls } from "../ui";
 import { Wordmark } from "../Wordmark";
 import { HeroCards } from "./HeroCards";
 import { LaunchButton } from "./LaunchButton";
@@ -16,10 +19,12 @@ const HEADLINE = ["Your", "Liquidity.", "Our", "Risk", "Desk.", "Fees", "That", 
 /**
  * The hero, with no bar above it: the wordmark, the promise (its words rise one by one, then a pink box
  * draws around "Storm" with the desk's σ on its tag), one sentence of mechanism, Launch app first
- * and largest, a live trust line, and the desk's cards on the right. "Scroll to learn more" closes it.
+ * and largest, a trust line (live, or since when the desk has been silent), and the desk's cards on the right. "Scroll to learn more" closes it.
  */
 export function HeroSection({ d }: { d: LandingData }) {
   const sigma = d.sigmaPct;
+  const silentSince = d.silentSince;
+  const silent = silentSince !== undefined;
   return (
     <section id="top" aria-labelledby="hero-title" className="relative overflow-x-clip bg-surface">
       <div className="mx-auto flex min-h-svh max-w-[1200px] flex-col px-4">
@@ -69,15 +74,28 @@ export function HeroSection({ d }: { d: LandingData }) {
               </a>
             </div>
             <p className="rise mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-fg-subtle" style={{ animationDelay: "450ms" }}>
-              <span aria-hidden className="size-2 rounded-full bg-pink" />
-              <span>Live from the desk</span>
-              {d.last ? (
-                <span>
-                  · report #{d.last.seq} · {d.last.nSources}/4 venues · σ{" "}
-                  {sigma === undefined ? "…" : <AnimatedCounter value={sigma} decimals={1} className="-my-[0.25em]" />} %/yr
-                </span>
-              ) : null}
-              {d.simulated ? <span>· simulated</span> : null}
+              <span aria-hidden className={`size-2 rounded-full ${silent ? "bg-fg-subtle" : "bg-pink"}`} />
+              {silentSince !== undefined && d.last ? (
+                <>
+                  <span>{silentLabel(silentSince, d.last.seq)}</span>
+                  <span>· CRE simulator, 1 node ·</span>
+                  <Link className={linkCls} href="/app#start" aria-label="Why the desk is silent">
+                    why
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <span>Live from the desk</span>
+                  {d.last ? (
+                    <span>
+                      · report #{d.last.seq} · {d.last.nSources}/4 venues · σ{" "}
+                      {sigma === undefined ? "…" : <AnimatedCounter value={sigma} decimals={1} className="-my-[0.25em]" />} %/yr
+                    </span>
+                  ) : null}
+                  {!d.simulated ? <span>· CRE simulator, 1 node</span> : null}
+                  {d.simulated ? <span>· simulated</span> : null}
+                </>
+              )}
             </p>
           </div>
           <HeroCards

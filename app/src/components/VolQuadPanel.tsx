@@ -11,7 +11,7 @@ import { arbBlocksOf, pTradeTotals, makeBlockClock, makePredictor, sigmaArbAnnua
 import { timeAverageFeeBp, weatherSeries } from "@/lib/series";
 import { dvolE2ToPct, formatPct, sigmaE9ToAnnualPct, tickToEthUsd } from "@/lib/units";
 import { AnimatedCounter } from "./AnimatedCounter";
-import { Panel } from "./ui";
+import { type HeadingLevel, Panel } from "./ui";
 
 // label | track | value from sm; label and value over the track below it
 const ROW = "grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 sm:grid-cols-[minmax(0,10.5rem)_minmax(0,1fr)_4.5rem]";
@@ -25,7 +25,7 @@ type Reading = { label: string; sub: string; value: number; mark: string };
  * volatility: right of the dashed line (the pink zone), V's fee income no longer covers its LVR.
  * `finished`: the data is a run that has ended (the replay pair), so the verdict is in the past tense.
  */
-export function VolQuadPanel({ data, band, finished = false }: { data: ClimData; band: LabPTradeBand; finished?: boolean }) {
+export function VolQuadPanel({ data, band, finished = false, level }: { data: ClimData; band: LabPTradeBand; finished?: boolean; level?: HeadingLevel }) {
   const q = useMemo(() => {
     const last = data.reports.at(-1);
     if (!last || !data.pair || !data.state) return null;
@@ -80,6 +80,7 @@ export function VolQuadPanel({ data, band, finished = false }: { data: ClimData;
 
   return (
     <Panel
+      level={level}
       title="Volatility against V's break-even"
       subtitle="Three readings of ETH volatility on one scale, in % a year. Right of the dashed line, pool V's fees no longer cover its LVR: what LPs lose to arbitrageurs trading at stale prices."
     >

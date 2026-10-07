@@ -9,6 +9,7 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FAQ_MD } from "@/generated/faq";
 import { splitFaq } from "@/lib/faq";
+import { GITHUB_URL } from "@/lib/links";
 
 const FAQ = splitFaq(FAQ_MD);
 
@@ -52,11 +53,11 @@ export function FaqList() {
         <div className="faq-answer mt-4 max-w-[52ch] text-[15px] leading-[1.6] text-fg-muted">
           <p>
             Questions about clim, with precise answers. At TOKEN2049 Origins on 6 October, a Chainlink mentor asked two of them: how the fee
-            is changed and computed (the first two answers) and whether a pool that is already live can switch to clim (the third). The
-            others are the questions we expect from judges.
+            is changed and computed (the first two answers) and whether a pool that is already live can switch to clim (the third). A
+            Chainlink judge suggested the last one at the booth on 7 October 2026. The others are the questions we expect from judges.
           </p>
           <p>
-            Code references point to <a href="https://github.com/DVB-ANS/clim">the clim repository</a> and to{" "}
+            Code references point to <a href={GITHUB_URL}>the clim repository</a> and to{" "}
             <a href="https://github.com/Uniswap/v4-core">Uniswap v4 core</a>.
           </p>
         </div>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FeeMode } from "./feeMath";
-import { blocksSpan, feeRegimes, grouped, niceMax, pnlCaveat, pnlSentence, relativePct, scalePct, signed, spanLabel, utcStamp } from "./ledger";
+import { blocksSpan, feeRegimes, grouped, niceMax, pnlCaveat, pnlSentence, relativePct, scalePct, signed, spanLabel, utcClock, utcDay, utcSpan, utcStamp } from "./ledger";
 
 describe("niceMax: the end of the volatility scale", () => {
   it("is the smallest step at least 1.1 times the largest reading", () => {
@@ -111,5 +111,22 @@ describe("what sits behind the P&L headline", () => {
       `V's fee left its 5 bp floor for 30 min, each time because σ rose; no safe mode in this window.${tail}`,
     );
     expect(pnlCaveat({ stormSec: 0, blindSec: 0, degradedSec: 0 }, 5, 30)).toBe(`V's fee stayed at its 5 bp floor throughout: no premium is behind the gap.${tail}`);
+  });
+});
+
+describe("dated UTC spans, for lists that cover several days", () => {
+  // 2026-10-06T16:27:12Z and 2026-10-07T04:48:02Z
+  const oct6 = Date.UTC(2026, 9, 6, 16, 27, 12) / 1000;
+  const oct7 = Date.UTC(2026, 9, 7, 4, 48, 2) / 1000;
+
+  it("gives the day and the clock to the second", () => {
+    expect(utcDay(oct6)).toBe("6 Oct");
+    expect(utcClock(oct6)).toBe("16:27:12");
+  });
+
+  it("names the day once within a day, twice across midnight, and says now while open", () => {
+    expect(utcSpan(oct7, oct7 + 46)).toBe("7 Oct, 04:48:02 to 04:48:48 UTC");
+    expect(utcSpan(oct6, oct7)).toBe("6 Oct, 16:27:12 to 7 Oct, 04:48:02 UTC");
+    expect(utcSpan(oct7, oct7 + 46, true)).toBe("7 Oct, 04:48:02 UTC to now");
   });
 });

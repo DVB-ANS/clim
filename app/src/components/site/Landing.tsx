@@ -25,7 +25,7 @@ export function Landing() {
       <main>
         <HeroSection d={d} />
         <LogoStrip />
-        <LiveTicker items={d.ticker} simulated={d.simulated} />
+        <LiveTicker items={d.ticker} simulated={d.simulated} silent={d.silentSince !== undefined} />
         <ProblemSection />
         <HowStack
           live={{ seq: d.last?.seq, sigmaPct: d.sigmaPct, dispBp: d.last?.dispBp, sources: d.last?.nSources, feeVBp: d.feeVBp, feeSBp: d.feeSBp, kE4: d.last?.kE4 }}
@@ -34,6 +34,7 @@ export function Landing() {
           statuses={d.statuses}
           safety={d.safety}
           simulated={d.simulated}
+          silent={d.silentSince !== undefined}
         />
         <PoolsSection d={d} />
         <LearnRows />

@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Panel } from "@/components/ui";
 
-export const metadata: Metadata = { title: "Credits and licenses" };
+export const metadata: Metadata = { title: "Licenses" };
 
 // THIRD_PARTY_NOTICES.md at the repo root, read at build time: one source for the repo and the site.
 const NOTICES = readFileSync(join(process.cwd(), "THIRD_PARTY_NOTICES.md"), "utf8");
@@ -13,13 +13,13 @@ const NOTICES = readFileSync(join(process.cwd(), "THIRD_PARTY_NOTICES.md"), "utf
 export default function CreditsPage() {
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-[40px] font-normal leading-[1.1] tracking-[-0.02em]">Credits and licenses</h1>
+      <h1 className="font-display text-[40px] font-normal leading-[1.1] tracking-[-0.02em]">Licenses</h1>
       <Panel
-        title="Third-party notices"
+        title="License notices"
         subtitle={
           <>
-            The components and data clim&apos;s front adapts, and the npm packages with non-permissive terms. Every npm package&apos;s license
-            text: <a className="text-link underline" href="/third-party-licenses.txt">/third-party-licenses.txt</a>.
+            The license texts and copyright lines that the code, data and fonts this site copies or adapts require, and the npm packages
+            with non-permissive terms. Every npm package&apos;s license text: <a className="text-link underline" href="/third-party-licenses.txt">/third-party-licenses.txt</a>.
           </>
         }
       >

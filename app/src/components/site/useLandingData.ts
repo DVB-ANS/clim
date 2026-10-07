@@ -6,7 +6,8 @@ import { params } from "@/lib/config";
 import type { DeskReport } from "@/lib/decode";
 import { deskChecks, reportStatuses } from "@/lib/desk";
 import { quoteFee } from "@/lib/feeMath";
-import { deskStateOf, DISP_MAX_BP, downsample, weatherSeries } from "@/lib/series";
+import { deskSilentSince } from "@/lib/guide";
+import { deskStateOf, DISP_MAX_BP, downsampleSteps, weatherSeries } from "@/lib/series";
 import { poolsVerdict, safetyCounts, stormSummary } from "@/lib/story";
 import { MODE_STYLE } from "@/lib/theme";
 import { pipsToBp, sigmaE9ToAnnualPct } from "@/lib/units";
@@ -29,15 +30,18 @@ export function useLandingData() {
   const feeSBp = pair ? pipsToBp(pair.S.key.fee) : undefined;
   const modeLabel = quote ? MODE_STYLE[quote.mode].label.toLowerCase() : undefined;
   const slow = Math.floor(nowSec / 30) * 30;
+  // the desk's last report, when it is older than FINISHED_AFTER_SEC: the hero, the ticker and Desk checks then stop saying "Live"
+  const silentSince = simulated ? undefined : deskSilentSince(reports, nowSec);
 
   const points = useMemo(() => {
     const from = (reports.at(-1)?.blockTimestamp ?? 0) - 2 * 3600;
-    return downsample(weatherSeries(reports.filter((r) => r.blockTimestamp >= from), params, nowSec), 160);
+    return downsampleSteps(weatherSeries(reports.filter((r) => r.blockTimestamp >= from), params, nowSec), 160);
   }, [reports, nowSec]);
   const windowPoints = useMemo(() => {
-    // downsampled for the chart, but the storm's peak step is kept, so its pink ring sits on the line
+    // downsampled for the chart, but every mode change (each blind spell's 30 bp step) and the storm's
+    // peak step are kept, so the safe fee shows at its true width and the peak's pink ring sits on the line
     const full = weatherSeries(reports, params, slow);
-    const kept = new Set(downsample(full, 240));
+    const kept = new Set(downsampleSteps(full, 240));
     const peak = full.reduce((best, p, i) => (p.sigmaPct > full[best].sigmaPct ? i : best), 0);
     for (const i of [peak, peak + 1]) if (full[i]) kept.add(full[i]);
     return full.filter((p) => kept.has(p));
@@ -61,7 +65,7 @@ export function useLandingData() {
   const verdict = useMemo(() => (pair ? poolsVerdict(reports, params, { swaps, pair, arbRouter, nowSec: slow }) : undefined), [reports, swaps, pair, arbRouter, slow]);
   const safety = useMemo(() => safetyCounts(reports, params, slow), [reports, slow]);
 
-  return { simulated, last, sigmaPct, feeVBp, feeSBp, modeLabel, points, windowPoints, ticker, statuses, checks, storm, verdict, safety };
+  return { simulated, silentSince, last, sigmaPct, feeVBp, feeSBp, modeLabel, points, windowPoints, ticker, statuses, checks, storm, verdict, safety };
 }
 
 export type LandingData = ReturnType<typeof useLandingData>;

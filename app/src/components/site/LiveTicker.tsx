@@ -6,11 +6,11 @@ import { setMotionPaused, useMotionPaused } from "./motionPause";
 export type TickerItem = { seq: number; sigmaPct: number; feeVBp: number; feeSBp: number; mode: string };
 
 /**
- * A slim band of the latest reports, scrolling; it stops under the pointer and with reduced motion. Its
+ * A slim band of the latest reports, scrolling, labelled "Live" while the desk reports and "Last reports" once it is silent; it stops under the pointer and with reduced motion. Its
  * button pauses every looping motion on the page (the ticker, the canvases, the map's arcs, the scroll
  * cue; motionPause.ts), so nothing keeps moving on its own once a visitor asks it to stop.
  */
-export function LiveTicker({ items, simulated }: { items: TickerItem[]; simulated: boolean }) {
+export function LiveTicker({ items, simulated, silent = false }: { items: TickerItem[]; simulated: boolean; silent?: boolean }) {
   const paused = useMotionPaused();
   if (items.length === 0) return null;
   // the row twice, the copy hidden from assistive tech, so the loop is seamless at -50%
@@ -33,8 +33,9 @@ export function LiveTicker({ items, simulated }: { items: TickerItem[]; simulate
     <div className="border-y border-line bg-surface text-[13px] text-fg-subtle">
       <div className="mx-auto flex max-w-[1200px] items-center gap-4 px-4">
         <span className="flex shrink-0 items-center gap-2 py-2.5 font-medium text-fg">
-          <span className="size-2 rounded-full bg-pink" />
-          Live{simulated ? " · simulated" : ""}
+          <span className={cn("size-2 rounded-full", silent ? "bg-fg-subtle" : "bg-pink")} />
+          {silent ? "Last reports" : "Live"}
+          {simulated ? " · simulated" : ""}
         </span>
         <button
           type="button"

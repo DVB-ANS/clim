@@ -18,33 +18,40 @@ const PLACE: Record<string, { dx: number; dy: number; lx: number; ly: number; an
   Deribit: { dx: 0, dy: 0, lx: 1.8, ly: -1.4, anchor: "start" },
 };
 
+// A label's ground: a surface-coloured stroke painted under the glyphs (theme.ts's LABEL_HALO, in map
+// units: 0.8 is about 3 px at the map's scale), so a dashed arc crossing a label does not cut its text.
+const HALO = { stroke: "var(--clim-surface)", strokeWidth: 0.8, strokeLinejoin: "round", paintOrder: "stroke" } as const;
+
 /** Four stations and Deribit, at their approximate regions, feeding the Chainlink CRE median. */
 export function VenueMap({ className = "" }: { className?: string }) {
+  const venues = Object.entries(VENUE_PINS).map(([name, [x0, y0]]) => {
+    const p = PLACE[name];
+    return { name, p, x: x0 + p.dx, y: y0 + p.dy };
+  });
   return (
     <svg viewBox={`-2 -3 ${WORLD_W + 4} ${WORLD_H + 9}`} className={className} role="img" aria-label="World map with Coinbase, Kraken, Binance, Hyperliquid and Deribit linked to the Chainlink CRE workflow's median">
       <path d={LAND} fill="none" stroke="var(--clim-muted)" strokeOpacity={0.55} strokeWidth={0.62} strokeLinecap="round" />
-      {Object.entries(VENUE_PINS).map(([name, [x0, y0]]) => {
-        const p = PLACE[name];
-        const x = x0 + p.dx, y = y0 + p.dy;
-        return (
-          <g key={name}>
-            <path
-              d={`M${x} ${y} Q ${(x + CRE[0]) / 2} ${Math.max(y, CRE[1]) + 7} ${CRE[0]} ${CRE[1]}`}
-              fill="none"
-              stroke="var(--clim-deep)"
-              strokeWidth={0.35}
-              strokeDasharray="1.4 1.6"
-              className="motion-loop animate-[clim-dash_1.6s_linear_infinite]"
-            />
-            <circle cx={x} cy={y} r={1.15} fill="var(--clim-signal)" stroke="var(--clim-surface)" strokeWidth={0.4} />
-            <text x={x + p.lx} y={y + p.ly} textAnchor={p.anchor} fontSize={3.1} fill="var(--clim-fg)" fontFamily="var(--font-inter)" className="max-sm:hidden">
-              {name === "Deribit" ? "Deribit DVOL" : name}
-            </text>
-          </g>
-        );
-      })}
+      {venues.map(({ name, x, y }) => (
+        <g key={name}>
+          <path
+            d={`M${x} ${y} Q ${(x + CRE[0]) / 2} ${Math.max(y, CRE[1]) + 7} ${CRE[0]} ${CRE[1]}`}
+            fill="none"
+            stroke="var(--clim-deep)"
+            strokeWidth={0.35}
+            strokeDasharray="1.4 1.6"
+            className="motion-loop animate-[clim-dash_1.6s_linear_infinite]"
+          />
+          <circle cx={x} cy={y} r={1.15} fill="var(--clim-signal)" stroke="var(--clim-surface)" strokeWidth={0.4} />
+        </g>
+      ))}
       <circle cx={CRE[0]} cy={CRE[1]} r={2.1} fill="var(--clim-fg)" />
-      <text x={CRE[0] + 3.2} y={CRE[1] + 0.9} fontSize={3.1} fill="var(--clim-fg)" fontFamily="var(--font-inter)" className="max-sm:hidden">
+      {/* the labels last, above every arc */}
+      {venues.map(({ name, p, x, y }) => (
+        <text key={name} x={x + p.lx} y={y + p.ly} textAnchor={p.anchor} fontSize={3.1} fill="var(--clim-fg)" {...HALO} fontFamily="var(--font-inter)" className="max-sm:hidden">
+          {name === "Deribit" ? "Deribit DVOL" : name}
+        </text>
+      ))}
+      <text x={CRE[0] + 3.2} y={CRE[1] + 0.9} fontSize={3.1} fill="var(--clim-fg)" {...HALO} fontFamily="var(--font-inter)" className="max-sm:hidden">
         Chainlink CRE · median (simulator)
       </text>
     </svg>

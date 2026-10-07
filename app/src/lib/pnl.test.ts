@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DeskReport, SwapRow } from "./decode";
-import { pnlExplain, recentSwapRows, sigmaBreakEvenAnnualPct } from "./pnl";
+import { firstPricedSwapSec, pnlExplain, recentSwapRows, sigmaBreakEvenAnnualPct } from "./pnl";
 import { ethUsdToTick, tickToEthUsd } from "./units";
 
 const ARB = "0x3000000000000000000000000000000000000003";
@@ -73,6 +73,16 @@ describe("pnlExplain", () => {
     const r = pnlExplain({ swaps, reports, poolId: "0xaa", token0IsEth: true, arbRouter: ARB });
     expect(r.swaps).toBe(0);
     expect(r.unpricedSwaps).toBe(1);
+  });
+});
+
+describe("firstPricedSwapSec", () => {
+  it("starts at the first swap a report prices, not at an unpriced one before the first report", () => {
+    const reports = [report(10, 2_500), report(20, 2_550)];
+    const swaps = [swap(5, RETAIL, 1n, -1n, 3_000), { ...swap(9, RETAIL, 1n, -1n, 500), poolId: "0xbb" as const }, swap(10, RETAIL, 1n, -1n, 500), swap(14, RETAIL, 1n, -1n, 500)];
+    expect(firstPricedSwapSec(swaps, reports, "0xaa")).toBe(10 * 12);
+    expect(firstPricedSwapSec(swaps.slice(0, 1), reports, "0xaa")).toBeUndefined();
+    expect(firstPricedSwapSec(swaps, [], "0xaa")).toBeUndefined();
   });
 });
 

@@ -51,8 +51,9 @@ export default function HowPage() {
           way you trade and ignores the pool&apos;s own state, so splitting a trade or sandwiching it does not change it.
         </p>
         <p className="mt-2 text-sm">
-          Why a premium: LPs lose money to arbitrageurs every time the market moves before the pool does, and they lose more when it moves
-          fast. So the premium grows with volatility, like storm insurance: small in calm weather, larger in a storm.
+          Why a premium: when prices move, the first and fastest traders, arbitrageurs racing to the pool&apos;s stale price, profit at the
+          LPs&apos; expense. clim makes that speed cost more in a storm and charges the market&apos;s usual {pipsToBp(params.feeMinPips)} bp
+          when it is calm. So the premium grows with volatility: small in calm weather, larger in a storm.
         </p>
         <FeeFormula />
         <FeeTable />

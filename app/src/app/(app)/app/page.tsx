@@ -17,7 +17,7 @@ export default function DashboardPage() {
           Volatility comes from a Chainlink CRE risk desk; the fee is applied by a Uniswap v4 hook on every swap.
         </p>
       </div>
-      <Dashboard band={labBand} />
+      <Dashboard band={labBand} guide />
       <ContractsPanel />
     </div>
   );

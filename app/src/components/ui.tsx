@@ -2,11 +2,29 @@ import type { ReactNode } from "react";
 import type { FeeMode } from "@/lib/feeMath";
 import { MODE_STYLE } from "@/lib/theme";
 
+/** The heading level of a card's title: 2 by default, 3 when the page groups cards under its own h2 sections (/replay). */
+export type HeadingLevel = 2 | 3;
+
 /** A data card: white, 20 px corners, hairline border, the title in the display face at weight 400. */
-export function Panel({ title, subtitle, children, className = "", id }: { title: string; subtitle?: ReactNode; children: ReactNode; className?: string; id?: string }) {
+export function Panel({
+  title,
+  subtitle,
+  children,
+  className = "",
+  id,
+  level = 2,
+}: {
+  title: string;
+  subtitle?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  id?: string;
+  level?: HeadingLevel;
+}) {
+  const H = level === 3 ? "h3" : "h2";
   return (
     <section id={id} className={`rounded-lg border border-line bg-surface p-6 ${className}`}>
-      <h2 className="font-display text-lg font-normal tracking-tight text-fg">{title}</h2>
+      <H className="font-display text-lg font-normal tracking-tight text-fg">{title}</H>
       {subtitle ? <p className="mt-1 text-sm text-fg-subtle">{subtitle}</p> : null}
       <div className="mt-4">{children}</div>
     </section>
@@ -47,6 +65,21 @@ export function ModeBadge({ mode }: { mode: FeeMode }) {
 export function FixtureNote({ show, children }: { show: boolean; children: ReactNode }) {
   if (!show) return null;
   return <p className="mb-3 rounded-md bg-notice-bg px-3 py-1.5 text-xs text-notice-fg">{children}</p>;
+}
+
+/** A text link: the text colour with a blue underline, at least 24 px tall, with a visible focus ring. */
+export const linkCls =
+  "inline-flex min-h-6 items-center rounded-sm text-link underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+
+/** An external link: new tab, a visible ↗, and a screen-reader note. */
+export function ExtLink({ href, children, className = "" }: { href: string; children: ReactNode; className?: string }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className={`${linkCls} ${className}`}>
+      {children}
+      <span aria-hidden>&nbsp;↗</span>
+      <span className="sr-only"> (opens in a new tab)</span>
+    </a>
+  );
 }
 
 /** An Etherscan link to a transaction; at least 24 px tall, so stacked links stay apart as touch targets. */

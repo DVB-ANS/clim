@@ -9,7 +9,7 @@ export type HeroLive = { points: WeatherPoint[]; feeVBp?: number; feeSBp?: numbe
 
 const card = "rounded-md border border-line bg-surface shadow-[0_10px_30px_rgba(32,32,32,0.06)]";
 
-const CHIP = { sigma: "bg-sigma-wash text-sigma-ink", deep: "bg-deep/12 text-deep" } as const;
+const CHIP = { sigma: "bg-sigma-wash text-sigma-ink", s: "bg-s/12 text-s" } as const;
 
 function Chip({ children, tone }: { children: React.ReactNode; tone: keyof typeof CHIP }) {
   return <span className={`grid size-8 shrink-0 place-items-center rounded-full ${CHIP[tone]}`}>{children}</span>;
@@ -60,10 +60,10 @@ export function HeroCards({ live }: { live: HeroLive }) {
               <span className="text-base text-fg-subtle">bp</span>
             </p>
             <p className="mt-1.5 text-xs text-fg-subtle">
-              <span className="text-deep">vs {bp(live.feeSBp)} bp</span> in pool S · {live.modeLabel ?? "…"} mode
+              <span className="text-s">vs {bp(live.feeSBp)} bp</span> in pool S · {live.modeLabel ?? "…"} mode
             </p>
           </div>
-          <Chip tone="deep">
+          <Chip tone="s">
             <svg viewBox="0 0 14 14" className="size-3.5" aria-hidden><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.4" fill="none" /><path d="M7 4v3.2l2 1.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" /></svg>
           </Chip>
         </div>

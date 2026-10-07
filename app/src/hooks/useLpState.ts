@@ -8,12 +8,13 @@ import { useStored } from "@/hooks/useStored";
 import { stateViewAbi, testTokenAbi } from "@/lib/abis";
 import { deployments } from "@/lib/config";
 import type { PairDeployment } from "@/lib/deployments";
+import { FAUCET } from "@/lib/guide";
 import { feesOwed, fullRangeTicks, saltFor } from "@/lib/liquidity";
 import type { PoolName } from "@/lib/swap";
 
 export const POOLS: PoolName[] = ["V", "S"];
-/** Simulated faucet amounts (the real ones are set by TestToken.faucet()). */
-export const MOCK_FAUCET = { tETH: 10, tUSD: 25_000 };
+/** Simulated faucet amounts: the real TestToken.faucet() amounts (lib/guide.ts FAUCET). */
+export const MOCK_FAUCET = { tETH: FAUCET.tETH, tUSD: FAUCET.tUSD };
 const MOCK_KEY = "clim-mock-lp-v1";
 const SINCE_KEY = "clim-lp-since-v1";
 

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { TrySteps } from "@/components/guide/TrySteps";
 import { PoolsKey } from "@/components/PoolsKey";
 import { SwapForm } from "@/components/SwapForm";
+import { linkCls } from "@/components/ui";
 import { dataSource, deployments } from "@/lib/config";
 import { MOCK_STATIC_FEE_PIPS } from "@/lib/mock";
 
@@ -21,6 +24,19 @@ export default function SwapPage() {
         staticFeePips={deployments.pairs.live?.S.key.fee ?? MOCK_STATIC_FEE_PIPS}
       />
       <SwapForm />
+      <section id="try" aria-labelledby="try-title" className="rounded-lg bg-wash p-4 sm:p-5">
+        <h2 id="try-title" className="font-display text-lg">
+          Try it with a wallet
+        </h2>
+        <p className="mt-1 text-sm text-fg-muted">
+          You need a wallet on Ethereum Sepolia. No wallet?{" "}
+          <Link className={linkCls} href="/app#verify">
+            Check everything on the dashboard
+          </Link>
+          , no wallet needed.
+        </p>
+        <TrySteps layout="row" here="swap" />
+      </section>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { DeskReport, SwapRow } from "./decode";
 import { FeeMode, type FeeParams } from "./feeMath";
-import { blindEpisodes, downsample, extent, swapFeeDots, timeAverageFeeBp, weatherSeries } from "./series";
+import { blindEpisodes, downsample, downsampleSteps, extent, swapFeeDots, timeAverageFeeBp, weatherSeries } from "./series";
 
 const p: FeeParams = { etaE4: 41_760, sqrtHalfDtE6: 2_449_490, feeMinPips: 500, feeMaxPips: 15_000, feeSafePips: 3_000, tauKillSec: 180 };
 
@@ -72,6 +72,25 @@ describe("downsample", () => {
   it("strides long series and always keeps the last point", () => {
     expect(downsample([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 4)).toEqual([0, 3, 6, 9]);
     expect(downsample([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)).toEqual([0, 3, 6, 9, 10]);
+  });
+});
+
+describe("downsampleSteps", () => {
+  const step = (i: number, mode: FeeMode) => ({ t: i, feeVBp: mode === FeeMode.Blind ? 30 : 5, mode });
+
+  it("keeps a one-point blind step and the resume after it, so the 30 bp step keeps its width", () => {
+    const xs = Array.from({ length: 1_800 }, (_, i) => step(i, i === 1 ? FeeMode.Blind : FeeMode.Normal));
+    const out = downsampleSteps(xs, 600);
+    expect(out.map((p) => p.t).slice(0, 3)).toEqual([0, 1, 2]);
+    expect(out.find((p) => p.mode === FeeMode.Blind)?.t).toBe(1);
+    expect(out.at(-1)).toBe(xs.at(-1));
+    expect(out.length).toBeLessThanOrEqual(600 + 1 + 2); // the last point, and the two around the blind step
+  });
+
+  it("is the plain every-k-th downsample when the mode never changes, and the input when it is short", () => {
+    const flat = Array.from({ length: 10 }, (_, i) => step(i, FeeMode.Normal));
+    expect(downsampleSteps(flat, 4)).toEqual(downsample(flat, 4));
+    expect(downsampleSteps(flat, 20)).toBe(flat);
   });
 });
 

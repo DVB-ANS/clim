@@ -6,6 +6,20 @@ import { fileURLToPath } from "node:url";
 
 export const LAB_FILES = ["summary.json", "replay-2026-02-04.json", "ptrade-band.json"];
 
+/**
+ * /lab's main-scenario sentence needs ETH's own gain (the README's "+0.39% a year"), which the lab's
+ * summary.json leaves out: it is backtest-summary.json's yearAttribution for the chosen policy
+ * (clim_p<P* in %>), in bp a year. Adds it to the summary as lpGain.mainScenarioEthPctPerYear (in % a
+ * year) unless the summary already has it; returns the summary unchanged when the backtest lacks it.
+ */
+export function withMainScenarioGain(summary, backtest) {
+  if (!summary?.lpGain || summary.lpGain.mainScenarioEthPctPerYear !== undefined) return summary;
+  const pStar = summary.setting?.pStar;
+  const bp = typeof pStar === "number" ? backtest?.yearAttribution?.[`clim_p${Math.round(pStar * 100)}`]?.gainVsStatic5BpYr : undefined;
+  if (typeof bp !== "number") return summary;
+  return { ...summary, lpGain: { ...summary.lpGain, mainScenarioEthPctPerYear: bp / 100 } };
+}
+
 export function syncData({ repoRoot, appRoot }) {
   const report = [];
   const pick = (real, fixture) => (existsSync(real) ? { from: real, fixture: false } : { from: fixture, fixture: true });
@@ -19,6 +33,13 @@ export function syncData({ repoRoot, appRoot }) {
   copy(join(repoRoot, "shared/deployments/sepolia.json"), join(fx, "deployments.sepolia.json"), join(appRoot, "src/generated/sepolia.json"));
   copy(join(repoRoot, "shared/params.json"), join(fx, "params.json"), join(appRoot, "src/generated/params.json"));
   for (const f of LAB_FILES) copy(join(repoRoot, "lab/out", f), join(fx, "lab", f), join(appRoot, "public/data/lab", f));
+  const backtest = join(repoRoot, "lab/out/backtest-summary.json");
+  const summaryOut = join(appRoot, "public/data/lab/summary.json");
+  if (existsSync(backtest)) {
+    const summary = JSON.parse(readFileSync(summaryOut, "utf8"));
+    const merged = withMainScenarioGain(summary, JSON.parse(readFileSync(backtest, "utf8")));
+    if (merged !== summary) writeFileSync(summaryOut, `${JSON.stringify(merged, null, 2)}\n`);
+  }
 
   const faq = pick(join(repoRoot, "docs/faq.md"), join(fx, "faq.md"));
   const faqOut = join(appRoot, "src/generated/faq.ts");

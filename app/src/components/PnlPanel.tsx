@@ -5,12 +5,12 @@ import { useMemo } from "react";
 import type { ClimData } from "@/hooks/useClimData";
 import { deployments, params } from "@/lib/config";
 import { feeRegimes, grouped, pnlCaveat, pnlSentence, relativePct, signed } from "@/lib/ledger";
-import { pnlExplain, type PnlRow } from "@/lib/pnl";
+import { firstPricedSwapSec, pnlExplain, type PnlRow } from "@/lib/pnl";
 import { timeAverageFeeBp, weatherSeries } from "@/lib/series";
 import { formatBp, pipsToBp } from "@/lib/units";
 import { AnimatedCounter } from "./AnimatedCounter";
 import { StatusMark } from "./StatusMark";
-import { Panel } from "./ui";
+import { type HeadingLevel, Panel } from "./ui";
 
 // a label column and three numeric columns (V, S, V − S) from sm; below it the label takes its own line
 const ROW = "grid grid-cols-3 gap-x-3 sm:grid-cols-[minmax(220px,1fr)_repeat(3,112px)] sm:gap-x-0";
@@ -68,7 +68,7 @@ function Line({ label, note, v, s, d, className = "", strong = false }: {
  * Pool V against pool S as a hedged LP sees them, from the Swap events and the desk's reports only:
  * a ledger (retail fees, minus the loss to arbitrage, gives the hedged P&L) and its headline, V minus S.
  */
-export function PnlPanel({ data }: { data: ClimData }) {
+export function PnlPanel({ data, level }: { data: ClimData; level?: HeadingLevel }) {
   const rows = useMemo(() => {
     if (!data.pair) return null;
     const row = (poolId: `0x${string}`) =>
@@ -87,7 +87,8 @@ export function PnlPanel({ data }: { data: ClimData }) {
   if (!rows || !data.pair) return null;
   const { v, s }: { v: PnlRow; s: PnlRow } = rows;
   const vPoolId = data.pair.V.poolId;
-  const firstV = data.swaps.find((x) => x.poolId === vPoolId)?.blockTimestamp;
+  // the headline starts at the first swap the ledger counts (one a desk report prices), not at an unpriced one
+  const firstV = firstPricedSwapSec(data.swaps, data.reports, vPoolId);
   const replay = !!deployments.pairs.replay && vPoolId === deployments.pairs.replay.V.poolId;
   // round once, to the whole tUSD shown, and derive every total and difference from the rounded amounts:
   // each row and each column of the ledger then adds up exactly as printed
@@ -101,6 +102,8 @@ export function PnlPanel({ data }: { data: ClimData }) {
 
   return (
     <Panel
+      id="pnl"
+      level={level}
       title="LP profit and loss, pool V against pool S"
       subtitle="Read from the Swap events and the desk's reports only. Amounts in tUSD, the pair's test dollar: no real money is at stake."
       className="col-span-full"
@@ -133,7 +136,7 @@ export function PnlPanel({ data }: { data: ClimData }) {
                 </>
               ) : (
                 <>
-                  <span aria-hidden className="text-xs leading-5 text-degraded">▲</span>
+                  <span aria-hidden className="text-xs leading-5 text-fg-subtle">▲</span>
                   <span>
                     Average fee: V {formatBp(feeCheck.v, 2)}, S {formatBp(feeCheck.s, 2)}: more than 10% apart.
                   </span>
