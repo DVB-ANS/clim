@@ -3881,10 +3881,10 @@ Check: the stage cut is about 30 s and `audio=` is not empty (empty means no sou
 **Delegable:** yes for Steps 2 and 4; Step 3 needs the maintainer's Figma file (the maintainer, or an agent with the Figma MCP); Step 5 is the maintainer's (PowerPoint at the Mac)
 **Depends on:** Tasks 12, 16; the deck v2 builder (Task 9 history, commit `1a53016`, then the 10-slide cut)
 
-Rewritten on 2026-10-07 for deck v2, then for the 10-slide cut: the slides are PNGs exported from the maintainer's Figma file (section `198:2`), so a fix is made in Figma (and in `deck/v2/slides.json` when the text changes), never in the .pptx. Only the live report count changes at the last moment, and it is on slide 07 only.
+Rewritten on 2026-10-07 for deck v2, then for the 10-slide cut: the slides are PNGs exported from the maintainer's Figma file (since the evening of 2026-10-07, the 10 frames at 3840 x 2160 in the maintainer's group "token2049 > Pres", `204:320`, where he moved them; the 1x section `198:2`, the archive `162:2` and the logo kit `154:6` are gone), so a fix is made in Figma (and in `deck/v2/slides.json` when the text changes), never in the .pptx. Only the live report count changes at the last moment, and it is on slide 07 only.
 
 **Files:**
-- Modify: `docs/submission/deck/v2/live.json`, `docs/submission/deck/v2/png/07-live.png`; in Figma file `LyeDZ1KdOYws6nTzD8dI76`, two text nodes of frame `166:11` (slide 07)
+- Modify: `docs/submission/deck/v2/live.json`, `docs/submission/deck/v2/png/07-live.png`; in Figma file `LyeDZ1KdOYws6nTzD8dI76`, two text nodes of frame `204:212` (slide 07)
 - Create (gitignored): `docs/submission/out/clim.pptx`, `docs/submission/out/video/deck/` (the embedded copy of the stage video and its poster frame)
 
 - [x] **Step 1: The builder and its tests exist**
@@ -3909,9 +3909,9 @@ Expected: `{ "seq": <n>, "readUtc": "<d Mon HH:MM UTC>" }`, for example `"seq": 
 
 - [ ] **Step 3: Update slide 07 in Figma, then re-export it** **End of session.**
 
-In Figma file `LyeDZ1KdOYws6nTzD8dI76` (section `198:2`), put the same two values as `live.json` in slide 07 (frame `166:11`, "07 · What is live"), keeping the rest of each text and the number format of Step 2: `172:10` "LIVE seq" (the count) and `172:11` "LIVE seq read" (the read time). Slide 07 is the only slide with the live count since the 10-slide cut (the archived slide 19's nodes `168:50` and `168:52` are no longer exported).
+In Figma file `LyeDZ1KdOYws6nTzD8dI76` (group `204:320` "Pres"), put the same two values as `live.json` in slide 07 (frame `204:212`, "2x 07 · What is live"), keeping the rest of each text and the number format of Step 2: `204:216` "LIVE seq" (the count) and `204:217` "LIVE seq read" (the read time). Slide 07 is the only slide with the live count since the 10-slide cut (the archived slide 19's nodes `168:50` and `168:52` are no longer exported).
 
-Check that a longer number does not wrap or overlap, and that every other text in frame `166:11` matches slide 07's `text` in `slides.json` word for word. Fix any difference in Figma first. Export the frame as PNG at 2x over `docs/submission/deck/v2/png/07-live.png` (in Figma: select the frame, Export, 2x, PNG). Then:
+Check that a longer number does not wrap or overlap, and that every other text in frame `204:212` matches slide 07's `text` in `slides.json` word for word. Fix any difference in Figma first. Export the frame as PNG at 1x over `docs/submission/deck/v2/png/07-live.png` (the frame is already 3840 x 2160; in Figma: select the frame, Export, 1x, PNG). Then:
 ```bash
 cd /Users/fianso/Development/hackathons/clim/docs/submission/deck/v2/png && sips -g pixelWidth -g pixelHeight 07-live.png
 ```
@@ -4219,16 +4219,16 @@ Since 2026-10-07 the deck has 10 slides and no appendix: the maintainer cut it a
 
 | # | PNG (`deck/v2/png/`) | Figma frame | Title | The notes also carry | Video |
 |---|---|---|---|---|---|
-| 01 | `01-cover.png` | `154:7` | clim°: storm insurance for Uniswap v4 LPs | where each detail is in the notes |  |
-| 02 | `02-origin.png` | `154:8` | Where the idea comes from | why the loss grows with volatility (the old slide 03) |  |
-| 03 | `03-idea.png` | `164:2` | The idea: the fee follows the weather | the fee rule (the old appendix A1) |  |
-| 04 | `04-how.png` | `154:9` | How it works: nobody changes the fee by hand | the quorum and the degraded rule; the mentor's question 1 |  |
-| 05 | `05-results.png` | `166:2` | Does it work: LPs lose less to arbitrage | the 4 February storm (the old slide 06), the backtest's limits (A4) |  |
-| 06 | `06-prediction.png` | `167:17` | Not one more volatility fee |  |  |
-| 07 | `07-live.png` | `166:11` | What is live on Sepolia | safety (A3), the CRE evidence (A5), the live build's limits (A4); the live count (`live.json`) |  |
-| 08 | `08-demo.png` | `171:2` | Demo (stage version) | where the full video is | `demo-stage.mp4`, full-bleed |
-| 09 | `09-cre.png` | `198:3` | Why Chainlink CRE, and our feedback | why CRE (the old slide 12), the DON trust condition, the CRE evidence (A5), our feedback to Chainlink |  |
-| 10 | `10-roadmap.png` | `198:26` | Roadmap: not a new DEX, a fee engine for existing ones | the rollout with Fables (the old slide 11), a live pool (A2), the volume input, the team (the old slide 13), the Project link |  |
+| 01 | `01-cover.png` | `204:3` | clim°: storm insurance for Uniswap v4 LPs | where each detail is in the notes |  |
+| 02 | `02-origin.png` | `204:96` | Where the idea comes from | why the loss grows with volatility (the old slide 03) |  |
+| 03 | `03-idea.png` | `204:290` | The idea: the fee follows the weather | the fee rule (the old appendix A1) |  |
+| 04 | `04-how.png` | `204:127` | How it works: nobody changes the fee by hand | the quorum and the degraded rule; the mentor's question 1 |  |
+| 05 | `05-results.png` | `204:178` | Does it work: LPs lose less to arbitrage | the 4 February storm (the old slide 06), the backtest's limits (A4) |  |
+| 06 | `06-prediction.png` | `204:187` | Not one more volatility fee |  |  |
+| 07 | `07-live.png` | `204:212` | What is live on Sepolia | safety (A3), the CRE evidence (A5), the live build's limits (A4); the live count (`live.json`) |  |
+| 08 | `08-demo.png` | `204:221` | Demo (stage version) | where the full video is | `demo-stage.mp4`, full-bleed |
+| 09 | `09-cre.png` | `204:224` | Why Chainlink CRE, and our feedback | why CRE (the old slide 12), the DON trust condition, the CRE evidence (A5), our feedback to Chainlink |  |
+| 10 | `10-roadmap.png` | `204:252` | Roadmap: not a new DEX, a fee engine for existing ones | the rollout with Fables (the old slide 11), a live pool (A2), the volume input, the team (the old slide 13), the Project link |  |
 
 From the 20-slide version: 01 and 02 are unchanged; 03 was 04; 04 was 05, with the caption under the CRE logo now "CRE workflow: every 30 s, the median of the four"; 05 was 07, with the footnote "4 Feb 2026 storm replay: −18.6 %. None of its 92 rolling 4-hour windows beats it; median −2.1 %."; 06 was 08; 07 was 09; 08 was 10; 09 and 10 are new.
 
