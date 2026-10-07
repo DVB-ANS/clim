@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Dashboard } from "@/components/Dashboard";
 import { LatestStorm } from "@/components/LatestStorm";
 import { PoolsKey } from "@/components/PoolsKey";
-import { ReplayPanel } from "@/components/ReplayPanel";
+import { LazyDetails } from "@/components/LazyDetails";
 import { ExtLink, linkCls } from "@/components/ui";
 import { deployments, params } from "@/lib/config";
 import { etherscanAddress } from "@/lib/contracts";
-import { labBand, labReplay, labSummary } from "@/lib/labData";
+import { labBand, labSummary } from "@/lib/labData";
 import { lessMore, replayWindowsSpread } from "@/lib/labText";
 import { pipsToBp, shortHash } from "@/lib/units";
 
@@ -41,47 +42,21 @@ export default function ReplayPage() {
           Earlier: the 4 February 2026 storm, replayed
         </h2>
         <p className="max-w-3xl text-sm leading-relaxed text-fg-muted">
-          Binance ETHUSDT, 12:00 to 16:00 UTC: the desk&apos;s 15-minute volatility ranges from {Math.round(labSummary.replay.sigmaMinPct)}% to{" "}
-          {Math.round(labSummary.replay.sigmaMaxPct)}% a year. Below, the lab&apos;s replay of that window
-          {deployments.pairs.replay ? ", then the same window replayed on-chain on Sepolia (replay desk flagged REPLAY, one price series served to every venue path)" : ""}.
+          {`Binance ETHUSDT, 12:00 to 16:00 UTC, with the desk's 15-minute volatility between ${Math.round(labSummary.replay.sigmaMinPct)}% and ${Math.round(labSummary.replay.sigmaMaxPct)}% a year. In the lab, at the same average fee, pool V lost ${lessMore(labSummary.replay.arbChangePct)} to arbitrage than pool S over this window, which we chose around the sharpest rise in volatility${spread ? `. ${spread}` : ""}. `}
+          <Link className={linkCls} href="/lab">
+            The lab&apos;s replay
+          </Link>
+          .
         </p>
-        <p className="max-w-3xl text-sm leading-relaxed">
-          {`In the lab, at the same average fee, pool V lost ${lessMore(labSummary.replay.arbChangePct)} to arbitrage than pool S over this window, which we chose around the sharpest rise in volatility${spread ? `. ${spread}` : ""} (`}
-          <a className={linkCls} href="#lab">
-            section 1
-          </a>
-          ).
-          {deployments.pairs.replay ? (
-            <>
-              {" "}
-              On Sepolia, the replay desk ran the same window again, report by report, while our bots traded both pools;{" "}
-              <a className={linkCls} href="#pnl">
-                the profit and loss card
-              </a>{" "}
-              in{" "}
-              <a className={linkCls} href="#onchain">
-                section 2
-              </a>{" "}
-              gives that result.
-            </>
-          ) : null}
-        </p>
-        <PoolsKey variant="replay" staticFeePips={deployments.pairs.replay?.S.key.fee ?? Math.round(labSummary.replay.feeSBp * 100)} />
-        <section id="lab" aria-labelledby="lab-title" className="space-y-3 pt-2">
-          <h3 id="lab-title" className="font-display text-[22px] tracking-[-0.02em]">
-            1. In the lab: the real 4 February data
-          </h3>
-          <p className="text-sm text-fg-muted">An off-chain backtest of the same fee rule on Binance ETHUSDT.</p>
-          <ReplayPanel replay={labReplay} summary={labSummary} level={4} />
-        </section>
         {deployments.pairs.replay ? (
-          <section id="onchain" aria-labelledby="onchain-title" className="space-y-3 pt-4">
-            <h3 id="onchain-title" className="font-display text-[22px] tracking-[-0.02em]">
-              2. On Sepolia: the same window, replayed on chain
-            </h3>
-            <p className="text-sm text-fg-muted">Read from the replay desk&apos;s and pools&apos; logs. Each card links its transactions on Etherscan.</p>
-            <Dashboard band={labBand} initialPair="replay" keyShownAbove="replay" lockPair panelLevel={4} />
-          </section>
+          <LazyDetails
+            id="onchain"
+            title="The same window, replayed on Sepolia"
+            summary="A replay desk, flagged REPLAY, ran it again report by report on chain while our bots traded both pools. Finished on 6 October."
+          >
+            <PoolsKey variant="replay" staticFeePips={deployments.pairs.replay.S.key.fee} />
+            <Dashboard band={labBand} initialPair="replay" keyShownAbove="replay" lockPair panelLevel={3} />
+          </LazyDetails>
         ) : null}
       </section>
     </div>

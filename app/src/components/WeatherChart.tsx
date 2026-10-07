@@ -79,12 +79,15 @@ export function WeatherChart({
   level,
   id = "weather",
   fixed,
+  subtitle = "Top: volatility published by the CRE desk. Bottom: the fee the hook charges on every swap (line), the fee actually paid by swaps on V (dots), and the static twin S. The fee is never sent by a transaction: Uniswap calls the hook's beforeSwap, which reads σ and returns the fee.",
 }: {
   data: ClimData;
   initialWindow?: string;
   level?: HeadingLevel;
   id?: string;
   fixed?: Range;
+  /** A shorter caption where the page already says the rest (/app's "See it"). */
+  subtitle?: string;
 }) {
   const syncId = useId();
   const box = useRef<HTMLDivElement>(null);
@@ -162,7 +165,7 @@ export function WeatherChart({
       id={id}
       level={level}
       title="Weather: volatility and the fee it sets"
-      subtitle="Top: volatility published by the CRE desk. Bottom: the fee the hook charges on every swap (line), the fee actually paid by swaps on V (dots), and the static twin S. The fee is never sent by a transaction: Uniswap calls the hook's beforeSwap, which reads σ and returns the fee."
+      subtitle={subtitle}
       className="col-span-full"
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">

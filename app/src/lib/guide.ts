@@ -90,7 +90,7 @@ export function deskSilentSince(reports: DeskReport[], nowSec: number, silentSec
   return last.blockTimestamp;
 }
 
-/** The silent-desk note, or undefined when the desk is reporting. One wording for StartHere and Dashboard. */
+/** The silent-desk note, or undefined when the desk is reporting. One wording for LiveDesk and Dashboard. */
 export function silentNote(reports: DeskReport[], nowSec: number, params: FeeParams): string | undefined {
   const t = deskSilentSince(reports, nowSec);
   if (t === undefined) return undefined;

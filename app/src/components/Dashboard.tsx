@@ -10,7 +10,6 @@ import type { LabPTradeBand } from "@/lib/lab";
 import { utcTime } from "@/lib/theme";
 import { pipsToBp, shortHash } from "@/lib/units";
 import { DeskPanel } from "./DeskPanel";
-import { StartHere } from "./guide/StartHere";
 import { PnlPanel } from "./PnlPanel";
 import { PoolsKey } from "./PoolsKey";
 import { RecentSwapsPanel } from "./RecentSwapsPanel";
@@ -24,8 +23,7 @@ import { WeatherChart } from "./WeatherChart";
 /**
  * The desk, the hook and both pools of one pair, read from chain logs. `keyShownAbove`: the page already
  * shows the pools key for that pair (as /replay does), so the dashboard leaves its own out while on it.
- * `guide`: /app's "Start here" card goes first, above the loading branch, so its anchors render on the
- * server; it reads this dashboard's data, never a second copy. `lockPair`: the page's heading names the
+ * On /app it sits in the closed "Full dashboard" disclosure, under LiveDesk. `lockPair`: the page's heading names the
  * pair (/replay's section 2), so there is no Live/Replay toggle to show the other one under it.
  * `panelLevel`: the cards' heading level, 3 or 4 when the page groups them under its own h2 or h3.
  */
@@ -33,14 +31,12 @@ export function Dashboard({
   band,
   initialPair = "live",
   keyShownAbove,
-  guide,
   lockPair,
   panelLevel,
 }: {
   band: LabPTradeBand;
   initialPair?: Pair;
   keyShownAbove?: Pair;
-  guide?: boolean;
   lockPair?: boolean;
   panelLevel?: HeadingLevel;
 }) {
@@ -53,12 +49,10 @@ export function Dashboard({
     ? { ...data, nowSec: run.endSec, state: data.state ? { ...data.state, latestBlock: { number: run.endBlock, timestamp: run.endSec } } : undefined }
     : data;
   const staticFeePips = (data.pair ?? deployments.pairs[pair])?.S.key.fee;
-  // on /app, StartHere shows the silent-desk note instead
-  const silent = !guide && !run && pair === "live" ? silentNote(data.reports, data.nowSec, params) : undefined;
+  const silent = !run && pair === "live" ? silentNote(data.reports, data.nowSec, params) : undefined;
 
   return (
     <div className="space-y-4">
-      {guide ? <StartHere data={data} pair={pair} /> : null}
       <div id="dashboard" className="flex flex-wrap items-center gap-3">
         {pairs.length > 1 ? (
           <Toggle<Pair> value={pair} options={pairs.map((p) => ({ value: p, label: p === "live" ? "Live pair" : "Replay pair (4 Feb 2026, finished)" }))} onChange={setPair} />
@@ -93,7 +87,7 @@ export function Dashboard({
         </p>
       ) : null}
       {data.status === "loading" ? (
-        <LoadingGrid visible={!guide} />
+        <LoadingGrid />
       ) : data.status === "error" ? (
         <p className="text-sm text-danger">{`Could not reach Sepolia through the public RPCs. Retrying every ${POLL_MS / 1000} s.`}</p>
       ) : (
@@ -115,19 +109,14 @@ export function Dashboard({
 /**
  * While the first chain read runs: the ready grid's shape in flat blocks (two half-width cards, the three
  * full-width charts and tables, two half-width cards), so the page below does not jump when data lands.
- * `visible`: say so on screen too (on /app, StartHere's Verify card already does, so it stays sr-only).
  */
-function LoadingGrid({ visible }: { visible?: boolean }) {
+function LoadingGrid() {
   const block = "rounded-lg bg-surface-2 animate-pulse motion-reduce:animate-none";
   return (
     <div>
-      {visible ? (
-        <p role="status" aria-live="polite" className="mb-3 text-sm text-fg-subtle">
-          {`Reading the desk's reports and the pools' swaps from Sepolia. The first load takes a few seconds.`}
-        </p>
-      ) : (
-        <p className="sr-only" role="status" aria-live="polite">Loading desk reports and swaps…</p>
-      )}
+      <p role="status" aria-live="polite" className="mb-3 text-sm text-fg-subtle">
+        {`Reading the desk's reports and the pools' swaps from Sepolia. The first load takes a few seconds.`}
+      </p>
       <div aria-hidden className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className={`${block} h-[380px]`} />
         <div className={`${block} h-[380px]`} />

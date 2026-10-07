@@ -3,11 +3,11 @@ import { GooeyNav, type GooeyNavItem } from "./GooeyNav";
 import { WalletButton } from "./WalletButton";
 import { Wordmark } from "./Wordmark";
 
+// five entries: watch and verify, try, the latest storm, the lab's results, the docs; /lp is linked from /swap
 const NAV: GooeyNavItem[] = [
   { href: "/app", label: "Dashboard" },
   { href: "/swap", label: "Swap" },
-  { href: "/lp", label: "Liquidity" },
-  { href: "/replay", label: "Replay" },
+  { href: "/replay", label: "Storm" },
   { href: "/lab", label: "Lab" },
   { href: "/how", label: "How it works" },
 ];

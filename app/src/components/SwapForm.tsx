@@ -12,19 +12,21 @@ import { writeReadiness } from "@/lib/tx";
 import { etherscanTxLogs } from "@/lib/contracts";
 import { formatAge, formatAmount, formatBp, pipsToBp, sigmaE9ToAnnualPct, tickToEthUsd } from "@/lib/units";
 import { AmountBox, DetailRow, FlipButton, PoolCards, TokenIcon } from "./dex";
-import { FeeCurveChart } from "./FeeCurveChart";
 import { ActionButton, ChainNote } from "./ChainNote";
 import { TxSteps } from "./TxSteps";
-import { ExtLink, ModeBadge, Panel, Stat, TxLink } from "./ui";
+import { ExtLink, ModeBadge, TxLink } from "./ui";
 
-/** /swap: the fee of pool V (clim) or pool S (its static twin) before the swap, the weather that sets it, then the fee paid. */
+/**
+ * /swap's card, step 3 of the page: the fee of pool V (clim) or pool S (its static twin) before the swap and
+ * why, then the fee each of this visit's swaps paid, read from its Swap event, newest first.
+ */
 export function SwapForm() {
   const data = useClimData("live");
   const ready = useMemo(() => writeReadiness(deployments, "swap"), []);
   const [pool, setPool] = useState<PoolName>("V");
   const [side, setSide] = useState<SwapSide>("sell ETH");
   const [amount, setAmount] = useState("0.5");
-  const [result, setResult] = useState<{ swap: SwapRow } | null>(null);
+  const [results, setResults] = useState<{ pool: PoolName; swap: SwapRow }[]>([]);
   const flow = useTxFlow();
   const chain = useChainSteps();
 
@@ -61,21 +63,18 @@ export function SwapForm() {
 
   async function submit() {
     if (!plan || feePips === undefined || ethUsd === undefined) return;
-    setResult(null);
+    const swapped = pool;
     const { ok, logs } = await flow.start([chain.approve(plan.tokenIn, inSymbol, router, plan.amountIn), chain.swap(router, plan)]);
     const swap = ok ? swapResult(logs, plan.poolId) : undefined;
-    if (swap) setResult({ swap });
+    if (swap) setResults((rs) => [{ pool: swapped, swap }, ...rs]);
   }
 
-  const paid = result
-    ? (() => {
-        const eth = Number(token0IsEth ? result.swap.amount0 : result.swap.amount1) / 1e18;
-        const usd = Number(token0IsEth ? result.swap.amount1 : result.swap.amount0) / 1e18;
-        return eth < 0
-          ? { paid: `${formatAmount(-eth, 6)} tETH`, got: `${formatAmount(usd, 2)} tUSD` }
-          : { paid: `${formatAmount(-usd, 2)} tUSD`, got: `${formatAmount(eth, 6)} tETH` };
-      })()
-    : null;
+  /** What a swap took and gave, from its Swap event's amounts (negative = paid in). */
+  const legs = (swap: SwapRow) => {
+    const eth = Number(token0IsEth ? swap.amount0 : swap.amount1) / 1e18;
+    const usd = Number(token0IsEth ? swap.amount1 : swap.amount0) / 1e18;
+    return eth < 0 ? `${formatAmount(-eth, 6)} tETH for ${formatAmount(usd, 2)} tUSD` : `${formatAmount(-usd, 2)} tUSD for ${formatAmount(eth, 6)} tETH`;
+  };
 
   const flip = () => setSide(side === "sell ETH" ? "buy ETH" : "sell ETH");
   // a tETH amount's worth in tUSD at the pool price (the hint under a tETH field; test tokens, never dollars)
@@ -84,100 +83,88 @@ export function SwapForm() {
   const feeVBp = quote ? pipsToBp(quote.feePips) : undefined;
 
   return (
-    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_440px]">
-      <Panel title="The weather sets your fee" subtitle="Read on every swap by the hook from the latest Chainlink CRE report (ClimHook.quoteFee()).">
-        {!desk || !quote ? (
-          <p className="text-sm text-fg-subtle">Loading the risk desk…</p>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <Stat label="σ applied by the desk" value={`${sigmaPct.toFixed(1)}%/yr`} hint={lastReport ? `report #${lastReport.seq}, ${formatAge(data.nowSec - desk.tObs)} ago` : undefined} />
-              <Stat label="Pool V now" value={formatBp(pipsToBp(quote.feePips), 2)} hint={<ModeBadge mode={quote.mode} />} />
-              <Stat label="Pool S, fixed" value={formatBp(pipsToBp(staticFeePips), 2)} hint="forecast of V's average" />
-            </div>
-            <div className="mt-4">
-              <FeeCurveChart sigmaNowPct={sigmaPct} feeNowBp={pipsToBp(quote.feePips)} staticFeeBp={pipsToBp(staticFeePips)} />
-            </div>
-            <p className="mt-2 rounded-md bg-surface-2 px-4 py-3 text-sm leading-relaxed">
-              {feeReason({ pool, quote, sigmaPct, staticFeePips, feeMinPips: params.feeMinPips, feeSafePips: params.feeSafePips, tauKillSec: params.tauKillSec })}
-            </p>
-            <p className="mt-2 text-xs text-fg-subtle">
-              No transaction changes the fee: it is computed inside your swap from the latest report, the same in both directions and for any size.
-            </p>
-          </>
-        )}
-      </Panel>
-
-      <section aria-labelledby="swap-title" className="rounded-lg bg-surface p-3 shadow-[var(--clim-shadow-lift)]">
-        <div className="flex items-center justify-between px-2 pb-3 pt-1">
-          <h2 id="swap-title" className="font-display text-[22px] tracking-[-0.02em]">
-            Swap
-          </h2>
-          <span className="text-xs text-fg-subtle">PoolSwapTest · Sepolia</span>
-        </div>
-        <PoolCards
-          value={pool}
-          onChange={setPool}
-          options={[
-            { value: "V", title: "Pool V · clim", subtitle: "fee set by the weather", fee: feeVBp === undefined ? "…" : formatBp(feeVBp, 2), badge: quote ? <ModeBadge mode={quote.mode} /> : null },
-            { value: "S", title: "Pool S · static twin", subtitle: "fixed, forecast of V's average", fee: formatBp(pipsToBp(staticFeePips), 2) },
-          ]}
+    <section aria-labelledby="swap-title" className="rounded-lg bg-surface p-3 shadow-[var(--clim-shadow-lift)]">
+      <div className="flex items-center justify-between px-2 pb-3 pt-1">
+        <h2 id="swap-title" className="font-display text-[22px] tracking-[-0.02em]">
+          Swap
+        </h2>
+        <span className="text-xs text-fg-subtle">PoolSwapTest · Sepolia</span>
+      </div>
+      <PoolCards
+        value={pool}
+        onChange={setPool}
+        options={[
+          { value: "V", title: "Pool V · clim", subtitle: "fee set by the weather", fee: feeVBp === undefined ? "…" : formatBp(feeVBp, 2), badge: quote ? <ModeBadge mode={quote.mode} /> : null },
+          { value: "S", title: "Pool S · static twin", subtitle: "fixed, forecast of V's average", fee: formatBp(pipsToBp(staticFeePips), 2) },
+        ]}
+      />
+      {desk && quote ? (
+        <p className="mt-2 rounded-md bg-surface-2 px-3 py-2 text-[13px] leading-relaxed text-fg-muted">
+          {feeReason({ pool, quote, sigmaPct, staticFeePips, feeMinPips: params.feeMinPips, feeSafePips: params.feeSafePips, tauKillSec: params.tauKillSec })}
+        </p>
+      ) : null}
+      <div className="mt-2">
+        <AmountBox
+          id="swap-in"
+          label="You pay"
+          value={amount}
+          onChange={setAmount}
+          symbol={inSymbol}
+          error={planError}
+          hint={inUsd === undefined || inSymbol !== "tETH" ? " " : `≈ ${formatAmount(inUsd, 2)} tUSD`}
         />
-        <div className="mt-2">
-          <AmountBox
-            id="swap-in"
-            label="You pay"
-            value={amount}
-            onChange={setAmount}
-            symbol={inSymbol}
-            error={planError}
-            hint={inUsd === undefined || inSymbol !== "tETH" ? " " : `≈ ${formatAmount(inUsd, 2)} tUSD`}
-          />
-          <FlipButton onClick={flip} label={side === "sell ETH" ? "Buy tETH instead" : "Sell tETH instead"} />
-          <AmountBox
-            id="swap-out"
-            label="You receive, before price impact"
-            value={estimate === undefined ? "" : formatAmount(estimate, side === "sell ETH" ? 2 : 6)}
-            symbol={outSymbol}
-            hint={estimate === undefined || outSymbol !== "tETH" ? " " : `≈ ${formatAmount(usdOf(estimate, outSymbol) ?? 0, 2)} tUSD`}
-          />
-        </div>
-        <div className="mt-2 px-2">
-          <DetailRow label="Fee">
-            {feePips === undefined ? "…" : `${formatBp(pipsToBp(feePips), 2)} = ${formatAmount(amountIn * (feePips / 1e6), side === "sell ETH" ? 6 : 2)} ${inSymbol}`}
-          </DetailRow>
-          <DetailRow label="Price">{ethUsd === undefined ? "…" : `1 tETH ≈ ${formatAmount(ethUsd, 2)} tUSD`}</DetailRow>
-          <DetailRow label="Route">
-            <span className="inline-flex items-center gap-1.5">
-              <TokenIcon symbol={inSymbol} className="size-4" />→ pool {pool} →<TokenIcon symbol={outSymbol} className="size-4" />
-            </span>
-          </DetailRow>
-        </div>
-        {/* flex gap, not space-y: TxSteps' always-mounted status line (absolute, sr-only) adds no gap before the first swap */}
-        <div className="mt-3 flex flex-col gap-3 px-1">
-          <ActionButton block disabled={!ready.ok || !plan || flow.running || estimate === undefined} onClick={submit}>
-            {flow.running ? "Swapping…" : `Swap on pool ${pool}`}
-          </ActionButton>
-          <ChainNote ready={ready} />
-          {lastSwap ? (
-            <p className="text-xs text-fg-subtle">
-              Last swap on pool {pool}: paid {formatBp(pipsToBp(lastSwap.fee), 2)}, {formatAge(data.nowSec - lastSwap.blockTimestamp)} ago.{" "}
-              <ExtLink href={etherscanTxLogs(lastSwap.txHash)}>Swap event on Etherscan</ExtLink>
-            </p>
-          ) : null}
-          <TxSteps steps={flow.steps} />
-          {result && paid ? (
-            <div className="rounded-md bg-surface-2 px-4 py-3 text-sm">
-              <p className="font-medium">
-                Fee paid: {formatBp(pipsToBp(result.swap.fee), 2)}, read from the Swap event.
-              </p>
-              <p className="mt-0.5 text-fg-muted">
-                You paid {paid.paid} and received {paid.got}. <TxLink hash={result.swap.txHash} />
-              </p>
-            </div>
-          ) : null}
-        </div>
-      </section>
-    </div>
+        <FlipButton onClick={flip} label={side === "sell ETH" ? "Buy tETH instead" : "Sell tETH instead"} />
+        <AmountBox
+          id="swap-out"
+          label="You receive, before price impact"
+          value={estimate === undefined ? "" : formatAmount(estimate, side === "sell ETH" ? 2 : 6)}
+          symbol={outSymbol}
+          hint={estimate === undefined || outSymbol !== "tETH" ? " " : `≈ ${formatAmount(usdOf(estimate, outSymbol) ?? 0, 2)} tUSD`}
+        />
+      </div>
+      <div className="mt-2 px-2">
+        <DetailRow label="Fee">
+          {feePips === undefined ? "…" : `${formatBp(pipsToBp(feePips), 2)} = ${formatAmount(amountIn * (feePips / 1e6), side === "sell ETH" ? 6 : 2)} ${inSymbol}`}
+        </DetailRow>
+        <DetailRow label="Price">{ethUsd === undefined ? "…" : `1 tETH ≈ ${formatAmount(ethUsd, 2)} tUSD`}</DetailRow>
+        <DetailRow label="Route">
+          <span className="inline-flex items-center gap-1.5">
+            <TokenIcon symbol={inSymbol} className="size-4" />→ pool {pool} →<TokenIcon symbol={outSymbol} className="size-4" />
+          </span>
+        </DetailRow>
+      </div>
+      {/* flex gap, not space-y: TxSteps' always-mounted status line (absolute, sr-only) adds no gap before the first swap */}
+      <div className="mt-3 flex flex-col gap-3 px-1">
+        <ActionButton block disabled={!ready.ok || !plan || flow.running || estimate === undefined} onClick={submit}>
+          {flow.running ? "Swapping…" : `Swap on pool ${pool}`}
+        </ActionButton>
+        <ChainNote ready={ready} />
+        {lastSwap ? (
+          <p className="text-xs text-fg-subtle">
+            Last swap on pool {pool}: paid {formatBp(pipsToBp(lastSwap.fee), 2)}, {formatAge(data.nowSec - lastSwap.blockTimestamp)} ago.{" "}
+            <ExtLink href={etherscanTxLogs(lastSwap.txHash)}>Swap event on Etherscan</ExtLink>
+          </p>
+        ) : null}
+        <TxSteps steps={flow.steps} />
+        {results.length ? (
+          <div className="rounded-md bg-surface-2 px-4 py-3 text-sm">
+            <p className="font-medium">Your swaps: the fee each paid, read from its Swap event</p>
+            <ul className="mt-1.5 space-y-1">
+              {results.map(({ pool: p, swap }) => (
+                <li key={swap.txHash} className="flex flex-wrap items-center gap-x-2 text-fg-muted">
+                  <span className={`font-medium ${p === "V" ? "text-v" : "text-fg"}`}>Pool {p}</span>
+                  <span className="font-medium text-fg tabular-nums">{formatBp(pipsToBp(swap.fee), 2)}</span>
+                  <span className="text-xs">{legs(swap)}</span>
+                  <TxLink hash={swap.txHash} />
+                </li>
+              ))}
+            </ul>
+            {results.some((r) => r.pool === "V") && results.some((r) => r.pool === "S") ? null : (
+              <p className="mt-1.5 text-xs text-fg-subtle">{`Now swap the same amount on pool ${results[0].pool === "V" ? "S" : "V"} and compare.`}</p>
+            )}
+          </div>
+        ) : null}
+      </div>
+    </section>
   );
 }
