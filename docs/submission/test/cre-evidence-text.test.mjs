@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { evidenceText, MAX_CHARS } from "../src/cre-evidence-text.mjs";
 
-test("the CRE evidence text fits Builderbase's 1,500 characters with large counts and links every proof", () => {
+test("the CRE evidence text fits Builderbase's 1,500 characters with large counts, links every proof and says it ran on one simulated node", () => {
   const text = evidenceText({
     liveDesk: "0xCDbfd6b9C0b97A8eE31706c6CDE5E54B4954334F",
     replayDesk: "0x4b843dc3A7ec6202d2337cdeF8C67a0F10f24746",
@@ -15,6 +15,10 @@ test("the CRE evidence text fits Builderbase's 1,500 characters with large count
   assert.ok(text.length <= MAX_CHARS, `${text.length} characters`);
   assert.match(text, /99999 reports applied \(state\(\)\.seq, read 2026-10-07 15:59 UTC\)/);
   assert.match(text, /simulate --broadcast/);
+  assert.match(text, /not granted during the hackathon: DON deployment cut\./);
+  assert.match(text, /Each run, on one simulated node:/);
+  assert.match(text, /from our operator key via MockKeystoneForwarder \(no DON signature\)/);
+  assert.doesNotMatch(text, /each node|signed report|still not enabled/);
   assert.match(text, /\/tree\/main\/docs\/evidence\nDemo video: https:\/\/drive/);
   assert.equal((text.match(/https:\/\/sepolia\.etherscan\.io\//g) ?? []).length, 4);
 });
