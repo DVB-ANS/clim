@@ -65,7 +65,7 @@ export function Dashboard({ band, initialPair = "live" }: { band: LabPTradeBand;
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <DeskPanel data={data} />
           <QuotePanel data={data} />
-          <WeatherChart key={run ? "run" : pair} data={history} initialWindow={run ? "All" : "6 h"} />
+          <WeatherChart key={run ? "run" : pair} data={history} initialWindow={run ? "All" : "1 h"} />
           <ValidationPanel data={history} band={band} />
           <PnlPanel data={history} />
           <VolQuadPanel data={history} band={band} />
