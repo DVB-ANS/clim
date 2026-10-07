@@ -66,10 +66,10 @@ export function StartHere({ data, pair }: { data: ClimData; pair: Pair }) {
               {`: Pool V against pool S, as a hedged LP sees them, from the Swap events and the desk's reports.`}
             </li>
             <li>
-              <Link className={linkCls} href="/replay">
-                The 4 February storm
+              <Link className={linkCls} href="/replay#latest">
+                The 7 October storm
               </Link>
-              {`: A real storm, replayed on Sepolia: V's fee climbs with σ, then the result against S.`}
+              {`: A real storm, priced live on Sepolia, not replayed: σ jumped, V's fee rose with it on every swap and S's stayed fixed, with the peak report and swap on Etherscan.`}
             </li>
           </ol>
         </Path>

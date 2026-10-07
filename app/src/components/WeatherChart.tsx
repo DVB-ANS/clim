@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useEffectEvent, useId, useMemo, useRef, useS
 import { CartesianGrid, ComposedChart, Legend, Line, ReferenceArea, ReferenceLine, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis } from "recharts";
 import type { ClimData } from "@/hooks/useClimData";
 import { params } from "@/lib/config";
+import { utcDay } from "@/lib/ledger";
 import { blindEpisodes, downsample, downsampleSteps, extent, swapFeeDots, weatherSeries } from "@/lib/series";
 import { COLORS, LABEL_HALO, utcTime } from "@/lib/theme";
 import {
@@ -69,13 +70,31 @@ function StepButton({ label, onClick, disabled, children }: { label: string; onC
  * edges (keyboard sliders too), use the buttons, Ctrl or ⌘ + wheel or a pinch to zoom around the
  * pointer, Shift + wheel or a sideways swipe to pan. Presets only offer windows that differ from the
  * whole history loaded (the frozen snapshot plus every block polled since).
+ * `fixed`: a past window (unix s) that stands for the whole history: the series is cut to it, the range
+ * selector spans it, and there are no presets (/replay's 7 October storm). `id`: the card's anchor, unique per page.
  */
-export function WeatherChart({ data, initialWindow = "1 h", level }: { data: ClimData; initialWindow?: string; level?: HeadingLevel }) {
+export function WeatherChart({
+  data,
+  initialWindow = "1 h",
+  level,
+  id = "weather",
+  fixed,
+}: {
+  data: ClimData;
+  initialWindow?: string;
+  level?: HeadingLevel;
+  id?: string;
+  fixed?: Range;
+}) {
   const syncId = useId();
   const box = useRef<HTMLDivElement>(null);
   const nowBucket = Math.floor(data.nowSec / 10) * 10;
-  const full = useMemo(() => weatherSeries(data.reports, params, nowBucket), [data.reports, nowBucket]);
-  const bounds: Bounds = full.length > 1 ? [full[0].t, full[full.length - 1].t] : [nowBucket - 60, nowBucket];
+  const [fixedFrom, fixedTo] = fixed ?? [];
+  const full = useMemo(() => {
+    const series = weatherSeries(data.reports, params, nowBucket);
+    return fixedFrom !== undefined && fixedTo !== undefined ? sliceSteps(series, [fixedFrom, fixedTo]) : series;
+  }, [data.reports, nowBucket, fixedFrom, fixedTo]);
+  const bounds: Bounds = full.length > 1 ? [full[0].t, full[full.length - 1].t] : fixed ?? [nowBucket - 60, nowBucket];
   const span = spanOf(bounds);
   // until the reader picks a window, the initial preset, re-decided as the history loads
   const [view, setView] = useState<View | null>(null);
@@ -140,35 +159,37 @@ export function WeatherChart({ data, initialWindow = "1 h", level }: { data: Cli
 
   return (
     <Panel
-      id="weather"
+      id={id}
       level={level}
       title="Weather: volatility and the fee it sets"
       subtitle="Top: volatility published by the CRE desk. Bottom: the fee the hook charges on every swap (line), the fee actually paid by swaps on V (dots), and the static twin S. The fee is never sent by a transaction: Uniswap calls the hook's beforeSwap, which reads σ and returns the fee."
       className="col-span-full"
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <Toggle
-          label="Time window"
-          value={active}
-          options={PRESETS.map((p) => {
-            const on = presetEnabled(p, span);
-            const all = !Number.isFinite(p.sec);
-            return {
-              value: p.label,
-              label: all ? (
-                <>
-                  All<span className="max-sm:hidden"> (since {since})</span>
-                </>
-              ) : (
-                p.label
-              ),
-              ariaLabel: all ? `All (since ${since})` : undefined,
-              title: on ? undefined : `Not distinct from All: ${durationLabel(span)} loaded`,
-              disabled: !on,
-            };
-          })}
-          onChange={(label) => setView({ kind: "preset", label })}
-        />
+        {fixed ? null : (
+          <Toggle
+            label="Time window"
+            value={active}
+            options={PRESETS.map((p) => {
+              const on = presetEnabled(p, span);
+              const all = !Number.isFinite(p.sec);
+              return {
+                value: p.label,
+                label: all ? (
+                  <>
+                    All<span className="max-sm:hidden"> (since {since})</span>
+                  </>
+                ) : (
+                  p.label
+                ),
+                ariaLabel: all ? `All (since ${since})` : undefined,
+                title: on ? undefined : `Not distinct from All: ${durationLabel(span)} loaded`,
+                disabled: !on,
+              };
+            })}
+            onChange={(label) => setView({ kind: "preset", label })}
+          />
+        )}
         <div className="flex gap-1" role="group" aria-label="Move or zoom the time window">
           <StepButton label="Earlier" disabled={from <= bounds[0]} onClick={() => setRange(panRange(range, -width / 2, bounds))}>
             ←
@@ -185,7 +206,9 @@ export function WeatherChart({ data, initialWindow = "1 h", level }: { data: Cli
         </div>
       </div>
       <p className="mb-2 text-xs text-fg-subtle">
-        {where}: {durationLabel(width)} of the {durationLabel(span)} loaded, since {since}.
+        {fixed
+          ? `${where} on ${utcDay(from)}: ${durationLabel(width)} of this ${durationLabel(span)} window.`
+          : `${where}: ${durationLabel(width)} of the ${durationLabel(span)} loaded, since ${since}.`}
       </p>
       <div ref={box}>
         <div className="h-48 w-full" role="img" aria-label={sigmaText}>
@@ -236,7 +259,7 @@ export function WeatherChart({ data, initialWindow = "1 h", level }: { data: Cli
         <RangeSelector bounds={bounds} range={range} onChange={setRange} line={overview} className="mt-2 ml-14 mr-6" />
       ) : null}
       <p className="mt-1 text-xs text-fg-subtle">
-        Under the charts, the whole history&apos;s σ: drag the window or its edges to move or resize it. On a computer, Ctrl or ⌘ + scroll (or a pinch) zooms, Shift + scroll pans.
+        Under the charts, {fixed ? "this window" : "the whole history"}&apos;s σ: drag the window or its edges to move or resize it. On a computer, Ctrl or ⌘ + scroll (or a pinch) zooms, Shift + scroll pans.
         Times in UTC.{" "}
         <span aria-hidden className="mr-1 inline-block h-2.5 w-3 border border-blind bg-blind/15 align-middle" />
         Shaded: blind mode, the desk was silent for more than {params.tauKillSec} s, so the hook quoted at least {pipsToBp(params.feeSafePips)} bp. No transaction changes the fee: every swap reads the latest CRE report.

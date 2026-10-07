@@ -28,7 +28,7 @@ import { WeatherChart } from "./WeatherChart";
  * `guide`: /app's "Start here" card goes first, above the loading branch, so its anchors render on the
  * server; it reads this dashboard's data, never a second copy. `lockPair`: the page's heading names the
  * pair (/replay's section 2), so there is no Live/Replay toggle to show the other one under it.
- * `panelLevel`: the cards' heading level, 3 when the page groups them under its own h2.
+ * `panelLevel`: the cards' heading level, 3 or 4 when the page groups them under its own h2 or h3.
  */
 export function Dashboard({
   band,

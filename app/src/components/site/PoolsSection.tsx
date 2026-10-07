@@ -154,8 +154,8 @@ export function PoolsSection({ d }: { d: LandingData }) {
                     ? `V charged more only in its safe modes, for ${spanLabel(safeSec)} (desk silent or venues apart): that, not the weather, is behind the result: ${result}.`
                     : `V charged its floor throughout: ${result}.`}{" "}
                   For a storm, see{" "}
-                  <Link href="/replay" className="text-link underline">
-                    the 4 February replay
+                  <Link href="/replay#latest" className="text-link underline">
+                    the 7 October storm, priced live
                   </Link>
                   .
                 </>

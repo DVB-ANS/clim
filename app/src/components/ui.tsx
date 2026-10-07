@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import type { FeeMode } from "@/lib/feeMath";
 import { MODE_STYLE } from "@/lib/theme";
 
-/** The heading level of a card's title: 2 by default, 3 when the page groups cards under its own h2 sections (/replay). */
-export type HeadingLevel = 2 | 3;
+/** The heading level of a card's title: 2 by default, 3 or 4 when the page groups cards under its own h2 or h3 sections (/replay). */
+export type HeadingLevel = 2 | 3 | 4;
 
 /** A data card: white, 20 px corners, hairline border, the title in the display face at weight 400. */
 export function Panel({
@@ -21,7 +21,7 @@ export function Panel({
   id?: string;
   level?: HeadingLevel;
 }) {
-  const H = level === 3 ? "h3" : "h2";
+  const H = level === 4 ? "h4" : level === 3 ? "h3" : "h2";
   return (
     <section id={id} className={`rounded-lg border border-line bg-surface p-6 ${className}`}>
       <H className="font-display text-lg font-normal tracking-tight text-fg">{title}</H>
