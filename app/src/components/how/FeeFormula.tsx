@@ -266,7 +266,7 @@ export function FeeFormula() {
               </math>
             </div>
           </Scroll>
-          <p className="mt-3 max-w-[72ch] text-[13px] leading-[1.6] text-fg-subtle">
+          <p className="mt-3 max-w-[72ch] text-[14px] leading-[1.6] text-fg-subtle [&_sub]:text-[0.86em] [&_sup]:text-[0.86em]">
             x<sub>En</sub> is x × 10<sup>n</sup> stored as an integer: η<sub>E4</sub> = {g(params.etaE4)}, (√(Δt/2))<sub>E6</sub> ={" "}
             {g(params.sqrtHalfDtE6)} and k<sub>E4</sub> = {g(K_E4_NEUTRAL)}, and the desk posts <span className="text-sigma-ink">σ</span>
             <sub>E9</sub> every 30&nbsp;s. Fees are counted in pips: 1&nbsp;bp = 100&nbsp;pips.

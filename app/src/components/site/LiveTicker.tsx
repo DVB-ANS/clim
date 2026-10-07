@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/lib/cn";
+import { setMotionPaused, useMotionPaused } from "./motionPause";
 
 export type TickerItem = { seq: number; sigmaPct: number; feeVBp: number; feeSBp: number; mode: string };
 
-/** A slim band of the latest reports, scrolling; it stops under the pointer, with its pause button and with reduced motion. */
+/**
+ * A slim band of the latest reports, scrolling; it stops under the pointer and with reduced motion. Its
+ * button pauses every looping motion on the page (the ticker, the canvases, the map's arcs, the scroll
+ * cue; motionPause.ts), so nothing keeps moving on its own once a visitor asks it to stop.
+ */
 export function LiveTicker({ items, simulated }: { items: TickerItem[]; simulated: boolean }) {
-  const [paused, setPaused] = useState(false);
+  const paused = useMotionPaused();
   if (items.length === 0) return null;
   // the row twice, the copy hidden from assistive tech, so the loop is seamless at -50%
   const row = (copy: boolean) =>
@@ -35,8 +39,9 @@ export function LiveTicker({ items, simulated }: { items: TickerItem[]; simulate
         <button
           type="button"
           aria-pressed={paused}
-          aria-label={paused ? "Play the report ticker" : "Pause the report ticker"}
-          onClick={() => setPaused((p) => !p)}
+          aria-label={paused ? "Play the page's motion" : "Pause the page's motion"}
+          title={paused ? "Play the page's motion" : "Pause the page's motion"}
+          onClick={() => setMotionPaused(!paused)}
           className="grid size-7 shrink-0 place-items-center rounded-full text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:outline-2 focus-visible:outline-accent"
         >
           <svg viewBox="0 0 12 12" className="size-3" aria-hidden>

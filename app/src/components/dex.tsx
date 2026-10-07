@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 import { LOGOS } from "./site/logos";
 
 /** tETH wears Ethereum's mark, tUSD a dollar sign: the two test tokens of the pair (a mark, next to the symbol). */
@@ -66,7 +66,7 @@ export function FlipButton({ onClick, label }: { onClick: () => void; label: str
         type="button"
         onClick={onClick}
         aria-label={label}
-        className="grid size-10 place-items-center rounded-md border-4 border-surface bg-surface-2 text-fg transition-transform duration-300 hover:rotate-180"
+        className="grid size-10 place-items-center rounded-md border-4 border-surface bg-surface-2 text-fg transition-transform duration-300 hover:rotate-180 focus-visible:outline-2 focus-visible:outline-accent"
       >
         <svg viewBox="0 0 16 16" className="size-4" aria-hidden>
           <path d="M8 2.5v11M3.5 9 8 13.5 12.5 9" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -78,8 +78,22 @@ export function FlipButton({ onClick, label }: { onClick: () => void; label: str
 
 export type PoolOption<T extends string> = { value: T; title: string; subtitle: string; fee: string; badge?: ReactNode };
 
-/** Pool choice as two cards: name, what sets its fee, the fee now. */
+// arrow keys move the choice, as in a native radio group
+const ARROWS: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+
+/**
+ * Pool choice as two cards: name, what sets its fee, the fee now. A radio group: one tab stop (the
+ * chosen card), arrow keys to change the choice, and a navy focus ring apart from the blue selection.
+ */
 export function PoolCards<T extends string>({ value, options, onChange }: { value: T; options: PoolOption<T>[]; onChange: (v: T) => void }) {
+  const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
+    const d = ARROWS[e.key];
+    if (!d) return;
+    e.preventDefault();
+    const i = (options.findIndex((x) => x.value === value) + d + options.length) % options.length;
+    onChange(options[i].value);
+    (e.currentTarget.parentElement?.children[i] as HTMLElement | undefined)?.focus();
+  };
   return (
     <div role="radiogroup" aria-label="Pool" className="grid grid-cols-2 gap-2">
       {options.map((o) => {
@@ -90,8 +104,10 @@ export function PoolCards<T extends string>({ value, options, onChange }: { valu
             type="button"
             role="radio"
             aria-checked={on}
+            tabIndex={on ? 0 : -1}
             onClick={() => onChange(o.value)}
-            className={`rounded-md p-3 text-left transition-[box-shadow,background-color] duration-200 ${on ? "bg-surface shadow-[0_0_0_1.5px_var(--clim-signal)]" : "bg-surface-2 hover:bg-surface"}`}
+            onKeyDown={onKeyDown}
+            className={`rounded-md p-3 text-left transition-[box-shadow,background-color] duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-deep ${on ? "bg-surface shadow-[0_0_0_1.5px_var(--clim-signal)]" : "bg-surface-2 hover:bg-surface"}`}
           >
             <span className="flex items-center justify-between gap-2">
               <span className="text-sm font-medium">{o.title}</span>

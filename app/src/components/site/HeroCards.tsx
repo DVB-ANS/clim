@@ -75,7 +75,7 @@ export function HeroCards({ live }: { live: HeroLive }) {
         className="rise relative overflow-hidden rounded-md bg-lcd-bg p-4 text-lcd-lit shadow-[0_10px_30px_rgba(14,17,25,0.22)] lg:absolute lg:right-[2%] lg:top-[300px] lg:w-[46%]"
         style={{ animationDelay: "360ms" }}
       >
-        <div className="flex items-center justify-between text-[11px]">
+        <div className="flex items-center justify-between text-xs">
           <span className="text-lcd-lit/80">CL-1 · risk desk</span>
           <span className="font-lcd text-xs font-bold tracking-wider text-lcd-hot">#{live.seq ?? "…"}</span>
         </div>
@@ -83,10 +83,11 @@ export function HeroCards({ live }: { live: HeroLive }) {
           <LcdStorm sigmaPct={live.sigmaPct ?? 40} className="absolute inset-0 h-full w-full" />
           <div className="absolute inset-x-3 bottom-2 flex items-end justify-between font-lcd text-lcd-lit">
             <span>
-              <span className="block text-[10px] font-bold opacity-70">σ %/YR</span>
+              {/* the labels sit on the screen's own ground, so lit dots never run through their letters */}
+              <span className="block w-fit rounded-sm bg-lcd-bg px-1 text-xs font-bold">σ %/YR</span>
               <span className="text-[34px] font-black leading-none tabular-nums">{live.sigmaPct === undefined ? "…" : live.sigmaPct.toFixed(1)}</span>
             </span>
-            <span className="text-right text-xs font-bold uppercase">{live.modeLabel ?? ""}</span>
+            <span className="rounded-sm bg-lcd-bg px-1 text-right text-xs font-bold uppercase">{live.modeLabel ?? ""}</span>
           </div>
         </div>
       </article>

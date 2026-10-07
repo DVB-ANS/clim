@@ -5,7 +5,7 @@
 import { motion, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
-import { Cursor } from "./Cursor";
+import { CursorTag } from "./CursorTag";
 
 /* Both pieces start as a point at the frame's top-left and grow to its bottom-right. Sizes are
    percentages of the frame, so the box follows the word through font swaps and breakpoints with
@@ -26,9 +26,9 @@ const DRAW_S = 1;
 
 /**
  * Marks an inline word: once it scrolls into view, and `delay` seconds later, a pink box draws itself
- * around it while clim's cursor, tagged `label`, drags the box's bottom-right corner into place; the
- * tag hangs to the left of the corner, inside the word's width, so it never leaves the hero.
- * Spans only (it sits inside an h1); the box and the cursor are hidden from assistive tech and
+ * around it while a name tag, `label`, rides the box's bottom-right corner into place; the tag hangs to
+ * the left of the corner, inside the word's width, so it never leaves the hero.
+ * Spans only (it sits inside an h1); the box and the tag are hidden from assistive tech and
  * left out of copied text.
  */
 export function PointerHighlight({
@@ -62,7 +62,7 @@ export function PointerHighlight({
           variants={pointer}
           transition={{ default: draw, scale: { delay, duration: 0.2, ease: "easeOut" } }}
         >
-          <Cursor label={label} still dot flip arrow={false} className="-right-px -top-px w-max" />
+          <CursorTag label={label} className="-right-px -top-px w-max" />
         </motion.span>
       </span>
     </motion.span>

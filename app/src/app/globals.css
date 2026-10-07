@@ -34,7 +34,7 @@
   --clim-accent-fg: #ffffff;
   --clim-accent-strong: #0036c9; /* Chainlink blue 800: the Launch pill's hover sweep, white 8.9:1 */
   --clim-signal: #0847f7; /* the highlight: link underlines, live marks, pool V */
-  --clim-deep: #1a2b6b; /* navy: captions, arrows, cursors */
+  --clim-deep: #1a2b6b; /* navy: captions, arrows, isobars */
 
   /* Uniswap pinks: a UI tint ramp (50-500 and 900 are Uniswap's own values), not a chart scale */
   --clim-pink-50: #fef4ff;
@@ -180,18 +180,8 @@ h3 {
   }
 }
 
-/* Motion of the landing page: drifting cursors, the report ticker, data flowing on the map arcs,
-   the hero rising in on load */
-@keyframes clim-float {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(6px, -5px);
-  }
-}
-
+/* Motion of the landing page: the report ticker, data flowing on the map arcs, the hero rising in on
+   load */
 @keyframes clim-marquee {
   from {
     transform: translateX(0);
@@ -264,6 +254,25 @@ html:has([data-app-header]) {
   scroll-padding-top: calc(var(--clim-app-header) + 12px);
 }
 
+/* RainbowKit's wallet buttons keep Chrome's 1 px ring, lost on their blue fill: the app's own ring instead
+   (RainbowKitProvider's div[data-rk] wraps the whole app; unlayered, specificity 0,3,1, so it wins over
+   RainbowKit's atomic classes) */
+[data-rk] [data-app-header] button:focus-visible {
+  outline: 2px solid var(--clim-accent);
+  outline-offset: 2px;
+}
+
+/* A phone in landscape (under 500 px of height): the two-row header scrolls away instead of covering a
+   third of the screen */
+@media (max-height: 500px) {
+  [data-app-header] {
+    position: static;
+  }
+  html:has([data-app-header]) {
+    scroll-padding-top: 12px;
+  }
+}
+
 /* The landing: anchors land below the floating pill; the hero's words rise one by one (Uniswap's
    landing pattern); the "scroll to learn more" chevron bobs; the pools' seam is a dotted line. */
 .anchor {
@@ -288,6 +297,12 @@ html:has([data-app-header]) {
 
 .scroll-cue {
   animation: clim-bob 2s ease-in-out infinite;
+}
+
+/* The ticker's pause button stops every loop on the page (motionPause.ts); never a * selector, which
+   would freeze the scroll-driven entrances at opacity 0 */
+html[data-motion="paused"] .motion-loop {
+  animation-play-state: paused;
 }
 
 .dotted-divider {

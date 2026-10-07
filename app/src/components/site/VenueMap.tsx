@@ -34,17 +34,17 @@ export function VenueMap({ className = "" }: { className?: string }) {
               stroke="var(--clim-deep)"
               strokeWidth={0.35}
               strokeDasharray="1.4 1.6"
-              className="animate-[clim-dash_1.6s_linear_infinite]"
+              className="motion-loop animate-[clim-dash_1.6s_linear_infinite]"
             />
             <circle cx={x} cy={y} r={1.15} fill="var(--clim-signal)" stroke="var(--clim-surface)" strokeWidth={0.4} />
-            <text x={x + p.lx} y={y + p.ly} textAnchor={p.anchor} fontSize={2.4} fill="var(--clim-fg)" fontFamily="var(--font-inter)" className="max-sm:hidden">
+            <text x={x + p.lx} y={y + p.ly} textAnchor={p.anchor} fontSize={2.8} fill="var(--clim-fg)" fontFamily="var(--font-inter)" className="max-sm:hidden">
               {name === "Deribit" ? "Deribit DVOL" : name}
             </text>
           </g>
         );
       })}
       <circle cx={CRE[0]} cy={CRE[1]} r={2.1} fill="var(--clim-fg)" />
-      <text x={CRE[0] + 3.2} y={CRE[1] + 0.9} fontSize={2.4} fill="var(--clim-fg)" fontFamily="var(--font-inter)" className="max-sm:hidden">
+      <text x={CRE[0] + 3.2} y={CRE[1] + 0.9} fontSize={2.8} fill="var(--clim-fg)" fontFamily="var(--font-inter)" className="max-sm:hidden">
         Chainlink CRE · median (simulator)
       </text>
     </svg>

@@ -42,7 +42,7 @@ export function ActionButton({ mode, disabled, block, onClick, children }: { mod
   const { isConnected, chainId } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { openChainModal } = useChainModal();
-  const cls = `inline-flex items-center justify-center rounded-full bg-accent px-5 font-medium text-accent-fg transition-[filter,opacity] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 ${block ? "min-h-14 w-full text-[17px]" : "min-h-11 text-[15px]"}`;
+  const cls = `inline-flex items-center justify-center rounded-full bg-accent px-5 font-medium text-accent-fg transition-[filter,opacity] hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 ${block ? "min-h-14 w-full text-[17px]" : "min-h-11 text-[15px]"}`;
   if (mode === "chain" && !isConnected) {
     return <button type="button" className={cls} onClick={openConnectModal}>Connect a wallet</button>;
   }

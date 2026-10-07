@@ -15,7 +15,7 @@ const HEADLINE = ["Your", "Liquidity.", "Our", "Risk", "Desk.", "Fees", "That", 
 
 /**
  * The hero, with no bar above it: the wordmark, the promise (its words rise one by one, then a pink box
- * draws around "Storm" with the desk's σ on its cursor), one sentence of mechanism, Launch app first
+ * draws around "Storm" with the desk's σ on its tag), one sentence of mechanism, Launch app first
  * and largest, a live trust line, and the desk's cards on the right. "Scroll to learn more" closes it.
  */
 export function HeroSection({ d }: { d: LandingData }) {
@@ -90,7 +90,7 @@ export function HeroSection({ d }: { d: LandingData }) {
           className="mx-auto mb-6 flex flex-col items-center gap-1 rounded-sm text-[13px] text-fg-subtle hover:text-fg focus-visible:outline-2 focus-visible:outline-accent"
         >
           Scroll to learn more
-          <svg viewBox="0 0 16 16" className="scroll-cue size-4" aria-hidden>
+          <svg viewBox="0 0 16 16" className="scroll-cue motion-loop size-4" aria-hidden>
             <path d="M3.5 6 8 10.5 12.5 6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </a>

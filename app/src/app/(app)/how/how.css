@@ -15,6 +15,11 @@
 .fee-math .fee-display-int math {
   font-size: 15px;
 }
+/* MathML sets scripts and nested fractions at about 71 % of their base: keep them at 12 px at least */
+.fee-math math :is(msub, msup, msubsup) > :not(:first-child),
+.fee-math math mfrac mfrac > * {
+  font-size: max(12px, 0.71em);
+}
 @media (min-width: 640px) {
   .fee-math .fee-display math {
     font-size: 22px;
@@ -149,7 +154,7 @@
 }
 .faq-list .faq-answer :not(pre) > code {
   font-family: var(--clim-font-mono);
-  font-size: 0.85em;
+  font-size: max(12px, 0.85em);
   background: var(--clim-surface-2);
   border-radius: 4px;
   padding: 0.1em 0.2em;

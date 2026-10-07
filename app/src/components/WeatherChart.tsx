@@ -36,7 +36,7 @@ const MAX_DOTS = 300;
 const OVERVIEW_POINTS = 300;
 const Y_AXIS_W = 56;
 const MARGIN_R = 16;
-const axisTick = { fontSize: 11, fill: COLORS.muted };
+const axisTick = { fontSize: 12, fill: COLORS.muted };
 
 /** The window shown: a preset (it follows new reports), or one the reader set (it follows them only when it ends at the latest). */
 type View = { kind: "preset"; label: string } | { kind: "custom"; from: number; to: number; follow: boolean };
@@ -193,7 +193,7 @@ export function WeatherChart({ data, initialWindow = "1 h" }: { data: ClimData; 
                 {...TOOLTIP}
                 content={<ChartTooltip only={["sigmaPct", "sigmaReportedPct", "dvolPct"]} labelFormat={(t) => `${utcTime(Number(t))} UTC`} valueFormat={(v) => `${v.toFixed(1)}%`} />}
               />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
               <Line type="stepAfter" dataKey="sigmaPct" name="σ applied" stroke={COLORS.sigma} strokeWidth={2} dot={false} isAnimationActive={false} />
               <Line type="stepAfter" dataKey="sigmaReportedPct" name="σ reported" stroke={COLORS.muted} strokeWidth={1} strokeDasharray="3 3" dot={false} isAnimationActive={false} />
               <Line type="stepAfter" dataKey="dvolPct" name="DVOL" stroke={COLORS.muted} strokeWidth={1} dot={false} isAnimationActive={false} />
@@ -207,11 +207,11 @@ export function WeatherChart({ data, initialWindow = "1 h" }: { data: ClimData; 
               <XAxis dataKey="t" type="number" domain={[from, to]} allowDataOverflow tickFormatter={utcTime} tick={axisTick} />
               <YAxis unit=" bp" tick={axisTick} width={Y_AXIS_W} />
               <Tooltip {...TOOLTIP} content={<ChartTooltip only={["feeVBp"]} labelFormat={(t) => `${utcTime(Number(t))} UTC`} valueFormat={(v) => `${v.toFixed(2)} bp`} />} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
               {blind.map((e) => (
                 <ReferenceArea key={e.from} x1={Math.max(e.from, from)} x2={Math.min(e.to, to)} fill={COLORS.blind} fillOpacity={0.08} />
               ))}
-              <ReferenceLine y={staticFeeBp} stroke={COLORS.S} strokeWidth={2} strokeDasharray="6 3" label={{ value: "S static", position: "insideTopRight", fontSize: 11 }} />
+              <ReferenceLine y={staticFeeBp} stroke={COLORS.S} strokeWidth={2} strokeDasharray="6 3" label={{ value: "S static", position: "insideTopRight", fontSize: 12 }} />
               <Line type="stepAfter" dataKey="feeVBp" name="V fee (hook)" stroke={COLORS.V} strokeWidth={2} dot={false} isAnimationActive={false} />
               <Scatter data={dots} dataKey="feeBp" name="V swaps (fee paid)" fill={COLORS.V} isAnimationActive={false} shape={(p: { cx?: number; cy?: number }) => <circle cx={p.cx} cy={p.cy} r={2} fill={COLORS.V} fillOpacity={0.6} />} />
             </ComposedChart>
