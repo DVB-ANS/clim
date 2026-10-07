@@ -468,11 +468,11 @@ A functional dashboard with wallet connect, restyled later (Frontend scope upgra
 | Page | Content |
 |---|---|
 | `/` | Landing: the problem, how it works, the live desk and both pools in widgets |
-| `/app` | The "Start here" guided path (watch it run, verify it on chain with Etherscan links, try it yourself), then the live dashboard (panels below) and the "Contracts on Sepolia" panel |
-| `/replay` | The 7 October 2026 storm priced live by the desk (`#latest`), then the 4 February 2026 replay |
+| `/app` | The desk now in one strip (last CRE report, σ, V's fee and mode, S's fee), then three moves: see it (the weather chart), verify it on Etherscan (one line per claim, with its links) and try it (wallet, test tokens and a swap on each pool, at `/swap`). The live dashboard (panels below) and the "Contracts on Sepolia" panel sit in a closed "Full dashboard" section (2026-10-07 simplification, `docs/superpowers/specs/2026-10-07-app-simplify-design.md`) |
+| `/replay` (nav: Storm) | The 7 October 2026 storm priced live by the desk (`#latest`), then the 4 February 2026 replay in two lines, with its on-chain replay in a closed section (`#onchain`) |
 | `/lab` | The lab's backtests (both comparisons, honest numbers) |
 | `/how` | How the fee is computed, with the live parameters, and `docs/faq.md` |
-| `/swap` | `quoteFee()` before the swap ("you will pay X bp because the weather is Y"), a swap on V or S through `uniswap.poolSwapTest` (never `routers.arb`, so it counts as retail), then the fee actually paid, read from the `Swap` event |
+| `/swap` | Three steps: a wallet on Sepolia, the test tokens (`TestToken.faucet()`, `#faucet`), then `quoteFee()` before the swap ("you will pay X bp because the weather is Y"), a swap on V or S through `uniswap.poolSwapTest` (never `routers.arb`, so it counts as retail), then the fee actually paid, read from the `Swap` event |
 | `/lp` | `TestToken.faucet()`, full-range liquidity added to or removed from V or S through `PoolModifyLiquidityTest` with `salt` = the user's address, the position (`StateView.getPositionInfo`), uncollected fees and the P&L against the same liquidity in the twin pool. The test router does not authenticate removals by salt: testnet only, said on the page |
 | `/credits` | Third-party notices (`app/THIRD_PARTY_NOTICES.md`) |
 
