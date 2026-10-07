@@ -930,7 +930,7 @@ Expected: FAIL with `Cannot find module '.../docs/submission/src/fee.mjs'`.
 `docs/submission/src/fee.mjs`:
 ```js
 // Fee helpers for the README. The formula itself lives in shared/src/units.ts (plan 04), the TypeScript
-// mirror of ClimFeeMath that the bots and the app also use; Node 22 imports it directly (type stripping).
+// mirror of ClimFeeMath that the bots also use (the app ships its own port, app/src/lib/feeMath.ts); Node 22 imports it directly (type stripping).
 export {
   SECONDS_PER_YEAR,
   feePips,
@@ -3762,7 +3762,7 @@ To reproduce, see [Getting started](../../README.md#getting-started) in the main
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run readme`
 Expected: `README.md updated: links, results, params, fee-schedule, deployments, evidence, team`.
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/evidence README.md bots/out/cre-runs.jsonl && { [ ! -f bots/out/security-demos.jsonl ] || git add bots/out/security-demos.jsonl; } && git commit -m "docs(evidence): CRE reports on Sepolia, simulate transcripts and run records"
+cd /Users/fianso/Development/hackathons/clim && P=(docs/evidence README.md bots/out/cre-runs.jsonl) && { [ ! -f bots/out/security-demos.jsonl ] || P+=(bots/out/security-demos.jsonl); } && git add "${P[@]}" && git commit -m "docs(evidence): CRE reports on Sepolia, simulate transcripts and run records" -- "${P[@]}"
 ```
 
 ---
@@ -3792,7 +3792,7 @@ Read the whole README once. The hand-written text must not contradict the genera
 - [ ] **Step 3: Commit** **End of session.**
 
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/media/fee-follows-weather.png README.md && git commit -m "docs: README figure and numbers at the deployed parameters"
+cd /Users/fianso/Development/hackathons/clim && git add docs/media/fee-follows-weather.png README.md && git commit -m "docs: README figure and numbers at the deployed parameters" -- docs/media/fee-follows-weather.png README.md || echo "nothing to commit"
 ```
 
 ---
@@ -3940,7 +3940,7 @@ Expected: 10 images, `slide-01.jpg` to `slide-10.jpg`. Open every image with the
 
 4. Commit the new count and slide 07:
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/submission/deck/v2/live.json docs/submission/deck/v2/png/07-live.png && git commit -m "chore(deck): live report count on slide 07"
+cd /Users/fianso/Development/hackathons/clim && P=(docs/submission/deck/v2/live.json docs/submission/deck/v2/png/07-live.png) && git add "${P[@]}" && git commit -m "chore(deck): live report count on slide 07" -- "${P[@]}"
 ```
 
 - [ ] **Step 5 (maintainer): Play it in PowerPoint (or Keynote) and set the stage video to start by itself** **Maintainer's step.**
@@ -3993,7 +3993,7 @@ Expected: `README.md updated: ...`, then every line `OK`, then `exit=0`.
 - [ ] **Step 5: Commit** **Maintainer's step.**
 
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/submission/links.json README.md && git commit -m "docs: deck and demo video links"
+cd /Users/fianso/Development/hackathons/clim && git add docs/submission/links.json README.md && git commit -m "docs: deck and demo video links" -- docs/submission/links.json README.md
 ```
 
 To change the deck before submitting, keep the same link: right click the file, File information, Manage versions, Upload new version. Never change it after submitting (the rules lock slides at submission).
@@ -4017,7 +4017,7 @@ Expected: `# pass 40`, `# fail 0`, `0`.
 Run: `cd /Users/fianso/Development/hackathons/clim/docs/submission && npm run scan`
 Expected: `no .env secret in the patches of <c> commits (all refs)`, then `no .env secret in <n> tracked files (<m> secret values checked)`. Also run `cd /Users/fianso/Development/hackathons/clim && git status --short | grep -E "\.env$|secrets\.yaml$"` and expect no output. Any leak: rotate that testnet key at once (main is public and pushed as work goes on, so a value in any pushed commit counts as exposed, rewritten or not), then remove the value.
 
-- [ ] **Step 3: Clean-clone smoke test of "Getting started"** **End of session.**
+- [x] **Step 3: Clean-clone smoke test of "Getting started"** Done on 2026-10-07 at `9edd30f` (session log 2026-10-07: forge 73 passed, 2 skipped; lab 77 passed, 5 skipped; `cre workflow simulate` completes without a broadcast; the app installs, syncs and builds; no README fix needed). Since then README Getting started, the lockfiles and `.gitmodules` are unchanged, and so is the code under contracts/, lab/ and bots/; under cre/risk-desk/ and shared/ only a comment in `scripts/latency.ts` and the removal of the unused `poolManagerAbi` from `shared/src/abis.ts` changed (shared, bots and risk-desk tests and typechecks green, session log 2026-10-07), and `app/package.json` only gained the `licenses` script. Re-run it only if one of them changes before the final push.
 
 ```bash
 T=$(mktemp -d) && git clone --recurse-submodules /Users/fianso/Development/hackathons/clim $T/clim && cd $T/clim
@@ -4033,10 +4033,11 @@ Expected: forge reports all tests passed, pytest passes, the simulation prints a
 - **README Getting started:** fixed `<command>` (clean-clone test).
 ```
 
-- [ ] **Step 4: Commit** **End of session.**
+- [x] **Step 4: Commit** Nothing to commit: the clean-clone test at `9edd30f` needed no README fix.
 
+For a re-run, commit only what Step 3 fixed (add to `P` any other file it fixed, such as a `.env.example`):
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add -A README.md docs && git commit -m "docs: README commands checked on a clean clone" || echo "nothing to commit"
+cd /Users/fianso/Development/hackathons/clim && P=(README.md docs/sessions) && git add "${P[@]}" && git commit -m "docs: README commands checked on a clean clone" -- "${P[@]}" || echo "nothing to commit"
 ```
 
 ---
@@ -4115,7 +4116,7 @@ Submit. Do not change the Drive files afterwards. Append to today's session log:
 - **Submitted:** main track and Chainlink CRE track on Builderbase. Repo, live URL and deck links as in `docs/submission/links.json`.
 ```
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/sessions && git commit -m "docs(session): submission logged"
+cd /Users/fianso/Development/hackathons/clim && git add docs/sessions && git commit -m "docs(session): submission logged" -- docs/sessions
 ```
 Push this commit only if the maintainer asks.
 
@@ -4185,7 +4186,7 @@ cd /Users/fianso/Development/hackathons/clim && git add docs/feedback/cre-fricti
 
 Append to today's session log every mentor, judge or organizer feedback received while demoing or submitting that is not logged yet (one line each, `- **<who>:** <what>, <what we did>`). Commit:
 ```bash
-cd /Users/fianso/Development/hackathons/clim && git add docs/sessions && git commit -m "docs(session): feedback from submission day" || echo "nothing to commit"
+cd /Users/fianso/Development/hackathons/clim && git add docs/sessions && git commit -m "docs(session): feedback from submission day" -- docs/sessions || echo "nothing to commit"
 ```
 
 - [ ] **Step 2: Private vault notes (never committed)** **End of session.**
@@ -4278,7 +4279,7 @@ Read the numbers in brackets from `lab/out/backtest-summary.json` and `shared/pa
 
 **Project link (main-track field):** the full demo video's Google Drive link, `videoUrl` in `docs/submission/links.json` (Task 18); the 10-slide deck embeds only the 30-second stage cut. The live URL, https://clim-zeta.vercel.app, is on slides 01, 07 and 10 and in the README. If the full video was cut, the live URL.
 
-**Short description:** A liquidity provider is an insurer: arbitrage bots make it pay every time the market moves. clim gives it a premium that follows the market's weather: four exchanges, read every 30 seconds by a Chainlink CRE workflow and required to agree, publish one volatility figure on-chain, and a Uniswap v4 hook turns it into the fee of every swap, at the market price when it is calm and rising in a storm. Chainlink CRE is the only partner track we entered, on purpose: the product is built around it (the risk desk is the CRE workflow, and without a fresh CRE report the hook falls back to the safe fee).
+**Short description:** A liquidity provider is an insurer: arbitrage bots make it pay every time the market moves. clim gives it a premium that follows the market's weather: four exchanges, read every 30 seconds by a Chainlink CRE workflow and required to agree, publish one volatility figure on-chain, and a Uniswap v4 hook turns it into the fee of every swap: the pair's usual 5 bp tier when it is calm, rising with volatility in a storm. Chainlink CRE is the only partner track we entered, on purpose: the product is built around it (the risk desk is the CRE workflow, and without a fresh CRE report the hook falls back to the safe fee).
 
 **Long description:**
 clim is a volatility-indexed LP fee with a prediction you can check. A Chainlink CRE workflow (the "risk desk") fetches one-minute ETH prices from Coinbase, Kraken, Binance and Hyperliquid, drops stale venues, requires a quorum of three, computes 15-minute realized volatility and venue dispersion, takes the median of each field with CRE's consensus API, and writes one report to `RiskDesk.sol` every 30 seconds. During the hackathon it runs in the CRE simulator (`cre workflow simulate --broadcast`, one node), and the operator key sends each report through Chainlink's MockKeystoneForwarder on Sepolia: DON deploy access was requested on 6 October 2026 (22:56 SGT) and not granted during the hackathon, so the DON deployment was cut. The workflow is written with the consensus API for a DON, where the nodes would sign the report, and has not run on one. Chainlink CRE is the only partner track we entered, on purpose: the product is built around it, and without a fresh CRE report the hook falls back to the safe fee. A Uniswap v4 hook built on OpenZeppelin's `BaseOverrideFee` reads the desk inside every swap and returns the fee: the pair's market tier when it is calm, η standard deviations of the half-block price move in a storm, and a safe fee if the desk goes silent or the venues disagree. η is chosen so that a known share of blocks gets arbitraged (Milionis, Moallemi and Roughgarden 2023; Nezlobin and Tassy 2025), which we check against what happens on-chain and on historical data. Live on Sepolia with twin pools (the clim pool, and a fixed-fee twin whose fee was set before deployment at the lab's forecast of clim's average fee; the live averages differ since the 7 October storm), our own arbitrage and retail bots, a finished on-chain replay of the 4 February 2026 storm, and a dashboard; on 7 October 2026 the live desk priced a real storm (volatility up to 242 % a year, fee up to 26.50 bp). Numbers, limits and evidence are in the README.

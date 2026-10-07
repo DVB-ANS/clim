@@ -70,7 +70,7 @@
 | `shared/src/units.ts` | Unit conversions (sigma, pips, bp, eta, P_trade) and the `feePips` and `quoteFeeMirror` mirrors of ClimFeeMath and ClimHook |
 | `shared/src/price.ts` | `sqrtPriceX96` <-> ETH price in USD for either token order and any decimals; v4 price bounds |
 | `shared/src/report.ts` | CRE report ABI (9 fields), encode and decode, MockKeystoneForwarder raw report builder |
-| `shared/src/abis.ts` | Typed `as const` ABI fragments: StateView, PoolSwapTest (with v4 errors), PoolManager events, RiskDesk, ClimHook, TestToken, MockKeystoneForwarder |
+| `shared/src/abis.ts` | Typed `as const` ABI fragments: StateView, PoolSwapTest (with v4 errors), RiskDesk, ClimHook, TestToken, MockKeystoneForwarder (the unused PoolManager events fragment was removed on 2026-10-07, commit `4719557`) |
 | `shared/src/config.ts` | Types and validated loaders for deployments and params; `poolIdFromKey`, `resolvePair`, `orientationOf`, `arbRouter` |
 | `shared/src/index.ts` | Barrel export |
 | `shared/deployments/sepolia.json` | Addresses (verified infrastructure now; plan 01 fills the rest) |
@@ -1002,38 +1002,6 @@ export const poolSwapTestAbi = [
   },
 ] as const;
 
-/** v4-core src/interfaces/IPoolManager.sol events (the Swap event's `fee` is the fee actually charged). */
-export const poolManagerAbi = [
-  {
-    type: "event",
-    name: "Swap",
-    inputs: [
-      { name: "id", type: "bytes32", indexed: true },
-      { name: "sender", type: "address", indexed: true },
-      { name: "amount0", type: "int128", indexed: false },
-      { name: "amount1", type: "int128", indexed: false },
-      { name: "sqrtPriceX96", type: "uint160", indexed: false },
-      { name: "liquidity", type: "uint128", indexed: false },
-      { name: "tick", type: "int24", indexed: false },
-      { name: "fee", type: "uint24", indexed: false },
-    ],
-  },
-  {
-    type: "event",
-    name: "Initialize",
-    inputs: [
-      { name: "id", type: "bytes32", indexed: true },
-      { name: "currency0", type: "address", indexed: true },
-      { name: "currency1", type: "address", indexed: true },
-      { name: "fee", type: "uint24", indexed: false },
-      { name: "tickSpacing", type: "int24", indexed: false },
-      { name: "hooks", type: "address", indexed: false },
-      { name: "sqrtPriceX96", type: "uint160", indexed: false },
-      { name: "tick", type: "int24", indexed: false },
-    ],
-  },
-] as const;
-
 /** contracts/src/RiskDesk.sol (canonical interface). */
 export const riskDeskAbi = [
   {
@@ -1138,7 +1106,7 @@ When plan 01 has compiled the contracts: `contracts/script/export-abis.sh` (plan
 git add shared/src/abis.ts shared/test/abis.test.ts
 git commit -m "feat(shared): typed ABI fragments"
 ```
-(Committed as `8dfd1cf` "feat(shared): typed ABI fragments and ABI export script", with the export script removed since.)
+(Committed as `8dfd1cf` "feat(shared): typed ABI fragments and ABI export script", with the export script removed since. The `poolManagerAbi` fragment it also held was removed on 2026-10-07, commit `4719557`: nothing imported it, and the app keeps its own copy.)
 
 ---
 

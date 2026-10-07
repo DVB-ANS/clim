@@ -270,7 +270,9 @@ secretsNames: {}
 # Sends the report transactions of `cre workflow simulate --broadcast` through the Sepolia MockKeystoneForwarder.
 # Its address must be RiskDesk's simOperator (plan 01), otherwise RiskDesk rejects every simulated report.
 CRE_ETH_PRIVATE_KEY=
-# RPC used by risk-desk/scripts/latency.ts (the CLI itself uses project.yaml).
+# Optional RPC for risk-desk/scripts/latency.ts (unset: the public RPC). Bun loads .env from the working
+# directory only: run it from cre/ (bun risk-desk/scripts/latency.ts <desk> [blocks]), or from cre/risk-desk
+# with --env-file=../.env. The CLI itself uses project.yaml.
 SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
 ```
 
@@ -2615,6 +2617,8 @@ Expected: `seq` and the count have both grown by about 2 per minute.
 // End-to-end latency of the risk desk: for each RiskReported event, block.timestamp - tObs
 // (DON observation time -> on-chain inclusion). Usage (from cre/risk-desk):
 //   bun scripts/latency.ts <deskAddress> [blocks=600]
+// RPC: SEPOLIA_RPC_URL, else the public Sepolia RPC. Bun loads .env from the working directory only, so
+// to use the RPC in cre/.env add --env-file=../.env (or run bun risk-desk/scripts/latency.ts from cre/).
 import { createPublicClient, http, parseAbiItem } from 'viem'
 import { sepolia } from 'viem/chains'
 

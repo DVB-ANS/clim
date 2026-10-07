@@ -1,5 +1,5 @@
 // Fee helpers for the README. The formula itself lives in shared/src/units.ts (plan 04), the TypeScript
-// mirror of ClimFeeMath that the bots and the app also use; Node 22 imports it directly (type stripping).
+// mirror of ClimFeeMath that the bots also use (the app ships its own port, app/src/lib/feeMath.ts); Node 22 imports it directly (type stripping).
 export {
   SECONDS_PER_YEAR,
   feePips,
